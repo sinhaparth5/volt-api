@@ -16,20 +16,20 @@
 - [x] Custom scrollbars
 
 ## Phase 2: Persistence & History
-- [ ] SQLite database integration (Go side)
-- [ ] Create `requests` table schema
-- [ ] Save request on send (method, url, headers, body, timestamp)
-- [ ] Save response data (status, headers, body, timing)
-- [ ] `GetHistory()` Go method to fetch past requests
-- [ ] `DeleteHistoryItem(id)` Go method
-- [ ] `ClearHistory()` Go method
-- [ ] History sidebar component (React)
-- [ ] Display request list with method badge + URL
-- [ ] Click to load previous request into editor
-- [ ] Delete individual history items
-- [ ] Clear all history button
-- [ ] Search/filter history
-- [ ] Timestamp display (relative: "2 min ago")
+- [x] SQLite database integration (Go side)
+- [x] Create `requests` table schema
+- [x] Save request on send (method, url, headers, body, timestamp)
+- [x] Save response data (status, headers, body, timing)
+- [x] `GetHistory()` Go method to fetch past requests
+- [x] `DeleteHistoryItem(id)` Go method
+- [x] `ClearHistory()` Go method
+- [x] History sidebar component (React)
+- [x] Display request list with method badge + URL
+- [x] Click to load previous request into editor
+- [x] Delete individual history items
+- [x] Clear all history button
+- [x] Search/filter history
+- [x] Timestamp display (relative: "2 min ago")
 
 ## Phase 3: Collections & Organization
 - [ ] Create collections (folders for requests)

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 
@@ -206,6 +207,34 @@ func (d *Database) Close() error {
 	return nil
 }
 
+// sensitiveHeaders lists headers that should not be stored in history
+var sensitiveHeaders = map[string]bool{
+	"authorization":       true,
+	"cookie":              true,
+	"set-cookie":          true,
+	"x-api-key":           true,
+	"x-auth-token":        true,
+	"x-access-token":      true,
+	"api-key":             true,
+	"bearer":              true,
+	"proxy-authorization": true,
+}
+
+// filterSensitiveHeaders removes sensitive headers before storing
+func filterSensitiveHeaders(headers map[string]string) map[string]string {
+	if headers == nil {
+		return nil
+	}
+	filtered := make(map[string]string, len(headers))
+	for k, v := range headers {
+		// Check lowercase version of header name
+		if !sensitiveHeaders[strings.ToLower(k)] {
+			filtered[k] = v
+		}
+	}
+	return filtered
+}
+
 // SaveRequest saves a request and response to history
 func (d *Database) SaveRequest(method, url string, headers map[string]string, body string, statusCode int, timingMs int64) (string, error) {
 	d.mu.Lock()
@@ -214,7 +243,9 @@ func (d *Database) SaveRequest(method, url string, headers map[string]string, bo
 	id := uuid.New().String()
 	createdAt := time.Now().Unix()
 
-	headersJSON, err := json.Marshal(headers)
+	// Filter out sensitive headers before saving
+	safeHeaders := filterSensitiveHeaders(headers)
+	headersJSON, err := json.Marshal(safeHeaders)
 	if err != nil {
 		headersJSON = []byte("{}")
 	}
