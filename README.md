@@ -52,6 +52,9 @@ Run in live development mode:
 
 ```bash
 wails dev
+
+# Linux mint
+wails dev -tags webkit2_41
 ```
 
 This starts a Vite development server with hot reload. A dev server also runs on http://localhost:34115 for browser-based development with access to Go methods.
