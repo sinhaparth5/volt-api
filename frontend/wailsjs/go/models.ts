@@ -1,10 +1,25 @@
 export namespace main {
 	
+	export class AppInfo {
+	    version: string;
+	    buildTime: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AppInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.version = source["version"];
+	        this.buildTime = source["buildTime"];
+	    }
+	}
 	export class HTTPRequest {
 	    method: string;
 	    url: string;
 	    headers: Record<string, string>;
 	    body: string;
+	    timeout: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new HTTPRequest(source);
@@ -16,6 +31,7 @@ export namespace main {
 	        this.url = source["url"];
 	        this.headers = source["headers"];
 	        this.body = source["body"];
+	        this.timeout = source["timeout"];
 	    }
 	}
 	export class HTTPResponse {
