@@ -9,5 +9,15 @@
   "author": {
     "name": "Parth Sinha",
     "email": "parth.sinha@webcurl.co.uk"
-  }
+  },
+  "info": {
+    "companyName": "Volt API",
+    "productName": "Volt API Client",
+    "productVersion": "0.1.0",
+    "copyright": "Copyright 2024",
+    "comments": "A high-performance, cross-platform API client"
+  },
+  "nsisType": "multiple",
+  "obfuscated": false,
+  "garbleargs": ""
 }

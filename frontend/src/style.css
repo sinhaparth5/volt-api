@@ -1,26 +1,50 @@
+@import "tailwindcss";
+
+@theme {
+  /* JetBrains Darcula Theme Colors */
+  --color-jb-bg: #1e1e1e;
+  --color-jb-sidebar: #252526;
+  --color-jb-border: #3c3c3c;
+  --color-jb-text: #d4d4d4;
+  --color-jb-input: #3c3c3c;
+  --color-jb-accent: #4a9eff;
+  --color-jb-success: #6a9955;
+  --color-jb-warning: #dcdcaa;
+  --color-jb-error: #f14c4c;
+  --color-jb-muted: #808080;
+
+  /* Fonts */
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
+}
+
 html {
-    background-color: rgba(27, 38, 54, 1);
-    text-align: center;
-    color: white;
+  background-color: var(--color-jb-bg);
 }
 
 body {
-    margin: 0;
-    color: white;
-    font-family: "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-    "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
-}
-
-@font-face {
-    font-family: "Nunito";
-    font-style: normal;
-    font-weight: 400;
-    src: local(""),
-    url("assets/fonts/nunito-v16-latin-regular.woff2") format("woff2");
+  margin: 0;
+  font-family: var(--font-mono);
 }
 
 #app {
-    height: 100vh;
-    text-align: center;
+  height: 100vh;
+}
+
+/* Custom scrollbar for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-jb-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-jb-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-jb-muted);
 }
