@@ -170,6 +170,27 @@ Create `.github/workflows/build.yml` for automated multi-platform builds on ever
 - [ ] Set bundle identifier (com.voltapi.app)
 - [ ] Configure file associations
 
+### Code Signing (Required for Trusted Installation)
+See `docs/CODE_SIGNING.md` for detailed instructions.
+
+**Windows (~$200-500/year):**
+- [ ] Purchase Authenticode certificate (DigiCert, Sectigo, SSL.com)
+- [ ] Complete identity verification
+- [ ] Add certificate to GitHub Secrets
+- [ ] Test signed build on fresh Windows machine
+
+**macOS ($99/year):**
+- [ ] Enroll in Apple Developer Program
+- [ ] Create Developer ID Application certificate
+- [ ] Generate app-specific password
+- [ ] Add credentials to GitHub Secrets
+- [ ] Test notarized build on fresh Mac
+
+**Linux (Free):**
+- [ ] Generate GPG signing key
+- [ ] Sign releases with GPG
+- [ ] Publish public key for verification
+
 ## Test URLs
 
 ```

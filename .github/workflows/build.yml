@@ -6,71 +6,159 @@ on:
       - 'v*'
   workflow_dispatch:
 
+env:
+  GO_VERSION: '1.23'
+  NODE_VERSION: '20'
+
 jobs:
-  build:
-    strategy:
-      matrix:
-        include:
-          - os: windows-latest
-            platform: windows/amd64
-            output: volt-api.exe
-          - os: windows-latest
-            platform: windows/arm64
-            output: volt-api-arm64.exe
-          - os: macos-latest
-            platform: darwin/amd64
-            output: volt-api-darwin-amd64
-          - os: macos-latest
-            platform: darwin/arm64
-            output: volt-api-darwin-arm64
-          - os: ubuntu-latest
-            platform: linux/amd64
-            output: volt-api-linux-amd64
-          - os: ubuntu-latest
-            platform: linux/arm64
-            output: volt-api-linux-arm64
-
-    runs-on: ${{ matrix.os }}
-
+  build-windows:
+    runs-on: windows-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: ${{ env.GO_VERSION }}
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Install Wails
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
 
+      - name: Install Frontend Dependencies
+        run: cd frontend && npm ci
+
+      - name: Build Windows amd64
+        run: wails build -clean -platform windows/amd64 -ldflags="-s -w" -o volt-api-windows-amd64.exe
+
+      - name: Build Windows arm64
+        run: wails build -clean -platform windows/arm64 -ldflags="-s -w" -o volt-api-windows-arm64.exe
+
+      - name: Generate Checksums
+        run: |
+          cd build/bin
+          Get-FileHash -Algorithm SHA256 volt-api-windows-amd64.exe | Format-List > volt-api-windows-amd64.exe.sha256
+          Get-FileHash -Algorithm SHA256 volt-api-windows-arm64.exe | Format-List > volt-api-windows-arm64.exe.sha256
+        shell: pwsh
+
+      - name: Upload Windows Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-builds
+          path: |
+            build/bin/volt-api-windows-*.exe
+            build/bin/*.sha256
+
+  build-macos:
+    runs-on: macos-14  # Apple Silicon runner
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Install Frontend Dependencies
+        run: cd frontend && npm ci
+
+      - name: Build macOS arm64 (Apple Silicon)
+        run: wails build -clean -platform darwin/arm64 -ldflags="-s -w"
+
+      - name: Ad-hoc Sign arm64
+        run: codesign --force --deep -s - build/bin/volt-api.app
+
+      - name: Package arm64
+        run: |
+          cd build/bin
+          tar -czvf volt-api-macos-arm64.tar.gz volt-api.app
+          rm -rf volt-api.app
+
+      - name: Build macOS amd64 (Intel)
+        run: wails build -clean -platform darwin/amd64 -ldflags="-s -w"
+
+      - name: Ad-hoc Sign amd64
+        run: codesign --force --deep -s - build/bin/volt-api.app
+
+      - name: Package amd64
+        run: |
+          cd build/bin
+          tar -czvf volt-api-macos-amd64.tar.gz volt-api.app
+
+      - name: Generate Checksums
+        run: |
+          cd build/bin
+          shasum -a 256 volt-api-macos-arm64.tar.gz > volt-api-macos-arm64.tar.gz.sha256
+          shasum -a 256 volt-api-macos-amd64.tar.gz > volt-api-macos-amd64.tar.gz.sha256
+
+      - name: Upload macOS Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-builds
+          path: |
+            build/bin/volt-api-macos-*.tar.gz
+            build/bin/*.sha256
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
       - name: Install Linux Dependencies
-        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev
 
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
       - name: Install Frontend Dependencies
+        run: cd frontend && npm ci
+
+      - name: Build Linux amd64
+        run: wails build -clean -platform linux/amd64 -ldflags="-s -w" -o volt-api-linux-amd64
+
+      - name: Build Linux arm64
+        run: wails build -clean -platform linux/arm64 -ldflags="-s -w" -o volt-api-linux-arm64
+
+      - name: Generate Checksums
         run: |
-          cd frontend
-          npm install
+          cd build/bin
+          sha256sum volt-api-linux-amd64 > volt-api-linux-amd64.sha256
+          sha256sum volt-api-linux-arm64 > volt-api-linux-arm64.sha256
 
-      - name: Build
-        run: wails build -platform ${{ matrix.platform }} -o ${{ matrix.output }}
-
-      - name: Upload Artifact
+      - name: Upload Linux Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.output }}
-          path: build/bin/${{ matrix.output }}*
+          name: linux-builds
+          path: |
+            build/bin/volt-api-linux-*
+            build/bin/*.sha256
 
   release:
-    needs: build
+    needs: [build-windows, build-macos, build-linux]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
 
@@ -80,10 +168,53 @@ jobs:
         with:
           path: artifacts
 
+      - name: Flatten Directory
+        run: |
+          mkdir -p release
+          find artifacts -type f \( -name "*.exe" -o -name "*.tar.gz" -o -name "volt-api-linux-*" -o -name "*.sha256" \) -exec cp {} release/ \;
+          ls -la release/
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: artifacts/**/*
+          files: release/*
           generate_release_notes: true
+          body: |
+            ## Download
+
+            | Platform | Architecture | Download |
+            |----------|--------------|----------|
+            | Windows | x64 | `volt-api-windows-amd64.exe` |
+            | Windows | ARM64 | `volt-api-windows-arm64.exe` |
+            | macOS | Apple Silicon (M1/M2/M3) | `volt-api-macos-arm64.tar.gz` |
+            | macOS | Intel | `volt-api-macos-amd64.tar.gz` |
+            | Linux | x64 | `volt-api-linux-amd64` |
+            | Linux | ARM64 | `volt-api-linux-arm64` |
+
+            ## Installation
+
+            ### Windows
+            Download and run the `.exe` file.
+
+            ### macOS
+            1. Download the `.tar.gz` for your Mac type
+            2. Extract: `tar -xzf volt-api-macos-*.tar.gz`
+            3. Move to Applications: `mv volt-api.app /Applications/`
+            4. **First launch**: Right-click the app → Select **"Open"** → Click **"Open"**
+
+            > ⚠️ macOS will show a security warning because this is an open-source app without paid Apple signing. The right-click → Open step bypasses this safely.
+
+            ### Linux
+            ```bash
+            tar -xzf volt-api-linux-amd64.tar.gz  # if archived
+            chmod +x volt-api-linux-amd64
+            ./volt-api-linux-amd64
+            ```
+
+            ## Verify Downloads (Optional)
+            ```bash
+            # Check SHA256 checksum
+            sha256sum -c volt-api-linux-amd64.sha256
+            ```
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
