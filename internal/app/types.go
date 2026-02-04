@@ -37,3 +37,39 @@ type HistoryItem struct {
 	TimingMs   int64             `json:"timingMs"`
 	CreatedAt  int64             `json:"createdAt"`
 }
+
+// Collection represents a folder for organizing saved requests
+type Collection struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	CreatedAt int64  `json:"createdAt"`
+	UpdatedAt int64  `json:"updatedAt"`
+}
+
+// SavedRequest represents a request saved to a collection
+type SavedRequest struct {
+	ID           string            `json:"id"`
+	CollectionID string            `json:"collectionId"`
+	Name         string            `json:"name"`
+	Method       string            `json:"method"`
+	URL          string            `json:"url"`
+	Headers      map[string]string `json:"headers"`
+	Body         string            `json:"body"`
+	CreatedAt    int64             `json:"createdAt"`
+	UpdatedAt    int64             `json:"updatedAt"`
+}
+
+// SaveRequestInput is the input for saving a request to a collection
+type SaveRequestInput struct {
+	Name    string            `json:"name"`
+	Method  string            `json:"method"`
+	URL     string            `json:"url"`
+	Headers map[string]string `json:"headers"`
+	Body    string            `json:"body"`
+}
+
+// CollectionExport represents a collection with its requests for export/import
+type CollectionExport struct {
+	Name     string         `json:"name"`
+	Requests []SavedRequest `json:"requests"`
+}

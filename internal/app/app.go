@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
@@ -297,4 +298,220 @@ func (a *App) SendRequest(request HTTPRequest) HTTPResponse {
 	}
 
 	return response
+}
+
+// ============================================================================
+// Collections Methods
+// ============================================================================
+
+// CreateCollection creates a new collection
+func (a *App) CreateCollection(name string) *Collection {
+	if a.db == nil {
+		return nil
+	}
+
+	id, err := a.db.CreateCollection(name)
+	if err != nil {
+		return nil
+	}
+
+	now := time.Now().Unix()
+	return &Collection{
+		ID:        id,
+		Name:      name,
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
+}
+
+// GetCollections returns all collections
+func (a *App) GetCollections() []Collection {
+	if a.db == nil {
+		return []Collection{}
+	}
+
+	items, err := a.db.GetCollections()
+	if err != nil {
+		return []Collection{}
+	}
+
+	result := make([]Collection, len(items))
+	for i, item := range items {
+		result[i] = Collection{
+			ID:        item.ID,
+			Name:      item.Name,
+			CreatedAt: item.CreatedAt,
+			UpdatedAt: item.UpdatedAt,
+		}
+	}
+	return result
+}
+
+// RenameCollection updates a collection's name
+func (a *App) RenameCollection(id, name string) error {
+	if a.db == nil {
+		return fmt.Errorf("database not initialized")
+	}
+	return a.db.RenameCollection(id, name)
+}
+
+// DeleteCollection removes a collection and all its saved requests
+func (a *App) DeleteCollection(id string) error {
+	if a.db == nil {
+		return fmt.Errorf("database not initialized")
+	}
+	return a.db.DeleteCollection(id)
+}
+
+// ============================================================================
+// Saved Requests Methods
+// ============================================================================
+
+// SaveRequestToCollection saves a request to a collection
+func (a *App) SaveRequestToCollection(collectionID string, input SaveRequestInput) *SavedRequest {
+	if a.db == nil {
+		return nil
+	}
+
+	id, err := a.db.SaveRequestToCollection(collectionID, input.Name, input.Method, input.URL, input.Headers, input.Body)
+	if err != nil {
+		return nil
+	}
+
+	now := time.Now().Unix()
+	return &SavedRequest{
+		ID:           id,
+		CollectionID: collectionID,
+		Name:         input.Name,
+		Method:       input.Method,
+		URL:          input.URL,
+		Headers:      input.Headers,
+		Body:         input.Body,
+		CreatedAt:    now,
+		UpdatedAt:    now,
+	}
+}
+
+// GetCollectionRequests returns all requests in a collection
+func (a *App) GetCollectionRequests(collectionID string) []SavedRequest {
+	if a.db == nil {
+		return []SavedRequest{}
+	}
+
+	items, err := a.db.GetCollectionRequests(collectionID)
+	if err != nil {
+		return []SavedRequest{}
+	}
+
+	result := make([]SavedRequest, len(items))
+	for i, item := range items {
+		result[i] = SavedRequest{
+			ID:           item.ID,
+			CollectionID: item.CollectionID,
+			Name:         item.Name,
+			Method:       item.Method,
+			URL:          item.URL,
+			Headers:      item.Headers,
+			Body:         item.Body,
+			CreatedAt:    item.CreatedAt,
+			UpdatedAt:    item.UpdatedAt,
+		}
+	}
+	return result
+}
+
+// LoadSavedRequest retrieves full details of a saved request
+func (a *App) LoadSavedRequest(id string) *SavedRequest {
+	if a.db == nil {
+		return nil
+	}
+
+	item, err := a.db.GetSavedRequest(id)
+	if err != nil {
+		return nil
+	}
+
+	return &SavedRequest{
+		ID:           item.ID,
+		CollectionID: item.CollectionID,
+		Name:         item.Name,
+		Method:       item.Method,
+		URL:          item.URL,
+		Headers:      item.Headers,
+		Body:         item.Body,
+		CreatedAt:    item.CreatedAt,
+		UpdatedAt:    item.UpdatedAt,
+	}
+}
+
+// UpdateSavedRequest updates a saved request
+func (a *App) UpdateSavedRequest(id string, input SaveRequestInput) error {
+	if a.db == nil {
+		return fmt.Errorf("database not initialized")
+	}
+	return a.db.UpdateSavedRequest(id, input.Name, input.Method, input.URL, input.Headers, input.Body)
+}
+
+// MoveSavedRequest moves a saved request to a different collection
+func (a *App) MoveSavedRequest(id, newCollectionID string) error {
+	if a.db == nil {
+		return fmt.Errorf("database not initialized")
+	}
+	return a.db.MoveSavedRequest(id, newCollectionID)
+}
+
+// DeleteSavedRequest removes a saved request
+func (a *App) DeleteSavedRequest(id string) error {
+	if a.db == nil {
+		return fmt.Errorf("database not initialized")
+	}
+	return a.db.DeleteSavedRequest(id)
+}
+
+// ============================================================================
+// Export/Import Methods
+// ============================================================================
+
+// ExportCollection exports a collection as JSON string
+func (a *App) ExportCollection(id string) string {
+	if a.db == nil {
+		return ""
+	}
+
+	export, err := a.db.ExportCollection(id)
+	if err != nil {
+		return ""
+	}
+
+	data, err := json.MarshalIndent(export, "", "  ")
+	if err != nil {
+		return ""
+	}
+
+	return string(data)
+}
+
+// ImportCollection imports a collection from JSON string
+func (a *App) ImportCollection(jsonData string) *Collection {
+	if a.db == nil {
+		return nil
+	}
+
+	var export database.CollectionExport
+	if err := json.Unmarshal([]byte(jsonData), &export); err != nil {
+		return nil
+	}
+
+	id, err := a.db.ImportCollection(&export)
+	if err != nil {
+		return nil
+	}
+
+	now := time.Now().Unix()
+	return &Collection{
+		ID:        id,
+		Name:      export.Name,
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
 }
