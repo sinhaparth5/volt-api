@@ -4,12 +4,36 @@ import {app} from '../models';
 
 export function ClearHistory():Promise<void>;
 
+export function CreateCollection(arg1:string):Promise<app.Collection>;
+
+export function DeleteCollection(arg1:string):Promise<void>;
+
 export function DeleteHistoryItem(arg1:string):Promise<void>;
+
+export function DeleteSavedRequest(arg1:string):Promise<void>;
+
+export function ExportCollection(arg1:string):Promise<string>;
 
 export function GetAppInfo():Promise<app.AppInfo>;
 
+export function GetCollectionRequests(arg1:string):Promise<Array<app.SavedRequest>>;
+
+export function GetCollections():Promise<Array<app.Collection>>;
+
 export function GetHistory(arg1:number,arg2:string):Promise<Array<app.HistoryItem>>;
+
+export function ImportCollection(arg1:string):Promise<app.Collection>;
 
 export function LoadHistoryItem(arg1:string):Promise<app.HistoryItem>;
 
+export function LoadSavedRequest(arg1:string):Promise<app.SavedRequest>;
+
+export function MoveSavedRequest(arg1:string,arg2:string):Promise<void>;
+
+export function RenameCollection(arg1:string,arg2:string):Promise<void>;
+
+export function SaveRequestToCollection(arg1:string,arg2:app.SaveRequestInput):Promise<app.SavedRequest>;
+
 export function SendRequest(arg1:app.HTTPRequest):Promise<app.HTTPResponse>;
+
+export function UpdateSavedRequest(arg1:string,arg2:app.SaveRequestInput):Promise<void>;

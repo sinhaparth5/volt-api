@@ -1,15 +1,16 @@
 import { useState, useRef } from "react";
-import { SendRequest, LoadHistoryItem } from "../wailsjs/go/app/App";
+import { SendRequest, LoadHistoryItem, LoadSavedRequest } from "../wailsjs/go/app/App";
 import { app } from "../wailsjs/go/models";
-import { HistorySidebarRef } from "./components/HistorySidebar";
-import { Sidebar } from "./components/Sidebar";
+import { Sidebar, SidebarRef } from "./components/Sidebar";
 import { RequestSection } from "./components/RequestSection";
 import { ResponseSection } from "./components/ResponseSection";
+import { SaveRequestModal } from "./components/SaveRequestModal";
 import { Icons } from "./components/Icons";
 import "./style.css";
 
 type HTTPResponse = app.HTTPResponse;
 type HistoryItem = app.HistoryItem;
+type SavedRequest = app.SavedRequest;
 type RequestState = "idle" | "loading" | "success" | "error";
 type SidebarTab = "history" | "collections";
 
@@ -20,8 +21,9 @@ function App() {
   const [response, setResponse] = useState<HTTPResponse | null>(null);
   const [requestState, setRequestState] = useState<RequestState>("idle");
   const [activeTab, setActiveTab] = useState<SidebarTab>("history");
+  const [showSaveModal, setShowSaveModal] = useState(false);
 
-  const historySidebarRef = useRef<HistorySidebarRef>(null);
+  const sidebarRef = useRef<SidebarRef>(null);
 
   const handleSend = async () => {
     if (!url.trim()) return;
@@ -42,7 +44,7 @@ function App() {
       setRequestState(result.error ? "error" : "success");
 
       setTimeout(() => {
-        historySidebarRef.current?.refresh();
+        sidebarRef.current?.refreshHistory();
       }, 100);
     } catch (err) {
       setResponse({
@@ -73,13 +75,38 @@ function App() {
     }
   };
 
+  const handleSelectSavedRequest = async (request: SavedRequest) => {
+    try {
+      const fullRequest = await LoadSavedRequest(request.id);
+      if (fullRequest) {
+        setMethod(fullRequest.method || "GET");
+        setUrl(fullRequest.url || "");
+        setRequestBody(fullRequest.body || "");
+        setResponse(null);
+        setRequestState("idle");
+      }
+    } catch (err) {
+      console.error("Failed to load saved request:", err);
+    }
+  };
+
+  const handleSaveRequest = () => {
+    if (!url.trim()) return;
+    setShowSaveModal(true);
+  };
+
+  const handleSavedRequest = () => {
+    sidebarRef.current?.refreshCollections();
+  };
+
   return (
     <div className="flex h-screen bg-ctp-base text-ctp-text font-mono text-sm">
       <Sidebar
-        ref={historySidebarRef}
+        ref={sidebarRef}
         activeTab={activeTab}
         onTabChange={setActiveTab}
         onSelectHistoryItem={handleSelectHistoryItem}
+        onSelectSavedRequest={handleSelectSavedRequest}
       />
 
       <main className="flex-1 flex flex-col overflow-hidden">
@@ -89,6 +116,15 @@ function App() {
             <Icons.Globe size={14} className="text-ctp-subtext0" />
             <span className="text-ctp-text text-sm">New Request</span>
           </div>
+          <button
+            onClick={handleSaveRequest}
+            disabled={!url.trim()}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-ctp-subtext0 hover:text-ctp-text hover:bg-ctp-surface0 rounded disabled:opacity-40 disabled:cursor-not-allowed"
+            title="Save to Collection"
+          >
+            <Icons.Save size={14} />
+            Save
+          </button>
         </header>
 
         <RequestSection
@@ -107,6 +143,16 @@ function App() {
           requestState={requestState}
         />
       </main>
+
+      <SaveRequestModal
+        isOpen={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        onSaved={handleSavedRequest}
+        method={method}
+        url={url}
+        headers={{}}
+        body={requestBody}
+      />
     </div>
   );
 }

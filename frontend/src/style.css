@@ -1,7 +1,72 @@
 @import "tailwindcss";
 
 @theme {
-  /* Catppuccin Macchiato Theme */
+  /* Base theme variables - will be overridden by data-theme */
+  --color-ctp-base: #eff1f5;
+  --color-ctp-mantle: #e6e9ef;
+  --color-ctp-crust: #dce0e8;
+  --color-ctp-surface0: #ccd0da;
+  --color-ctp-surface1: #bcc0cc;
+  --color-ctp-surface2: #acb0be;
+  --color-ctp-overlay0: #9ca0b0;
+  --color-ctp-overlay1: #8c8fa1;
+  --color-ctp-overlay2: #7c7f93;
+  --color-ctp-text: #4c4f69;
+  --color-ctp-subtext0: #6c6f85;
+  --color-ctp-subtext1: #5c5f77;
+  --color-ctp-lavender: #7287fd;
+  --color-ctp-blue: #1e66f5;
+  --color-ctp-sapphire: #209fb5;
+  --color-ctp-sky: #04a5e5;
+  --color-ctp-teal: #179299;
+  --color-ctp-green: #40a02b;
+  --color-ctp-yellow: #df8e1d;
+  --color-ctp-peach: #fe640b;
+  --color-ctp-maroon: #e64553;
+  --color-ctp-red: #d20f39;
+  --color-ctp-mauve: #8839ef;
+  --color-ctp-pink: #ea76cb;
+  --color-ctp-flamingo: #dd7878;
+  --color-ctp-rosewater: #dc8a78;
+
+  /* Fonts */
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Consolas', monospace;
+}
+
+/* Catppuccin Latte (Light Theme - Default) */
+:root,
+[data-theme="latte"] {
+  --color-ctp-base: #eff1f5;
+  --color-ctp-mantle: #e6e9ef;
+  --color-ctp-crust: #dce0e8;
+  --color-ctp-surface0: #ccd0da;
+  --color-ctp-surface1: #bcc0cc;
+  --color-ctp-surface2: #acb0be;
+  --color-ctp-overlay0: #9ca0b0;
+  --color-ctp-overlay1: #8c8fa1;
+  --color-ctp-overlay2: #7c7f93;
+  --color-ctp-text: #4c4f69;
+  --color-ctp-subtext0: #6c6f85;
+  --color-ctp-subtext1: #5c5f77;
+  --color-ctp-lavender: #7287fd;
+  --color-ctp-blue: #1e66f5;
+  --color-ctp-sapphire: #209fb5;
+  --color-ctp-sky: #04a5e5;
+  --color-ctp-teal: #179299;
+  --color-ctp-green: #40a02b;
+  --color-ctp-yellow: #df8e1d;
+  --color-ctp-peach: #fe640b;
+  --color-ctp-maroon: #e64553;
+  --color-ctp-red: #d20f39;
+  --color-ctp-mauve: #8839ef;
+  --color-ctp-pink: #ea76cb;
+  --color-ctp-flamingo: #dd7878;
+  --color-ctp-rosewater: #dc8a78;
+  color-scheme: light;
+}
+
+/* Catppuccin Macchiato (Dark Theme) */
+[data-theme="macchiato"] {
   --color-ctp-base: #24273a;
   --color-ctp-mantle: #1e2030;
   --color-ctp-crust: #181926;
@@ -28,9 +93,7 @@
   --color-ctp-pink: #f5bde6;
   --color-ctp-flamingo: #f0c6c6;
   --color-ctp-rosewater: #f4dbd6;
-
-  /* Fonts */
-  --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
+  color-scheme: dark;
 }
 
 html {
@@ -40,13 +103,31 @@ html {
 body {
   margin: 0;
   font-family: var(--font-mono);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #app {
   height: 100vh;
 }
 
-/* Custom scrollbar for Catppuccin theme */
+/* Smooth theme transitions */
+html,
+html * {
+  transition: background-color 0.2s ease,
+              border-color 0.2s ease,
+              color 0.2s ease,
+              box-shadow 0.2s ease,
+              opacity 0.15s ease;
+}
+
+/* Disable transitions on page load to prevent flash */
+html.no-transitions,
+html.no-transitions * {
+  transition: none !important;
+}
+
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -77,9 +158,50 @@ body {
   outline-offset: 2px;
 }
 
-/* Smooth transitions */
-* {
-  transition-property: background-color, border-color, color, opacity;
-  transition-duration: 150ms;
-  transition-timing-function: ease;
+/* Clean icon styling */
+svg {
+  flex-shrink: 0;
+}
+
+/* Button hover effects */
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* Input styling improvements */
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+input::placeholder,
+textarea::placeholder {
+  opacity: 0.6;
+}
+
+/* Smooth dropdown animations */
+details summary {
+  cursor: pointer;
+  user-select: none;
+}
+
+details summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Modal backdrop blur */
+.modal-backdrop {
+  backdrop-filter: blur(4px);
+}
+
+/* Code/pre styling */
+pre {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.5;
 }

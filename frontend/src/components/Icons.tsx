@@ -4,11 +4,12 @@ type IconProps = SVGProps<SVGSVGElement> & {
   size?: number;
 };
 
-const defaultProps: IconProps = {
-  size: 16,
-  strokeWidth: 1.5,
+const defaultProps = {
+  strokeWidth: 1.75,
   fill: "none",
   stroke: "currentColor",
+  strokeLinecap: "round" as const,
+  strokeLinejoin: "round" as const,
 };
 
 export const Icons = {
@@ -17,11 +18,12 @@ export const Icons = {
     <svg
       {...defaultProps}
       {...props}
-      width={props.size}
-      height={props.size}
+      width={props.size || 16}
+      height={props.size || 16}
       viewBox="0 0 24 24"
     >
-      <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M22 2L11 13" />
+      <path d="M22 2L15 22L11 13L2 9L22 2Z" />
     </svg>
   ),
 
@@ -29,11 +31,12 @@ export const Icons = {
     <svg
       {...defaultProps}
       {...props}
-      width={props.size}
-      height={props.size}
+      width={props.size || 16}
+      height={props.size || 16}
       viewBox="0 0 24 24"
     >
-      <path d="M12 8V12L15 15M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7V12L15 15" />
     </svg>
   ),
 
@@ -41,11 +44,11 @@ export const Icons = {
     <svg
       {...defaultProps}
       {...props}
-      width={props.size}
-      height={props.size}
+      width={props.size || 16}
+      height={props.size || 16}
       viewBox="0 0 24 24"
     >
-      <path d="M3 7V17C3 18.1046 3.89543 19 5 19H19C20.1046 19 21 18.1046 21 17V9C21 7.89543 20.1046 7 19 7H13L11 5H5C3.89543 5 3 5.89543 3 7Z" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M4 20H20C21.1046 20 22 19.1046 22 18V8C22 6.89543 21.1046 6 20 6H12L10 4H4C2.89543 4 2 4.89543 2 6V18C2 19.1046 2.89543 20 4 20Z" />
     </svg>
   ),
 
@@ -53,11 +56,12 @@ export const Icons = {
     <svg
       {...defaultProps}
       {...props}
-      width={props.size}
-      height={props.size}
+      width={props.size || 16}
+      height={props.size || 16}
       viewBox="0 0 24 24"
     >
-      <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="11" cy="11" r="7" />
+      <path d="M21 21L16.5 16.5" />
     </svg>
   ),
 
@@ -65,11 +69,15 @@ export const Icons = {
     <svg
       {...defaultProps}
       {...props}
-      width={props.size}
-      height={props.size}
+      width={props.size || 16}
+      height={props.size || 16}
       viewBox="0 0 24 24"
     >
-      <path d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M3 6H21" />
+      <path d="M19 6V20C19 21.1046 18.1046 22 17 22H7C5.89543 22 5 21.1046 5 20V6" />
+      <path d="M8 6V4C8 2.89543 8.89543 2 10 2H14C15.1046 2 16 2.89543 16 4V6" />
+      <path d="M10 11V17" />
+      <path d="M14 11V17" />
     </svg>
   ),
 
@@ -77,11 +85,12 @@ export const Icons = {
     <svg
       {...defaultProps}
       {...props}
-      width={props.size}
-      height={props.size}
+      width={props.size || 16}
+      height={props.size || 16}
       viewBox="0 0 24 24"
     >
-      <path d="M18 6L6 18M6 6L18 18" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M18 6L6 18" />
+      <path d="M6 6L18 18" />
     </svg>
   ),
 
@@ -89,11 +98,12 @@ export const Icons = {
     <svg
       {...defaultProps}
       {...props}
-      width={props.size}
-      height={props.size}
+      width={props.size || 16}
+      height={props.size || 16}
       viewBox="0 0 24 24"
     >
-      <path d="M12 5V19M5 12H19" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 5V19" />
+      <path d="M5 12H19" />
     </svg>
   ),
 
@@ -101,11 +111,11 @@ export const Icons = {
     <svg
       {...defaultProps}
       {...props}
-      width={props.size}
-      height={props.size}
+      width={props.size || 16}
+      height={props.size || 16}
       viewBox="0 0 24 24"
     >
-      <path d="M19 9L12 16L5 9" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M6 9L12 15L18 9" />
     </svg>
   ),
 
@@ -113,11 +123,11 @@ export const Icons = {
     <svg
       {...defaultProps}
       {...props}
-      width={props.size}
-      height={props.size}
+      width={props.size || 16}
+      height={props.size || 16}
       viewBox="0 0 24 24"
     >
-      <path d="M9 5L16 12L9 19" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9 6L15 12L9 18" />
     </svg>
   ),
 
@@ -125,12 +135,12 @@ export const Icons = {
     <svg
       {...defaultProps}
       {...props}
-      width={props.size}
-      height={props.size}
+      width={props.size || 16}
+      height={props.size || 16}
       viewBox="0 0 24 24"
     >
-      <path d="M8 4V16C8 17.1046 8.89543 18 10 18H18C19.1046 18 20 17.1046 20 16V7.24264C20 6.71221 19.7893 6.20351 19.4142 5.82843L16.1716 2.58579C15.7965 2.21071 15.2878 2 14.7574 2H10C8.89543 2 8 2.89543 8 4Z" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M16 18V20C16 21.1046 15.1046 22 14 22H6C4.89543 22 4 21.1046 4 20V9C4 7.89543 4.89543 7 6 7H8" strokeLinecap="round" strokeLinejoin="round" />
+      <rect x="9" y="9" width="13" height="13" rx="2" />
+      <path d="M5 15H4C2.89543 15 2 14.1046 2 13V4C2 2.89543 2.89543 2 4 2H13C14.1046 2 15 2.89543 15 4V5" />
     </svg>
   ),
 
@@ -138,60 +148,66 @@ export const Icons = {
     <svg
       {...defaultProps}
       {...props}
-      width={props.size}
-      height={props.size}
+      width={props.size || 16}
+      height={props.size || 16}
       viewBox="0 0 24 24"
     >
-      <path d="M20 6L9 17L4 12" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M20 6L9 17L4 12" />
     </svg>
   ),
 
-  // HTTP Methods
-  ArrowRight: (props: IconProps) => (
+  Edit: (props: IconProps) => (
     <svg
       {...defaultProps}
       {...props}
-      width={props.size}
-      height={props.size}
+      width={props.size || 16}
+      height={props.size || 16}
       viewBox="0 0 24 24"
     >
-      <path d="M5 12H19M19 12L12 5M19 12L12 19" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 20H21" />
+      <path d="M16.5 3.50001C16.8978 3.10219 17.4374 2.87869 18 2.87869C18.2786 2.87869 18.5544 2.93356 18.8118 3.04017C19.0692 3.14677 19.303 3.30303 19.5 3.50001C19.697 3.697 19.8532 3.93085 19.9598 4.18822C20.0665 4.44559 20.1213 4.72144 20.1213 5.00001C20.1213 5.27859 20.0665 5.55444 19.9598 5.81181C19.8532 6.06918 19.697 6.30303 19.5 6.50001L7 19L3 20L4 16L16.5 3.50001Z" />
     </svg>
   ),
 
-  ArrowUp: (props: IconProps) => (
+  Import: (props: IconProps) => (
     <svg
       {...defaultProps}
       {...props}
-      width={props.size}
-      height={props.size}
+      width={props.size || 16}
+      height={props.size || 16}
       viewBox="0 0 24 24"
     >
-      <path d="M12 19V5M12 5L5 12M12 5L19 12" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M21 15V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V15" />
+      <path d="M7 10L12 15L17 10" />
+      <path d="M12 15V3" />
     </svg>
   ),
 
-  ArrowDown: (props: IconProps) => (
+  Export: (props: IconProps) => (
     <svg
       {...defaultProps}
       {...props}
-      width={props.size}
-      height={props.size}
+      width={props.size || 16}
+      height={props.size || 16}
       viewBox="0 0 24 24"
     >
-      <path d="M12 5V19M12 19L19 12M12 19L5 12" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M21 15V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V15" />
+      <path d="M17 8L12 3L7 8" />
+      <path d="M12 3V15" />
     </svg>
   ),
 
-  Refresh: (props: IconProps) => (
+  Save: (props: IconProps) => (
     <svg
       {...defaultProps}
       {...props}
-      width={props.size}
-      height={props.size}
+      width={props.size || 16}
+      height={props.size || 16}
       viewBox="0 0 24 24"
     >
-      <path d="M4 4V9H4.58152M19.9381 11C19.446 7.05369 16.0796 4 12 4C8.64262 4 5.76829 6.06817 4.58152 9M4.58152 9H9M20 20V15H19.4185M19.4185 15C18.2317 17.9318 15.3574 20 12 20C7.92038 20 4.55399 16.9463 4.06189 13M19.4185 15H15" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M19 21H5C3.89543 21 3 20.1046 3 19V5C3 3.89543 3.89543 3 5 3H16L21 8V19C21 20.1046 20.1046 21 19 21Z" />
+      <path d="M17 21V13H7V21" />
+      <path d="M7 3V8H15" />
     </svg>
   ),
 
@@ -199,12 +215,12 @@ export const Icons = {
     <svg
       {...defaultProps}
       {...props}
-      width={props.size}
-      height={props.size}
+      width={props.size || 16}
+      height={props.size || 16}
       viewBox="0 0 24 24"
     >
-      <path d="M10.325 4.317C10.751 2.561 13.249 2.561 13.675 4.317C13.7389 4.5808 13.8642 4.82578 14.0407 5.032C14.2172 5.23822 14.4399 5.39985 14.6907 5.50375C14.9414 5.60764 15.2132 5.65085 15.4838 5.62987C15.7544 5.60889 16.0162 5.5243 16.248 5.383C17.791 4.443 19.558 6.209 18.618 7.753C18.4769 7.98466 18.3924 8.24634 18.3715 8.51677C18.3506 8.78721 18.3938 9.05877 18.4975 9.30938C18.6013 9.55999 18.7627 9.78258 18.9687 9.95905C19.1747 10.1355 19.4194 10.2609 19.683 10.325C21.439 10.751 21.439 13.249 19.683 13.675C19.4192 13.7389 19.1742 13.8642 18.968 14.0407C18.7618 14.2172 18.6001 14.4399 18.4963 14.6907C18.3924 14.9414 18.3491 15.2132 18.3701 15.4838C18.3911 15.7544 18.4757 16.0162 18.617 16.248C19.557 17.791 17.791 19.558 16.247 18.618C16.0153 18.4769 15.7537 18.3924 15.4832 18.3715C15.2128 18.3506 14.9412 18.3938 14.6906 18.4975C14.44 18.6013 14.2174 18.7627 14.0409 18.9687C13.8645 19.1747 13.7391 19.4194 13.675 19.683C13.249 21.439 10.751 21.439 10.325 19.683C10.2611 19.4192 10.1358 19.1742 9.95929 18.968C9.7828 18.7618 9.56011 18.6001 9.30935 18.4963C9.05859 18.3924 8.78683 18.3491 8.51621 18.3701C8.24559 18.3911 7.98375 18.4757 7.752 18.617C6.209 19.557 4.442 17.791 5.382 16.247C5.5231 16.0153 5.60755 15.7537 5.62848 15.4832C5.64942 15.2128 5.60624 14.9412 5.50247 14.6906C5.3987 14.44 5.23726 14.2174 5.03127 14.0409C4.82529 13.8645 4.58056 13.7391 4.317 13.675C2.561 13.249 2.561 10.751 4.317 10.325C4.5808 10.2611 4.82578 10.1358 5.032 9.95929C5.23822 9.7828 5.39985 9.56011 5.50375 9.30935C5.60764 9.05859 5.65085 8.78683 5.62987 8.51621C5.60889 8.24559 5.5243 7.98375 5.383 7.752C4.443 6.209 6.209 4.442 7.753 5.382C8.753 5.99 10.049 5.452 10.325 4.317Z" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M15 12C15 13.6569 13.6569 15 12 15C10.3431 15 9 13.6569 9 12C9 10.3431 10.3431 9 12 9C13.6569 9 15 10.3431 15 12Z" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15C19.1277 15.6171 19.2583 16.3378 19.73 16.82L19.79 16.88C20.1656 17.2551 20.3766 17.7642 20.3766 18.295C20.3766 18.8258 20.1656 19.3349 19.79 19.71C19.4149 20.0856 18.9058 20.2966 18.375 20.2966C17.8442 20.2966 17.3351 20.0856 16.96 19.71L16.9 19.65C16.4178 19.1783 15.6971 19.0477 15.08 19.32C14.4755 19.5791 14.0826 20.1724 14.08 20.83V21C14.08 22.1046 13.1846 23 12.08 23C10.9754 23 10.08 22.1046 10.08 21V20.91C10.0642 20.2327 9.63587 19.6339 9 19.4C8.38291 19.1277 7.66219 19.2583 7.18 19.73L7.12 19.79C6.74494 20.1656 6.23584 20.3766 5.705 20.3766C5.17416 20.3766 4.66506 20.1656 4.29 19.79C3.91445 19.4149 3.70343 18.9058 3.70343 18.375C3.70343 17.8442 3.91445 17.3351 4.29 16.96L4.35 16.9C4.82167 16.4178 4.95235 15.6971 4.68 15.08C4.42093 14.4755 3.82764 14.0826 3.17 14.08H3C1.89543 14.08 1 13.1846 1 12.08C1 10.9754 1.89543 10.08 3 10.08H3.09C3.76733 10.0642 4.36613 9.63587 4.6 9C4.87235 8.38291 4.74167 7.66219 4.27 7.18L4.21 7.12C3.83445 6.74494 3.62343 6.23584 3.62343 5.705C3.62343 5.17416 3.83445 4.66506 4.21 4.29C4.58506 3.91445 5.09416 3.70343 5.625 3.70343C6.15584 3.70343 6.66494 3.91445 7.04 4.29L7.1 4.35C7.58219 4.82167 8.30291 4.95235 8.92 4.68H9C9.60447 4.42093 9.99738 3.82764 10 3.17V3C10 1.89543 10.8954 1 12 1C13.1046 1 14 1.89543 14 3V3.09C14.0026 3.74764 14.3955 4.34093 15 4.6C15.6171 4.87235 16.3378 4.74167 16.82 4.27L16.88 4.21C17.2551 3.83445 17.7642 3.62343 18.295 3.62343C18.8258 3.62343 19.3349 3.83445 19.71 4.21C20.0856 4.58506 20.2966 5.09416 20.2966 5.625C20.2966 6.15584 20.0856 6.66494 19.71 7.04L19.65 7.1C19.1783 7.58219 19.0477 8.30291 19.32 8.92V9C19.5791 9.60447 20.1724 9.99738 20.83 10H21C22.1046 10 23 10.8954 23 12C23 13.1046 22.1046 14 21 14H20.91C20.2524 14.0026 19.6591 14.3955 19.4 15Z" />
     </svg>
   ),
 
@@ -212,11 +228,11 @@ export const Icons = {
     <svg
       {...defaultProps}
       {...props}
-      width={props.size}
-      height={props.size}
+      width={props.size || 16}
+      height={props.size || 16}
       viewBox="0 0 24 24"
     >
-      <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" />
     </svg>
   ),
 
@@ -224,11 +240,13 @@ export const Icons = {
     <svg
       {...defaultProps}
       {...props}
-      width={props.size}
-      height={props.size}
+      width={props.size || 16}
+      height={props.size || 16}
       viewBox="0 0 24 24"
     >
-      <path d="M21 12C21 16.9706 16.9706 21 12 21M21 12C21 7.02944 16.9706 3 12 3M21 12H3M12 21C7.02944 21 3 16.9706 3 12M12 21C13.6569 21 15 16.9706 15 12C15 7.02944 13.6569 3 12 3M12 21C10.3431 21 9 16.9706 9 12C9 7.02944 10.3431 3 12 3M3 12C3 7.02944 7.02944 3 12 3" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="10" />
+      <path d="M2 12H22" />
+      <path d="M12 2C14.5 4.5 16 8 16 12C16 16 14.5 19.5 12 22C9.5 19.5 8 16 8 12C8 8 9.5 4.5 12 2Z" />
     </svg>
   ),
 
@@ -236,11 +254,58 @@ export const Icons = {
     <svg
       {...defaultProps}
       {...props}
-      width={props.size}
-      height={props.size}
+      width={props.size || 16}
+      height={props.size || 16}
       viewBox="0 0 24 24"
     >
-      <path d="M16 18L22 12L16 6M8 6L2 12L8 18" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M16 18L22 12L16 6" />
+      <path d="M8 6L2 12L8 18" />
+    </svg>
+  ),
+
+  Sun: (props: IconProps) => (
+    <svg
+      {...defaultProps}
+      {...props}
+      width={props.size || 16}
+      height={props.size || 16}
+      viewBox="0 0 24 24"
+    >
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2V4" />
+      <path d="M12 20V22" />
+      <path d="M4.93 4.93L6.34 6.34" />
+      <path d="M17.66 17.66L19.07 19.07" />
+      <path d="M2 12H4" />
+      <path d="M20 12H22" />
+      <path d="M6.34 17.66L4.93 19.07" />
+      <path d="M19.07 4.93L17.66 6.34" />
+    </svg>
+  ),
+
+  Moon: (props: IconProps) => (
+    <svg
+      {...defaultProps}
+      {...props}
+      width={props.size || 16}
+      height={props.size || 16}
+      viewBox="0 0 24 24"
+    >
+      <path d="M21 12.79C20.8427 14.4922 20.2039 16.1144 19.1582 17.4668C18.1126 18.8192 16.7035 19.8458 15.0957 20.4265C13.4879 21.0073 11.748 21.1181 10.0795 20.7461C8.41104 20.3741 6.88302 19.5345 5.67423 18.3258C4.46544 17.117 3.62594 15.589 3.25391 13.9205C2.88188 12.252 2.99272 10.5121 3.57348 8.9043C4.15425 7.29651 5.18083 5.88737 6.53324 4.84175C7.88565 3.79614 9.50782 3.15731 11.21 3C10.2134 4.34827 9.73387 6.00945 9.85856 7.68141C9.98325 9.35338 10.7039 10.9251 11.8894 12.1106C13.0749 13.2961 14.6466 14.0168 16.3186 14.1414C17.9906 14.2661 19.6517 13.7866 21 12.79Z" />
+    </svg>
+  ),
+
+  Refresh: (props: IconProps) => (
+    <svg
+      {...defaultProps}
+      {...props}
+      width={props.size || 16}
+      height={props.size || 16}
+      viewBox="0 0 24 24"
+    >
+      <path d="M1 4V10H7" />
+      <path d="M23 20V14H17" />
+      <path d="M20.49 9C19.9828 7.56678 19.1209 6.28385 17.9845 5.27069C16.8482 4.25752 15.4745 3.54689 13.9917 3.20277C12.5089 2.85866 10.9652 2.89188 9.49842 3.29987C8.03168 3.70786 6.68966 4.47681 5.60001 5.53L1.00001 10M23 14L18.4 18.47C17.3104 19.5232 15.9684 20.2922 14.5016 20.7002C13.0348 21.1082 11.4912 21.1414 10.0084 20.7972C8.52552 20.4531 7.15183 19.7425 6.01547 18.7293C4.87912 17.7162 4.01729 16.4332 3.51001 15" />
     </svg>
   ),
 
@@ -248,13 +313,27 @@ export const Icons = {
     <svg
       {...defaultProps}
       {...props}
-      width={props.size}
-      height={props.size}
+      width={props.size || 16}
+      height={props.size || 16}
       viewBox="0 0 24 24"
       className={`animate-spin ${props.className || ""}`}
     >
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+      <circle
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="2"
+        fill="none"
+        opacity="0.25"
+      />
+      <path
+        d="M12 2C6.47715 2 2 6.47715 2 12"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        fill="none"
+      />
     </svg>
   ),
 };

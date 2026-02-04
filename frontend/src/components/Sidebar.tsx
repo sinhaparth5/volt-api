@@ -1,19 +1,36 @@
-import { forwardRef } from "react";
+import { forwardRef, useRef, useImperativeHandle } from "react";
 import { Icons } from "./Icons";
+import { ThemeToggle } from "./ThemeToggle";
 import { HistorySidebar, HistorySidebarRef } from "./HistorySidebar";
+import { CollectionsSidebar, CollectionsSidebarRef } from "./CollectionsSidebar";
 import { app } from "../../wailsjs/go/models";
 
 type HistoryItem = app.HistoryItem;
+type SavedRequest = app.SavedRequest;
 type SidebarTab = "history" | "collections";
+
+export interface SidebarRef {
+  refreshHistory: () => void;
+  refreshCollections: () => void;
+}
 
 interface SidebarProps {
   activeTab: SidebarTab;
   onTabChange: (tab: SidebarTab) => void;
   onSelectHistoryItem: (item: HistoryItem) => void;
+  onSelectSavedRequest: (request: SavedRequest) => void;
 }
 
-export const Sidebar = forwardRef<HistorySidebarRef, SidebarProps>(
-  ({ activeTab, onTabChange, onSelectHistoryItem }, ref) => {
+export const Sidebar = forwardRef<SidebarRef, SidebarProps>(
+  ({ activeTab, onTabChange, onSelectHistoryItem, onSelectSavedRequest }, ref) => {
+    const historySidebarRef = useRef<HistorySidebarRef>(null);
+    const collectionsSidebarRef = useRef<CollectionsSidebarRef>(null);
+
+    useImperativeHandle(ref, () => ({
+      refreshHistory: () => historySidebarRef.current?.refresh(),
+      refreshCollections: () => collectionsSidebarRef.current?.refresh(),
+    }));
+
     return (
       <aside className="w-60 bg-ctp-mantle border-r border-ctp-surface0 flex flex-col">
         {/* Logo */}
@@ -21,6 +38,7 @@ export const Sidebar = forwardRef<HistorySidebarRef, SidebarProps>(
           <Icons.Bolt size={18} className="text-ctp-mauve" />
           <h1 className="text-ctp-mauve font-bold tracking-wide">VOLT</h1>
           <span className="text-ctp-subtext0 text-xs">API</span>
+          <ThemeToggle />
         </div>
 
         {/* Tabs */}
@@ -53,14 +71,14 @@ export const Sidebar = forwardRef<HistorySidebarRef, SidebarProps>(
         <div className="flex-1 overflow-hidden">
           {activeTab === "history" ? (
             <HistorySidebar
-              ref={ref}
+              ref={historySidebarRef}
               onSelectItem={onSelectHistoryItem}
             />
           ) : (
-            <div className="p-4 text-xs text-ctp-subtext0 flex flex-col items-center justify-center h-full gap-2">
-              <Icons.Folder size={32} className="text-ctp-surface2" />
-              <span>Coming in Phase 3</span>
-            </div>
+            <CollectionsSidebar
+              ref={collectionsSidebarRef}
+              onSelectRequest={onSelectSavedRequest}
+            />
           )}
         </div>
       </aside>

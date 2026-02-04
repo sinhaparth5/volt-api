@@ -14,6 +14,24 @@ export namespace app {
 	        this.buildTime = source["buildTime"];
 	    }
 	}
+	export class Collection {
+	    id: string;
+	    name: string;
+	    createdAt: number;
+	    updatedAt: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new Collection(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	        this.createdAt = source["createdAt"];
+	        this.updatedAt = source["updatedAt"];
+	    }
+	}
 	export class HTTPRequest {
 	    method: string;
 	    url: string;
@@ -82,6 +100,54 @@ export namespace app {
 	        this.statusCode = source["statusCode"];
 	        this.timingMs = source["timingMs"];
 	        this.createdAt = source["createdAt"];
+	    }
+	}
+	export class SaveRequestInput {
+	    name: string;
+	    method: string;
+	    url: string;
+	    headers: Record<string, string>;
+	    body: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new SaveRequestInput(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.method = source["method"];
+	        this.url = source["url"];
+	        this.headers = source["headers"];
+	        this.body = source["body"];
+	    }
+	}
+	export class SavedRequest {
+	    id: string;
+	    collectionId: string;
+	    name: string;
+	    method: string;
+	    url: string;
+	    headers: Record<string, string>;
+	    body: string;
+	    createdAt: number;
+	    updatedAt: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new SavedRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.collectionId = source["collectionId"];
+	        this.name = source["name"];
+	        this.method = source["method"];
+	        this.url = source["url"];
+	        this.headers = source["headers"];
+	        this.body = source["body"];
+	        this.createdAt = source["createdAt"];
+	        this.updatedAt = source["updatedAt"];
 	    }
 	}
 

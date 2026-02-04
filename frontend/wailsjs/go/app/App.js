@@ -6,22 +6,70 @@ export function ClearHistory() {
   return window['go']['app']['App']['ClearHistory']();
 }
 
+export function CreateCollection(arg1) {
+  return window['go']['app']['App']['CreateCollection'](arg1);
+}
+
+export function DeleteCollection(arg1) {
+  return window['go']['app']['App']['DeleteCollection'](arg1);
+}
+
 export function DeleteHistoryItem(arg1) {
   return window['go']['app']['App']['DeleteHistoryItem'](arg1);
+}
+
+export function DeleteSavedRequest(arg1) {
+  return window['go']['app']['App']['DeleteSavedRequest'](arg1);
+}
+
+export function ExportCollection(arg1) {
+  return window['go']['app']['App']['ExportCollection'](arg1);
 }
 
 export function GetAppInfo() {
   return window['go']['app']['App']['GetAppInfo']();
 }
 
+export function GetCollectionRequests(arg1) {
+  return window['go']['app']['App']['GetCollectionRequests'](arg1);
+}
+
+export function GetCollections() {
+  return window['go']['app']['App']['GetCollections']();
+}
+
 export function GetHistory(arg1, arg2) {
   return window['go']['app']['App']['GetHistory'](arg1, arg2);
+}
+
+export function ImportCollection(arg1) {
+  return window['go']['app']['App']['ImportCollection'](arg1);
 }
 
 export function LoadHistoryItem(arg1) {
   return window['go']['app']['App']['LoadHistoryItem'](arg1);
 }
 
+export function LoadSavedRequest(arg1) {
+  return window['go']['app']['App']['LoadSavedRequest'](arg1);
+}
+
+export function MoveSavedRequest(arg1, arg2) {
+  return window['go']['app']['App']['MoveSavedRequest'](arg1, arg2);
+}
+
+export function RenameCollection(arg1, arg2) {
+  return window['go']['app']['App']['RenameCollection'](arg1, arg2);
+}
+
+export function SaveRequestToCollection(arg1, arg2) {
+  return window['go']['app']['App']['SaveRequestToCollection'](arg1, arg2);
+}
+
 export function SendRequest(arg1) {
   return window['go']['app']['App']['SendRequest'](arg1);
+}
+
+export function UpdateSavedRequest(arg1, arg2) {
+  return window['go']['app']['App']['UpdateSavedRequest'](arg1, arg2);
 }
