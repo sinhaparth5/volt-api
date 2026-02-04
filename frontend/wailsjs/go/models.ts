@@ -1,4 +1,4 @@
-export namespace main {
+export namespace app {
 	
 	export class AppInfo {
 	    version: string;
@@ -56,6 +56,32 @@ export namespace main {
 	        this.timingMs = source["timingMs"];
 	        this.contentLength = source["contentLength"];
 	        this.error = source["error"];
+	    }
+	}
+	export class HistoryItem {
+	    id: string;
+	    method: string;
+	    url: string;
+	    headers: Record<string, string>;
+	    body: string;
+	    statusCode: number;
+	    timingMs: number;
+	    createdAt: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new HistoryItem(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.method = source["method"];
+	        this.url = source["url"];
+	        this.headers = source["headers"];
+	        this.body = source["body"];
+	        this.statusCode = source["statusCode"];
+	        this.timingMs = source["timingMs"];
+	        this.createdAt = source["createdAt"];
 	    }
 	}
 
