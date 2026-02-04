@@ -32,15 +32,16 @@
 - [x] Timestamp display (relative: "2 min ago")
 
 ## Phase 3: Collections & Organization
-- [ ] Create collections (folders for requests)
-- [ ] `CreateCollection(name)` Go method
-- [ ] `GetCollections()` Go method
-- [ ] `SaveRequestToCollection(collectionId, request)` Go method
-- [ ] Collection tree view in sidebar
-- [ ] Drag and drop requests into collections
-- [ ] Rename/delete collections
-- [ ] Export collection as JSON
-- [ ] Import collection from JSON
+- [x] Create collections (folders for requests)
+- [x] `CreateCollection(name)` Go method
+- [x] `GetCollections()` Go method
+- [x] `SaveRequestToCollection(collectionId, request)` Go method
+- [x] Collection tree view in sidebar
+- [ ] Drag and drop requests into collections (skipped - using context menu instead)
+- [x] Rename/delete collections
+- [x] Export collection as JSON
+- [x] Import collection from JSON
+- [x] Move requests between collections (via context menu)
 
 ## Phase 4: Request Builder Enhancements
 - [ ] Headers editor (key-value pairs)
