@@ -82,6 +82,12 @@ export namespace app {
 	    headers: Record<string, string>;
 	    body: string;
 	    timeout: number;
+	    proxyUrl: string;
+	    skipSslVerify: boolean;
+	    clientCertPath: string;
+	    clientKeyPath: string;
+	    followRedirects: boolean;
+	    maxRedirects: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new HTTPRequest(source);
@@ -94,6 +100,12 @@ export namespace app {
 	        this.headers = source["headers"];
 	        this.body = source["body"];
 	        this.timeout = source["timeout"];
+	        this.proxyUrl = source["proxyUrl"];
+	        this.skipSslVerify = source["skipSslVerify"];
+	        this.clientCertPath = source["clientCertPath"];
+	        this.clientKeyPath = source["clientKeyPath"];
+	        this.followRedirects = source["followRedirects"];
+	        this.maxRedirects = source["maxRedirects"];
 	    }
 	}
 	export class HTTPResponse {
