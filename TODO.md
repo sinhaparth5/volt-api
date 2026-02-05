@@ -37,16 +37,16 @@
 - [x] `GetCollections()` Go method
 - [x] `SaveRequestToCollection(collectionId, request)` Go method
 - [x] Collection tree view in sidebar
-- [ ] Drag and drop requests into collections (skipped - using context menu instead)
+- [x] Drag and drop requests into collections
 - [x] Rename/delete collections
 - [x] Export collection as JSON
 - [x] Import collection from JSON
 - [x] Move requests between collections (via context menu)
 
 ## Phase 4: Request Builder Enhancements
-- [ ] Headers editor (key-value pairs)
-- [ ] Query params editor (key-value pairs)
-- [ ] Auth tab (Basic, Bearer Token, API Key)
+- [x] Headers editor (key-value pairs)
+- [x] Query params editor (key-value pairs with bidirectional URL sync)
+- [x] Auth tab (None, Basic Auth, Bearer Token, API Key)
 - [ ] Request body types (JSON, Form Data, Raw, Binary)
 - [ ] Syntax highlighting for JSON body
 - [ ] Pretty print / format JSON button
@@ -74,7 +74,7 @@
 ## Phase 7: Polish & UX
 - [ ] Keyboard shortcuts (Ctrl+Enter to send)
 - [ ] Request tabs (multiple requests open)
-- [ ] Dark/Light theme toggle
+- [x] Dark/Light theme toggle (Catppuccin Latte/Macchiato)
 - [ ] Resizable panels (sidebar, request/response)
 - [ ] Response preview modes (Pretty, Raw, Preview)
 - [ ] Binary response handling (images, files)

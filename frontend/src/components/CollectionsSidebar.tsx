@@ -31,6 +31,12 @@ interface CollectionWithRequests extends Collection {
   isLoading: boolean;
 }
 
+interface DragState {
+  requestId: string;
+  requestName: string;
+  sourceCollectionId: string;
+}
+
 export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsSidebarProps>(
   ({ onSelectRequest }, ref) => {
     const [collections, setCollections] = useState<CollectionWithRequests[]>([]);
@@ -45,6 +51,8 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
       x: number;
       y: number;
     } | null>(null);
+    const [dragState, setDragState] = useState<DragState | null>(null);
+    const [dropTargetId, setDropTargetId] = useState<string | null>(null);
 
     useImperativeHandle(ref, () => ({
       refresh: loadCollections,
@@ -207,6 +215,48 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
       }
     };
 
+    // Drag and drop handlers
+    const handleDragStart = (
+      e: React.DragEvent,
+      request: SavedRequest,
+      collectionId: string
+    ) => {
+      setDragState({
+        requestId: request.id,
+        requestName: request.name,
+        sourceCollectionId: collectionId,
+      });
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", request.id);
+    };
+
+    const handleDragEnd = () => {
+      setDragState(null);
+      setDropTargetId(null);
+    };
+
+    const handleDragOver = (e: React.DragEvent, collectionId: string) => {
+      e.preventDefault();
+      if (dragState && dragState.sourceCollectionId !== collectionId) {
+        e.dataTransfer.dropEffect = "move";
+        setDropTargetId(collectionId);
+      }
+    };
+
+    const handleDragLeave = () => {
+      setDropTargetId(null);
+    };
+
+    const handleDrop = async (e: React.DragEvent, targetCollectionId: string) => {
+      e.preventDefault();
+      setDropTargetId(null);
+
+      if (dragState && dragState.sourceCollectionId !== targetCollectionId) {
+        await handleMoveRequest(dragState.requestId, targetCollectionId);
+      }
+      setDragState(null);
+    };
+
     return (
       <div className="h-full flex flex-col">
         {/* Header with actions */}
@@ -277,11 +327,18 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
               <div key={collection.id} className="border-b border-ctp-surface0/50">
                 {/* Collection header */}
                 <div
-                  className="flex items-center gap-1 px-2 py-2 hover:bg-ctp-surface0/50 cursor-pointer group"
+                  className={`flex items-center gap-1 px-2 py-2 hover:bg-ctp-surface0/50 cursor-pointer group transition-colors ${
+                    dropTargetId === collection.id
+                      ? "bg-ctp-mauve/20 border-l-2 border-ctp-mauve"
+                      : ""
+                  }`}
                   onClick={() => toggleCollection(collection.id)}
                   onContextMenu={(e) =>
                     handleContextMenu(e, "collection", collection.id)
                   }
+                  onDragOver={(e) => handleDragOver(e, collection.id)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, collection.id)}
                 >
                   <Icons.ChevronRight
                     size={12}
@@ -335,7 +392,16 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
                       collection.requests.map((request) => (
                         <div
                           key={request.id}
-                          className="flex items-center gap-2 px-2 pl-6 py-1.5 hover:bg-ctp-surface0/50 cursor-pointer group"
+                          draggable
+                          onDragStart={(e) =>
+                            handleDragStart(e, request, collection.id)
+                          }
+                          onDragEnd={handleDragEnd}
+                          className={`flex items-center gap-2 px-2 pl-6 py-1.5 hover:bg-ctp-surface0/50 cursor-grab active:cursor-grabbing group ${
+                            dragState?.requestId === request.id
+                              ? "opacity-50"
+                              : ""
+                          }`}
                           onClick={() => onSelectRequest(request)}
                           onContextMenu={(e) =>
                             handleContextMenu(
