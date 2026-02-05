@@ -40,6 +40,13 @@ export function EnvironmentSelector({
     loadEnvironments();
   }, []);
 
+  // Reload environments when dropdown opens to reflect any changes from the manager
+  useEffect(() => {
+    if (isOpen) {
+      loadEnvironments();
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {

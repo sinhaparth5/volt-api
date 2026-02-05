@@ -154,16 +154,7 @@ export function EnvironmentManager({
   const handleExport = async () => {
     if (!selectedEnv) return;
     try {
-      const json = await ExportEnvironment(selectedEnv.id);
-      if (json) {
-        const blob = new Blob([json], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${selectedEnv.name}.env.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-      }
+      await ExportEnvironment(selectedEnv.id);
     } catch (err) {
       console.error("Failed to export environment:", err);
     }
@@ -212,7 +203,7 @@ export function EnvironmentManager({
         {/* Content */}
         <div className="flex-1 flex overflow-hidden">
           {/* Environment List */}
-          <div className="w-48 border-r border-ctp-surface0 flex flex-col">
+          <div className="w-48 border-r border-ctp-surface0 flex flex-col min-w-0">
             {/* Create new */}
             <div className="p-2 border-b border-ctp-surface0">
               <div className="flex gap-1">
@@ -222,12 +213,12 @@ export function EnvironmentManager({
                   onChange={(e) => setNewEnvName(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleCreateEnvironment()}
                   placeholder="New environment..."
-                  className="flex-1 bg-ctp-surface0 border border-ctp-surface1 px-2 py-1 rounded-md text-xs outline-none focus:border-ctp-lavender text-ctp-text placeholder:text-ctp-overlay0"
+                  className="flex-1 min-w-0 bg-ctp-surface0 border border-ctp-surface1 px-2 py-1.5 rounded-md text-xs outline-none focus:border-ctp-lavender text-ctp-text placeholder:text-ctp-overlay0"
                 />
                 <button
                   onClick={handleCreateEnvironment}
                   disabled={!newEnvName.trim()}
-                  className="px-2 py-1 bg-ctp-mauve text-ctp-base rounded-md text-xs disabled:opacity-50"
+                  className="flex-shrink-0 w-7 h-7 flex items-center justify-center bg-ctp-mauve text-ctp-base rounded-md text-xs disabled:opacity-50 hover:bg-ctp-mauve/80"
                 >
                   <Icons.Plus size={12} />
                 </button>
@@ -244,7 +235,7 @@ export function EnvironmentManager({
               {environments.map((env) => (
                 <div
                   key={env.id}
-                  className={`group px-3 py-2 cursor-pointer flex items-center justify-between ${
+                  className={`group px-3 py-2 cursor-pointer flex items-center gap-2 ${
                     selectedEnv?.id === env.id
                       ? "bg-ctp-surface0 text-ctp-text"
                       : "text-ctp-subtext0 hover:bg-ctp-surface0/50"
@@ -261,30 +252,32 @@ export function EnvironmentManager({
                         if (e.key === "Enter") handleRenameEnvironment(env.id);
                         if (e.key === "Escape") setEditingEnvId(null);
                       }}
-                      className="flex-1 bg-ctp-surface0 border border-ctp-lavender px-1 py-0.5 rounded text-xs outline-none text-ctp-text"
+                      className="flex-1 min-w-0 bg-ctp-surface0 border border-ctp-lavender px-2 py-1 rounded-md text-xs outline-none text-ctp-text"
                       autoFocus
                       onClick={(e) => e.stopPropagation()}
                     />
                   ) : (
                     <>
-                      <span className="text-xs truncate">{env.name}</span>
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100">
+                      <span className="text-xs truncate flex-1 min-w-0">{env.name}</span>
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 flex-shrink-0">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             setEditingEnvId(env.id);
                             setEditingEnvName(env.name);
                           }}
-                          className="p-0.5 text-ctp-overlay0 hover:text-ctp-text"
+                          className="p-1 text-ctp-overlay0 hover:text-ctp-text rounded hover:bg-ctp-surface1"
+                          title="Rename"
                         >
-                          <Icons.Code size={10} />
+                          <Icons.Edit size={10} />
                         </button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDeleteEnvironment(env.id);
                           }}
-                          className="p-0.5 text-ctp-overlay0 hover:text-ctp-red"
+                          className="p-1 text-ctp-overlay0 hover:text-ctp-red rounded hover:bg-ctp-red/10"
+                          title="Delete"
                         >
                           <Icons.Trash size={10} />
                         </button>

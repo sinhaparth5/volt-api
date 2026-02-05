@@ -163,15 +163,7 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
 
     const handleExport = async (id: string) => {
       try {
-        const jsonData = await ExportCollection(id);
-        const collection = collections.find((c) => c.id === id);
-        const blob = new Blob([jsonData], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${collection?.name || "collection"}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
+        await ExportCollection(id);
       } catch (err) {
         console.error("Failed to export collection:", err);
       }

@@ -9,10 +9,13 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
 	"volt-api/internal/database"
+
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // Build-time variables (set via ldflags)
@@ -472,23 +475,41 @@ func (a *App) DeleteSavedRequest(id string) error {
 // Export/Import Methods
 // ============================================================================
 
-// ExportCollection exports a collection as JSON string
-func (a *App) ExportCollection(id string) string {
+// ExportCollection exports a collection using native file dialog
+func (a *App) ExportCollection(id string) error {
 	if a.db == nil {
-		return ""
+		return fmt.Errorf("database not initialized")
 	}
 
 	export, err := a.db.ExportCollection(id)
 	if err != nil {
-		return ""
+		return err
 	}
 
 	data, err := json.MarshalIndent(export, "", "  ")
 	if err != nil {
-		return ""
+		return err
 	}
 
-	return string(data)
+	// Open native save dialog
+	filepath, err := runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
+		Title:           "Export Collection",
+		DefaultFilename: export.Name + ".collection.json",
+		Filters: []runtime.FileFilter{
+			{DisplayName: "JSON Files", Pattern: "*.json"},
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	// User cancelled
+	if filepath == "" {
+		return nil
+	}
+
+	// Write file
+	return os.WriteFile(filepath, data, 0644)
 }
 
 // ImportCollection imports a collection from JSON string
@@ -677,23 +698,41 @@ func (a *App) DeleteEnvironmentVariable(id string) error {
 // Environment Export/Import Methods
 // ============================================================================
 
-// ExportEnvironment exports an environment as JSON string
-func (a *App) ExportEnvironment(id string) string {
+// ExportEnvironment exports an environment using native file dialog
+func (a *App) ExportEnvironment(id string) error {
 	if a.db == nil {
-		return ""
+		return fmt.Errorf("database not initialized")
 	}
 
 	export, err := a.db.ExportEnvironment(id)
 	if err != nil {
-		return ""
+		return err
 	}
 
 	data, err := json.MarshalIndent(export, "", "  ")
 	if err != nil {
-		return ""
+		return err
 	}
 
-	return string(data)
+	// Open native save dialog
+	filepath, err := runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
+		Title:           "Export Environment",
+		DefaultFilename: export.Name + ".env.json",
+		Filters: []runtime.FileFilter{
+			{DisplayName: "JSON Files", Pattern: "*.json"},
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	// User cancelled
+	if filepath == "" {
+		return nil
+	}
+
+	// Write file
+	return os.WriteFile(filepath, data, 0644)
 }
 
 // ImportEnvironment imports an environment from JSON string

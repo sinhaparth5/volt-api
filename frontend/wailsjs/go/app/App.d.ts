@@ -18,9 +18,9 @@ export function DeleteHistoryItem(arg1:string):Promise<void>;
 
 export function DeleteSavedRequest(arg1:string):Promise<void>;
 
-export function ExportCollection(arg1:string):Promise<string>;
+export function ExportCollection(arg1:string):Promise<void>;
 
-export function ExportEnvironment(arg1:string):Promise<string>;
+export function ExportEnvironment(arg1:string):Promise<void>;
 
 export function GetActiveEnvironment():Promise<app.Environment>;
 
