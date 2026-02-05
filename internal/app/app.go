@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"crypto/tls"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -81,6 +82,119 @@ func createSecureHTTPClient() *http.Client {
 			return nil
 		},
 	}
+}
+
+// createCustomHTTPClient creates an HTTP client with request-specific settings (proxy, SSL, etc.)
+func (a *App) createCustomHTTPClient(request HTTPRequest, timeout time.Duration) *http.Client {
+	// Start with TLS config
+	tlsConfig := &tls.Config{
+		MinVersion: tls.VersionTLS12,
+	}
+
+	// Handle SSL verification skip
+	if request.SkipSSLVerify {
+		tlsConfig.InsecureSkipVerify = true
+	}
+
+	// Handle client certificates
+	if request.ClientCertPath != "" && request.ClientKeyPath != "" {
+		cert, err := tls.LoadX509KeyPair(request.ClientCertPath, request.ClientKeyPath)
+		if err == nil {
+			tlsConfig.Certificates = []tls.Certificate{cert}
+		}
+	}
+
+	// Create transport
+	transport := &http.Transport{
+		TLSClientConfig: tlsConfig,
+		DialContext: (&net.Dialer{
+			Timeout:   10 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).DialContext,
+		MaxIdleConns:          100,
+		MaxIdleConnsPerHost:   10,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+		ResponseHeaderTimeout: timeout,
+		DisableCompression:    false,
+	}
+
+	// Handle proxy
+	if request.ProxyURL != "" {
+		proxyURL, err := url.Parse(request.ProxyURL)
+		if err == nil {
+			transport.Proxy = http.ProxyURL(proxyURL)
+		}
+	}
+
+	// Determine max redirects
+	maxRedirects := 10
+	if request.MaxRedirects > 0 {
+		maxRedirects = request.MaxRedirects
+	}
+
+	// Create client with redirect handling
+	client := &http.Client{
+		Timeout:   timeout,
+		Transport: transport,
+	}
+
+	// Handle redirect settings
+	if !request.FollowRedirects {
+		client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}
+	} else {
+		client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			if len(via) >= maxRedirects {
+				return fmt.Errorf("stopped after %d redirects", maxRedirects)
+			}
+			return nil
+		}
+	}
+
+	return client
+}
+
+// isBinaryContentType checks if the content type indicates binary data
+func isBinaryContentType(contentType string) bool {
+	ct := strings.ToLower(contentType)
+
+	// Text types that should not be base64 encoded
+	textTypes := []string{
+		"text/",
+		"application/json",
+		"application/xml",
+		"application/javascript",
+		"application/x-www-form-urlencoded",
+	}
+
+	for _, t := range textTypes {
+		if strings.Contains(ct, t) {
+			return false
+		}
+	}
+
+	// Binary types that should be base64 encoded
+	binaryTypes := []string{
+		"image/",
+		"audio/",
+		"video/",
+		"application/octet-stream",
+		"application/pdf",
+		"application/zip",
+		"application/gzip",
+	}
+
+	for _, t := range binaryTypes {
+		if strings.Contains(ct, t) {
+			return true
+		}
+	}
+
+	// If content type is empty or unknown, check if it's printable
+	return false
 }
 
 // Startup is called when the app starts
@@ -234,6 +348,9 @@ func (a *App) SendRequest(request HTTPRequest) HTTPResponse {
 		}
 	}
 
+	// Create custom HTTP client with request-specific settings
+	httpClient := a.createCustomHTTPClient(request, timeout)
+
 	// Create context with timeout
 	ctx, cancel := context.WithTimeout(a.ctx, timeout)
 	defer cancel()
@@ -259,7 +376,7 @@ func (a *App) SendRequest(request HTTPRequest) HTTPResponse {
 	}
 
 	// Send request
-	resp, err := a.httpClient.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return HTTPResponse{
 			Error:    fmt.Sprintf("Request failed: %v", err),
@@ -286,11 +403,20 @@ func (a *App) SendRequest(request HTTPRequest) HTTPResponse {
 		responseHeaders[key] = strings.Join(values, ", ")
 	}
 
+	// Determine if response is binary and needs base64 encoding
+	contentType := resp.Header.Get("Content-Type")
+	var bodyStr string
+	if isBinaryContentType(contentType) {
+		bodyStr = base64.StdEncoding.EncodeToString(bodyBytes)
+	} else {
+		bodyStr = string(bodyBytes)
+	}
+
 	response := HTTPResponse{
 		StatusCode:    resp.StatusCode,
 		StatusText:    resp.Status,
 		Headers:       responseHeaders,
-		Body:          string(bodyBytes),
+		Body:          bodyStr,
 		TimingMs:      time.Since(startTime).Milliseconds(),
 		ContentLength: resp.ContentLength,
 	}

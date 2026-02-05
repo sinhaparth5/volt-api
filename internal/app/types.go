@@ -2,11 +2,17 @@ package app
 
 // HTTPRequest represents the request from the frontend
 type HTTPRequest struct {
-	Method  string            `json:"method"`
-	URL     string            `json:"url"`
-	Headers map[string]string `json:"headers"`
-	Body    string            `json:"body"`
-	Timeout int               `json:"timeout"` // timeout in seconds, 0 = default
+	Method            string            `json:"method"`
+	URL               string            `json:"url"`
+	Headers           map[string]string `json:"headers"`
+	Body              string            `json:"body"`
+	Timeout           int               `json:"timeout"`           // timeout in seconds, 0 = default
+	ProxyURL          string            `json:"proxyUrl"`          // proxy URL (e.g., http://localhost:8080)
+	SkipSSLVerify     bool              `json:"skipSslVerify"`     // skip SSL certificate verification
+	ClientCertPath    string            `json:"clientCertPath"`    // path to client certificate
+	ClientKeyPath     string            `json:"clientKeyPath"`     // path to client key
+	FollowRedirects   bool              `json:"followRedirects"`   // follow HTTP redirects (default true)
+	MaxRedirects      int               `json:"maxRedirects"`      // max redirects to follow (default 10)
 }
 
 // HTTPResponse represents the response to the frontend
