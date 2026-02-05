@@ -59,12 +59,10 @@
 - [x] Variable syntax in URLs: `{{baseUrl}}/users`
 - [x] Variable syntax in headers: `Authorization: Bearer {{token}}`
 - [x] Environment selector dropdown
-- [ ] Quick variable substitution preview
+- [x] Quick variable substitution preview
 - [x] Import/export environments
 
 ## Phase 6: Advanced Features
-- [ ] Pre-request scripts (JavaScript)
-- [ ] Post-response scripts (tests)
 - [x] Response assertions (status code, body contains)
 - [x] Chained requests (use response in next request)
 
@@ -73,16 +71,21 @@
 - [ ] gRPC support
 - [ ] GraphQL support with schema explorer
 
+### Future Release (v3.0)
+- [ ] Pre-request scripts (JavaScript)
+- [ ] Post-response scripts (tests)
+
 ## Phase 7: Polish & UX
 - [x] Keyboard shortcuts (Ctrl+Enter to send, Ctrl+S to save, Ctrl+E environments)
-- [ ] Request tabs (multiple requests open)
+- [x] Request tabs (multiple requests open)
 - [x] Dark/Light theme toggle (Catppuccin Latte/Macchiato)
 - [x] Resizable panels (sidebar)
-- [ ] Response preview modes (Pretty, Raw, Preview)
-- [ ] Binary response handling (images, files)
-- [ ] Certificate/SSL settings
-- [ ] Proxy configuration
+- [x] Response preview modes (Pretty, Raw, Preview)
+- [x] Binary response handling (images, files)
+- [x] Certificate/SSL settings
+- [x] Proxy configuration
 - [x] Request timeout configuration
+- [x] Redirect settings (follow/max redirects)
 
 ## Tech Debt & Improvements
 - [ ] Add unit tests for Go HTTP client
