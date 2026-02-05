@@ -45,7 +45,6 @@ jobs:
         shell: pwsh
         run: |
           cd build/bin
-          # Updated to use a loop to avoid "file not found" errors if names vary slightly
           Get-ChildItem -Filter "volt-api-windows-*.exe" | ForEach-Object {
             $hash = Get-FileHash -Algorithm SHA256 $_.FullName
             $hash.Hash | Out-File -FilePath ($_.Name + ".sha256")
@@ -90,6 +89,7 @@ jobs:
         run: |
           cd build/bin
           tar -czvf volt-api-macos-arm64.tar.gz volt-api.app
+          mv volt-api-macos-arm64.tar.gz ../..
           rm -rf volt-api.app
 
       - name: Build macOS amd64
@@ -102,10 +102,11 @@ jobs:
         run: |
           cd build/bin
           tar -czvf volt-api-macos-amd64.tar.gz volt-api.app
+          mv volt-api-macos-amd64.tar.gz ../..
+          rm -rf volt-api.app
 
       - name: Generate Checksums
         run: |
-          cd build/bin
           shasum -a 256 volt-api-macos-arm64.tar.gz > volt-api-macos-arm64.tar.gz.sha256
           shasum -a 256 volt-api-macos-amd64.tar.gz > volt-api-macos-amd64.tar.gz.sha256
 
@@ -114,8 +115,8 @@ jobs:
         with:
           name: macos-builds
           path: |
-            build/bin/*.tar.gz
-            build/bin/*.sha256
+            volt-api-macos-*.tar.gz
+            volt-api-macos-*.sha256
 
   build-linux:
     runs-on: ubuntu-latest
@@ -135,7 +136,7 @@ jobs:
       - name: Install Linux Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev pkg-config build-essential
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev pkg-config build-essential libayatana-appindicator3-dev
 
       - name: Install Wails
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
@@ -144,10 +145,10 @@ jobs:
         run: cd frontend && npm ci
 
       - name: Build Linux amd64
-        run: wails build -clean -platform linux/amd64 -ldflags="-s -w" -o volt-api-linux-amd64
+        run: wails build -clean -platform linux/amd64 -ldflags="-s -w" -tags webkit2_41 -o volt-api-linux-amd64
 
       - name: Build Linux arm64
-        run: wails build -clean -platform linux/arm64 -ldflags="-s -w" -o volt-api-linux-arm64
+        run: wails build -clean -platform linux/arm64 -ldflags="-s -w" -tags webkit2_41 -o volt-api-linux-arm64
 
       - name: Generate Checksums
         run: |
