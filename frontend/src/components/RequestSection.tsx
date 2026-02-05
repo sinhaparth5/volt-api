@@ -4,6 +4,7 @@ import { MethodDropdown } from "./MethodDropdown";
 import { KeyValueEditor } from "./KeyValueEditor";
 import { AuthEditor } from "./AuthEditor";
 import { AssertionsEditor } from "./AssertionsEditor";
+import { ClientSettings } from "./ClientSettings";
 import {
   KeyValuePair,
   AuthSettings,
@@ -15,7 +16,7 @@ import {
 import { Assertion } from "../utils/assertions";
 
 type RequestState = "idle" | "loading" | "success" | "error";
-type RequestTab = "params" | "headers" | "auth" | "body" | "tests";
+type RequestTab = "params" | "headers" | "auth" | "body" | "tests" | "client";
 type BodyType = "json" | "form-data" | "raw" | "none";
 
 interface RequestSectionProps {
@@ -29,6 +30,8 @@ interface RequestSectionProps {
   bodyType: BodyType;
   formData: KeyValuePair[];
   assertions: Assertion[];
+  timeout: number;
+  userAgent: string;
   onMethodChange: (method: string) => void;
   onUrlChange: (url: string) => void;
   onBodyChange: (body: string) => void;
@@ -38,6 +41,8 @@ interface RequestSectionProps {
   onBodyTypeChange: (type: BodyType) => void;
   onFormDataChange: (data: KeyValuePair[]) => void;
   onAssertionsChange: (assertions: Assertion[]) => void;
+  onTimeoutChange: (timeout: number) => void;
+  onUserAgentChange: (userAgent: string) => void;
   onSend: () => void;
 }
 
@@ -52,6 +57,8 @@ export function RequestSection({
   bodyType,
   formData,
   assertions,
+  timeout,
+  userAgent,
   onMethodChange,
   onUrlChange,
   onBodyChange,
@@ -61,6 +68,8 @@ export function RequestSection({
   onBodyTypeChange,
   onFormDataChange,
   onAssertionsChange,
+  onTimeoutChange,
+  onUserAgentChange,
   onSend,
 }: RequestSectionProps) {
   const [methodDropdownOpen, setMethodDropdownOpen] = useState(false);
@@ -122,12 +131,15 @@ export function RequestSection({
   const activeAssertionsCount = assertions.filter((a) => a.enabled).length;
   const hasAuth = auth.type !== "none";
 
+  const hasCustomUserAgent = userAgent !== "";
+
   const tabs: { id: RequestTab; label: string; badge?: number; highlight?: boolean }[] = [
     { id: "params", label: "Params", badge: activeParamsCount || undefined },
     { id: "headers", label: "Headers", badge: activeHeadersCount || undefined },
     { id: "auth", label: "Auth", highlight: hasAuth },
     ...(showBody ? [{ id: "body" as RequestTab, label: "Body" }] : []),
     { id: "tests", label: "Tests", badge: activeAssertionsCount || undefined },
+    { id: "client", label: "Client", highlight: hasCustomUserAgent },
   ];
 
   return (
@@ -150,10 +162,31 @@ export function RequestSection({
             className="w-full bg-ctp-surface0 border border-ctp-surface1 px-3 py-2 rounded-md outline-none focus:border-ctp-lavender focus:bg-ctp-surface0/80 text-ctp-text text-sm placeholder:text-ctp-overlay0"
           />
         </div>
+        {/* Timeout Input */}
+        <div className="flex items-center gap-1 bg-ctp-surface0 border border-ctp-surface1 rounded-md px-2">
+          <Icons.History size={12} className="text-ctp-overlay0" />
+          <input
+            type="number"
+            value={timeout}
+            onChange={(e) => {
+              const val = parseInt(e.target.value, 10);
+              if (val > 0 && val <= 300) {
+                onTimeoutChange(val);
+              }
+            }}
+            min={1}
+            max={300}
+            className="w-12 bg-transparent py-2 text-xs text-ctp-text outline-none text-center"
+            title="Request timeout in seconds"
+          />
+          <span className="text-xs text-ctp-overlay0">s</span>
+        </div>
+
         <button
           onClick={onSend}
           disabled={requestState === "loading" || !url.trim()}
           className="bg-ctp-mauve hover:bg-ctp-mauve/90 active:bg-ctp-mauve/80 px-4 py-2 rounded-md text-ctp-base text-sm flex items-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
+          title="Send Request (Ctrl+Enter)"
         >
           {requestState === "loading" ? (
             <>
@@ -299,6 +332,13 @@ export function RequestSection({
           <AssertionsEditor
             assertions={assertions}
             onChange={onAssertionsChange}
+          />
+        )}
+
+        {activeTab === "client" && (
+          <ClientSettings
+            userAgent={userAgent}
+            onUserAgentChange={onUserAgentChange}
           />
         )}
       </div>
