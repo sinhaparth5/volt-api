@@ -3,6 +3,7 @@ import { Icons } from "./Icons";
 import { MethodDropdown } from "./MethodDropdown";
 import { KeyValueEditor } from "./KeyValueEditor";
 import { AuthEditor } from "./AuthEditor";
+import { AssertionsEditor } from "./AssertionsEditor";
 import {
   KeyValuePair,
   AuthSettings,
@@ -11,9 +12,10 @@ import {
   getBaseUrl,
   formatJSON,
 } from "../utils/helpers";
+import { Assertion } from "../utils/assertions";
 
 type RequestState = "idle" | "loading" | "success" | "error";
-type RequestTab = "params" | "headers" | "auth" | "body";
+type RequestTab = "params" | "headers" | "auth" | "body" | "tests";
 type BodyType = "json" | "form-data" | "raw" | "none";
 
 interface RequestSectionProps {
@@ -26,6 +28,7 @@ interface RequestSectionProps {
   auth: AuthSettings;
   bodyType: BodyType;
   formData: KeyValuePair[];
+  assertions: Assertion[];
   onMethodChange: (method: string) => void;
   onUrlChange: (url: string) => void;
   onBodyChange: (body: string) => void;
@@ -34,6 +37,7 @@ interface RequestSectionProps {
   onAuthChange: (auth: AuthSettings) => void;
   onBodyTypeChange: (type: BodyType) => void;
   onFormDataChange: (data: KeyValuePair[]) => void;
+  onAssertionsChange: (assertions: Assertion[]) => void;
   onSend: () => void;
 }
 
@@ -47,6 +51,7 @@ export function RequestSection({
   auth,
   bodyType,
   formData,
+  assertions,
   onMethodChange,
   onUrlChange,
   onBodyChange,
@@ -55,6 +60,7 @@ export function RequestSection({
   onAuthChange,
   onBodyTypeChange,
   onFormDataChange,
+  onAssertionsChange,
   onSend,
 }: RequestSectionProps) {
   const [methodDropdownOpen, setMethodDropdownOpen] = useState(false);
@@ -113,6 +119,7 @@ export function RequestSection({
   // Count active items for badges
   const activeHeadersCount = headers.filter((h) => h.enabled && h.key.trim()).length;
   const activeParamsCount = queryParams.filter((p) => p.enabled && p.key.trim()).length;
+  const activeAssertionsCount = assertions.filter((a) => a.enabled).length;
   const hasAuth = auth.type !== "none";
 
   const tabs: { id: RequestTab; label: string; badge?: number; highlight?: boolean }[] = [
@@ -120,6 +127,7 @@ export function RequestSection({
     { id: "headers", label: "Headers", badge: activeHeadersCount || undefined },
     { id: "auth", label: "Auth", highlight: hasAuth },
     ...(showBody ? [{ id: "body" as RequestTab, label: "Body" }] : []),
+    { id: "tests", label: "Tests", badge: activeAssertionsCount || undefined },
   ];
 
   return (
@@ -285,6 +293,13 @@ export function RequestSection({
               />
             )}
           </div>
+        )}
+
+        {activeTab === "tests" && (
+          <AssertionsEditor
+            assertions={assertions}
+            onChange={onAssertionsChange}
+          />
         )}
       </div>
     </section>

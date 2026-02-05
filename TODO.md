@@ -65,7 +65,7 @@
 ## Phase 6: Advanced Features
 - [ ] Pre-request scripts (JavaScript)
 - [ ] Post-response scripts (tests)
-- [ ] Response assertions (status code, body contains)
+- [x] Response assertions (status code, body contains)
 - [ ] Chained requests (use response in next request)
 - [ ] WebSocket support
 - [ ] gRPC support

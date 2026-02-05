@@ -1,18 +1,21 @@
 import { useState } from "react";
 import { Icons } from "./Icons";
 import { formatJSON, getStatusColor } from "../utils/helpers";
+import { AssertionResults } from "./AssertionResults";
+import { AssertionResult, getAssertionsSummary } from "../utils/assertions";
 import { app } from "../../wailsjs/go/models";
 
 type HTTPResponse = app.HTTPResponse;
 type RequestState = "idle" | "loading" | "success" | "error";
-type ResponseTab = "body" | "headers" | "cookies";
+type ResponseTab = "body" | "headers" | "cookies" | "tests";
 
 interface ResponseSectionProps {
   response: HTTPResponse | null;
   requestState: RequestState;
+  assertionResults?: AssertionResult[];
 }
 
-export function ResponseSection({ response, requestState }: ResponseSectionProps) {
+export function ResponseSection({ response, requestState, assertionResults = [] }: ResponseSectionProps) {
   const [activeTab, setActiveTab] = useState<ResponseTab>("body");
   const [copied, setCopied] = useState(false);
   const [bodyView, setBodyView] = useState<"pretty" | "raw">("pretty");
@@ -65,11 +68,20 @@ export function ResponseSection({ response, requestState }: ResponseSectionProps
   if (response) {
     const cookies = parseCookies(response.headers || {});
     const headersCount = Object.keys(response.headers || {}).length;
+    const assertionsSummary = assertionResults.length > 0 ? getAssertionsSummary(assertionResults) : null;
 
-    const tabs: { id: ResponseTab; label: string; count?: number }[] = [
+    const tabs: { id: ResponseTab; label: string; count?: number; status?: "pass" | "fail" }[] = [
       { id: "body", label: "Body" },
       { id: "headers", label: "Headers", count: headersCount },
       { id: "cookies", label: "Cookies", count: cookies.length },
+      ...(assertionResults.length > 0
+        ? [{
+            id: "tests" as ResponseTab,
+            label: "Tests",
+            count: assertionResults.length,
+            status: (assertionsSummary?.failed === 0 ? "pass" : "fail") as "pass" | "fail",
+          }]
+        : []),
     ];
 
     return (
@@ -115,7 +127,14 @@ export function ResponseSection({ response, requestState }: ResponseSectionProps
                 }`}
               >
                 {tab.label}
-                {tab.count !== undefined && tab.count > 0 && (
+                {tab.status && (
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      tab.status === "pass" ? "bg-ctp-green" : "bg-ctp-red"
+                    }`}
+                  />
+                )}
+                {tab.count !== undefined && tab.count > 0 && !tab.status && (
                   <span className="min-w-5 h-5 px-1.5 text-xs bg-ctp-surface0 text-ctp-subtext0 rounded flex items-center justify-center">
                     {tab.count}
                   </span>
@@ -228,6 +247,10 @@ export function ResponseSection({ response, requestState }: ResponseSectionProps
                 </div>
               )}
             </div>
+          )}
+
+          {activeTab === "tests" && (
+            <AssertionResults results={assertionResults} />
           )}
         </div>
       </section>

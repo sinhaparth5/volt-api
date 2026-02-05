@@ -99,3 +99,21 @@ type EnvironmentExport struct {
 	Name      string                `json:"name"`
 	Variables []EnvironmentVariable `json:"variables"`
 }
+
+// Assertion represents a test assertion for a response
+type Assertion struct {
+	ID       string `json:"id"`
+	Type     string `json:"type"`     // "status", "responseTime", "bodyContains", "bodyJson", "headerExists", "headerEquals"
+	Property string `json:"property"` // For JSON path or header name
+	Operator string `json:"operator"` // "equals", "notEquals", "contains", "lessThan", "greaterThan", "exists", "matches"
+	Expected string `json:"expected"` // Expected value
+	Enabled  bool   `json:"enabled"`
+}
+
+// AssertionResult represents the result of running an assertion
+type AssertionResult struct {
+	AssertionID string `json:"assertionId"`
+	Passed      bool   `json:"passed"`
+	Actual      string `json:"actual"`
+	Message     string `json:"message"`
+}

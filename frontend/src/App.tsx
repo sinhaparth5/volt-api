@@ -25,6 +25,7 @@ import {
   substituteVariables,
   substituteHeaderVariables,
 } from "./utils/helpers";
+import { Assertion, AssertionResult, runAssertions } from "./utils/assertions";
 import "./style.css";
 
 type HTTPResponse = app.HTTPResponse;
@@ -48,6 +49,8 @@ function App() {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showEnvManager, setShowEnvManager] = useState(false);
   const [activeVariables, setActiveVariables] = useState<Record<string, string>>({});
+  const [assertions, setAssertions] = useState<Assertion[]>([]);
+  const [assertionResults, setAssertionResults] = useState<AssertionResult[]>([]);
 
   const sidebarRef = useRef<SidebarRef>(null);
 
@@ -71,6 +74,7 @@ function App() {
 
     setRequestState("loading");
     setResponse(null);
+    setAssertionResults([]);
 
     // Apply variable substitution
     let finalUrl = substituteVariables(url.trim(), activeVariables);
@@ -116,6 +120,18 @@ function App() {
 
       setResponse(result);
       setRequestState(result.error ? "error" : "success");
+
+      // Run assertions if we have a valid response (no error)
+      if (!result.error && assertions.length > 0) {
+        const results = runAssertions(assertions, {
+          statusCode: result.statusCode,
+          statusText: result.statusText,
+          headers: result.headers || {},
+          body: result.body,
+          timingMs: result.timingMs,
+        });
+        setAssertionResults(results);
+      }
 
       setTimeout(() => {
         sidebarRef.current?.refreshHistory();
@@ -262,6 +278,7 @@ function App() {
           auth={auth}
           bodyType={bodyType}
           formData={formData}
+          assertions={assertions}
           onMethodChange={setMethod}
           onUrlChange={setUrl}
           onBodyChange={setRequestBody}
@@ -270,12 +287,14 @@ function App() {
           onAuthChange={setAuth}
           onBodyTypeChange={setBodyType}
           onFormDataChange={setFormData}
+          onAssertionsChange={setAssertions}
           onSend={handleSend}
         />
 
         <ResponseSection
           response={response}
           requestState={requestState}
+          assertionResults={assertionResults}
         />
       </main>
 
