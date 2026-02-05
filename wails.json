@@ -13,7 +13,7 @@
   "info": {
     "companyName": "Volt API",
     "productName": "Volt API Client",
-    "productVersion": "0.1.0",
+    "productVersion": "0.0.1",
     "copyright": "Copyright 2024",
     "comments": "A high-performance, cross-platform API client"
   },
