@@ -309,6 +309,59 @@ export const Icons = {
     </svg>
   ),
 
+  Key: (props: IconProps) => (
+    <svg
+      {...defaultProps}
+      {...props}
+      width={props.size || 16}
+      height={props.size || 16}
+      viewBox="0 0 24 24"
+    >
+      <path d="M21 2L19 4M11.39 8.61C12.3 9.5 12.84 10.71 12.84 12C12.84 13.28 12.3 14.5 11.39 15.39C10.5 16.28 9.28 16.84 8 16.84C6.71 16.84 5.5 16.28 4.61 15.39C3.72 14.5 3.16 13.28 3.16 12C3.16 10.71 3.72 9.5 4.61 8.61C5.5 7.72 6.72 7.16 8 7.16C9.29 7.16 10.5 7.72 11.39 8.61Z" />
+      <path d="M11 12L19 4" />
+      <path d="M16 7L19 10" />
+    </svg>
+  ),
+
+  Eye: (props: IconProps) => (
+    <svg
+      {...defaultProps}
+      {...props}
+      width={props.size || 16}
+      height={props.size || 16}
+      viewBox="0 0 24 24"
+    >
+      <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  ),
+
+  EyeOff: (props: IconProps) => (
+    <svg
+      {...defaultProps}
+      {...props}
+      width={props.size || 16}
+      height={props.size || 16}
+      viewBox="0 0 24 24"
+    >
+      <path d="M17.94 17.94C16.23 19.24 14.18 20 12 20C5 20 1 12 1 12C2.24 9.68 3.97 7.65 6.06 6.06M9.9 4.24C10.59 4.08 11.29 4 12 4C19 4 23 12 23 12C22.39 13.13 21.66 14.19 20.83 15.17M14.12 14.12C13.87 14.42 13.57 14.67 13.22 14.86C12.88 15.05 12.5 15.18 12.11 15.23C11.72 15.28 11.32 15.25 10.94 15.15C10.56 15.05 10.21 14.88 9.9 14.66C9.59 14.44 9.33 14.16 9.14 13.85C8.94 13.53 8.81 13.18 8.76 12.81C8.71 12.44 8.73 12.07 8.83 11.71C8.93 11.35 9.1 11.02 9.34 10.73" />
+      <path d="M1 1L23 23" />
+    </svg>
+  ),
+
+  Lock: (props: IconProps) => (
+    <svg
+      {...defaultProps}
+      {...props}
+      width={props.size || 16}
+      height={props.size || 16}
+      viewBox="0 0 24 24"
+    >
+      <rect x="3" y="11" width="18" height="11" rx="2" />
+      <path d="M7 11V7C7 4.24 9.24 2 12 2C14.76 2 17 4.24 17 7V11" />
+    </svg>
+  ),
+
   Spinner: (props: IconProps) => (
     <svg
       {...defaultProps}

@@ -99,7 +99,7 @@ export function SaveRequestModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-ctp-crust/80 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-ctp-crust/80 flex items-center justify-center z-50 modal-backdrop">
       <div className="bg-ctp-mantle border border-ctp-surface0 rounded-lg w-96 shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-ctp-surface0">
@@ -109,7 +109,7 @@ export function SaveRequestModal({
           </h2>
           <button
             onClick={onClose}
-            className="text-ctp-subtext0 hover:text-ctp-text"
+            className="text-ctp-overlay0 hover:text-ctp-text"
           >
             <Icons.X size={16} />
           </button>
@@ -119,7 +119,7 @@ export function SaveRequestModal({
         <div className="p-4 space-y-4">
           {/* Request Name */}
           <div>
-            <label className="text-xs text-ctp-subtext0 block mb-1.5">
+            <label className="text-xs text-ctp-text font-semibold block mb-1.5">
               Request Name
             </label>
             <input
@@ -127,21 +127,21 @@ export function SaveRequestModal({
               value={requestName}
               onChange={(e) => setRequestName(e.target.value)}
               placeholder="My Request"
-              className="w-full bg-ctp-surface0 border border-ctp-surface1 px-3 py-2 rounded text-sm outline-none focus:border-ctp-lavender text-ctp-text"
+              className="w-full bg-ctp-surface0 border border-ctp-surface1 px-3 py-2 rounded text-sm font-medium outline-none focus:border-ctp-lavender text-ctp-text placeholder:text-ctp-overlay0 placeholder:font-normal"
             />
           </div>
 
           {/* Collection Selector */}
           <div>
-            <label className="text-xs text-ctp-subtext0 block mb-1.5">
+            <label className="text-xs text-ctp-text font-semibold block mb-1.5">
               Collection
             </label>
             {collections.length === 0 && !isCreatingCollection ? (
-              <div className="text-xs text-ctp-overlay0 p-3 bg-ctp-surface0 rounded border border-ctp-surface1">
+              <div className="text-xs text-ctp-text font-medium p-3 bg-ctp-surface0 rounded border border-ctp-surface1">
                 No collections yet.{" "}
                 <button
                   onClick={() => setIsCreatingCollection(true)}
-                  className="text-ctp-mauve hover:underline"
+                  className="text-ctp-mauve font-semibold hover:underline"
                 >
                   Create one
                 </button>
@@ -160,13 +160,13 @@ export function SaveRequestModal({
                     }
                   }}
                   placeholder="Collection name..."
-                  className="w-full bg-ctp-surface0 border border-ctp-surface1 px-3 py-2 rounded text-sm outline-none focus:border-ctp-lavender text-ctp-text"
+                  className="w-full bg-ctp-surface0 border border-ctp-surface1 px-3 py-2 rounded text-sm font-medium outline-none focus:border-ctp-lavender text-ctp-text placeholder:text-ctp-overlay0 placeholder:font-normal"
                   autoFocus
                 />
                 <div className="flex gap-2">
                   <button
                     onClick={handleCreateCollection}
-                    className="flex-1 px-3 py-1.5 text-xs bg-ctp-mauve text-ctp-base rounded hover:bg-ctp-mauve/80"
+                    className="flex-1 px-3 py-1.5 text-xs font-semibold bg-ctp-mauve text-ctp-base rounded hover:bg-ctp-mauve/80"
                   >
                     Create
                   </button>
@@ -175,7 +175,7 @@ export function SaveRequestModal({
                       setIsCreatingCollection(false);
                       setNewCollectionName("");
                     }}
-                    className="px-3 py-1.5 text-xs text-ctp-subtext0 hover:text-ctp-text"
+                    className="px-3 py-1.5 text-xs font-medium text-ctp-text hover:text-ctp-mauve"
                   >
                     Cancel
                   </button>
@@ -186,7 +186,7 @@ export function SaveRequestModal({
                 <select
                   value={selectedCollectionId}
                   onChange={(e) => setSelectedCollectionId(e.target.value)}
-                  className="flex-1 bg-ctp-surface0 border border-ctp-surface1 px-3 py-2 rounded text-sm outline-none focus:border-ctp-lavender text-ctp-text"
+                  className="flex-1 bg-ctp-surface0 border border-ctp-surface1 px-3 py-2 rounded text-sm font-medium outline-none focus:border-ctp-lavender text-ctp-text"
                 >
                   {collections.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -196,7 +196,7 @@ export function SaveRequestModal({
                 </select>
                 <button
                   onClick={() => setIsCreatingCollection(true)}
-                  className="px-3 py-2 bg-ctp-surface0 border border-ctp-surface1 rounded text-ctp-subtext0 hover:text-ctp-text hover:border-ctp-surface2"
+                  className="px-3 py-2 bg-ctp-surface0 border border-ctp-surface1 rounded text-ctp-text hover:bg-ctp-surface1"
                   title="New Collection"
                 >
                   <Icons.Plus size={14} />
@@ -207,9 +207,9 @@ export function SaveRequestModal({
 
           {/* Preview */}
           <div className="p-3 bg-ctp-base rounded border border-ctp-surface0 text-xs">
-            <div className="flex items-center gap-2 text-ctp-subtext0">
+            <div className="flex items-center gap-2">
               <span className="font-bold text-ctp-green">{method}</span>
-              <span className="truncate text-ctp-text">{url}</span>
+              <span className="truncate text-ctp-text font-medium">{url}</span>
             </div>
           </div>
         </div>
@@ -218,7 +218,7 @@ export function SaveRequestModal({
         <div className="flex justify-end gap-2 px-4 py-3 border-t border-ctp-surface0">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-xs text-ctp-subtext0 hover:text-ctp-text"
+            className="px-4 py-2 text-xs font-medium text-ctp-text hover:text-ctp-mauve"
           >
             Cancel
           </button>

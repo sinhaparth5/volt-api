@@ -127,7 +127,7 @@ export const HistorySidebar = forwardRef<HistorySidebarRef, Props>(
               placeholder="Search history..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-ctp-surface0 border border-ctp-surface1 pl-8 pr-3 py-1.5 rounded-lg text-xs outline-none focus:border-ctp-lavender text-ctp-text placeholder:text-ctp-overlay0"
+              className="w-full bg-ctp-surface0 border border-ctp-surface1 pl-8 pr-3 py-1.5 rounded-lg text-xs font-medium outline-none focus:border-ctp-lavender text-ctp-text placeholder:text-ctp-overlay0 placeholder:font-normal"
             />
           </div>
         </div>
@@ -135,15 +135,15 @@ export const HistorySidebar = forwardRef<HistorySidebarRef, Props>(
         {/* History List */}
         <div className="flex-1 overflow-y-auto">
           {isLoading && history.length === 0 && (
-            <div className="p-4 text-center text-ctp-subtext0 text-xs flex flex-col items-center gap-2">
+            <div className="p-4 text-center text-ctp-text text-xs font-medium flex flex-col items-center gap-2">
               <Icons.Spinner size={16} />
               Loading...
             </div>
           )}
 
           {!isLoading && history.length === 0 && (
-            <div className="p-4 text-center text-ctp-subtext0 text-xs flex flex-col items-center gap-2">
-              <Icons.History size={24} className="text-ctp-surface2" />
+            <div className="p-4 text-center text-ctp-text text-xs font-medium flex flex-col items-center gap-2">
+              <Icons.History size={24} className="text-ctp-overlay0" />
               {search ? "No matching requests" : "No history yet"}
             </div>
           )}
@@ -152,7 +152,7 @@ export const HistorySidebar = forwardRef<HistorySidebarRef, Props>(
             <div
               key={item.id}
               onClick={() => onSelectItem(item)}
-              className="p-2.5 hover:bg-ctp-surface0/50 cursor-pointer border-b border-ctp-surface0 group"
+              className="p-2.5 hover:bg-ctp-surface0/50 cursor-pointer border-b border-ctp-surface0/50 group"
             >
               <div className="flex items-center gap-2">
                 <span
@@ -162,7 +162,7 @@ export const HistorySidebar = forwardRef<HistorySidebarRef, Props>(
                 >
                   {item.method}
                 </span>
-                <span className="text-xs text-ctp-text truncate flex-1">
+                <span className="text-xs text-ctp-text font-medium truncate flex-1">
                   {getUrlPath(item.url)}
                 </span>
                 <button
@@ -173,13 +173,13 @@ export const HistorySidebar = forwardRef<HistorySidebarRef, Props>(
                   <Icons.Trash size={12} />
                 </button>
               </div>
-              <div className="flex items-center gap-2 mt-1.5 text-xs text-ctp-subtext0">
-                <span className={getStatusColor(item.statusCode)}>
+              <div className="flex items-center gap-2 mt-1.5 text-xs text-ctp-subtext0 font-medium">
+                <span className={`font-semibold ${getStatusColor(item.statusCode)}`}>
                   {item.statusCode || "—"}
                 </span>
-                <span className="text-ctp-surface2">•</span>
+                <span className="text-ctp-surface2">|</span>
                 <span>{item.timingMs}ms</span>
-                <span className="text-ctp-surface2">•</span>
+                <span className="text-ctp-surface2">|</span>
                 <span>{formatTime(item.createdAt)}</span>
               </div>
             </div>
@@ -188,13 +188,13 @@ export const HistorySidebar = forwardRef<HistorySidebarRef, Props>(
 
         {/* Footer */}
         <div className="p-2.5 border-t border-ctp-surface0 flex justify-between items-center bg-ctp-mantle">
-          <span className="text-xs text-ctp-subtext0">
+          <span className="text-xs text-ctp-text font-medium">
             {history.length} {history.length === 1 ? "request" : "requests"}
           </span>
           {history.length > 0 && (
             <button
               onClick={handleClear}
-              className="text-xs text-ctp-subtext0 hover:text-ctp-red transition-colors flex items-center gap-1"
+              className="text-xs text-ctp-subtext0 font-medium hover:text-ctp-red transition-colors flex items-center gap-1"
             >
               <Icons.Trash size={12} />
               Clear All

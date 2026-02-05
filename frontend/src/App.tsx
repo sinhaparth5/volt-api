@@ -6,6 +6,18 @@ import { RequestSection } from "./components/RequestSection";
 import { ResponseSection } from "./components/ResponseSection";
 import { SaveRequestModal } from "./components/SaveRequestModal";
 import { Icons } from "./components/Icons";
+import {
+  KeyValuePair,
+  AuthSettings,
+  createEmptyPair,
+  defaultAuthSettings,
+  keyValuePairsToHeaders,
+  authToHeaders,
+  headersToKeyValuePairs,
+  parseQueryParams,
+  buildUrlWithParams,
+  getBaseUrl,
+} from "./utils/helpers";
 import "./style.css";
 
 type HTTPResponse = app.HTTPResponse;
@@ -18,6 +30,9 @@ function App() {
   const [method, setMethod] = useState<string>("GET");
   const [url, setUrl] = useState<string>("");
   const [requestBody, setRequestBody] = useState<string>("");
+  const [headers, setHeaders] = useState<KeyValuePair[]>([createEmptyPair()]);
+  const [queryParams, setQueryParams] = useState<KeyValuePair[]>([createEmptyPair()]);
+  const [auth, setAuth] = useState<AuthSettings>(defaultAuthSettings());
   const [response, setResponse] = useState<HTTPResponse | null>(null);
   const [requestState, setRequestState] = useState<RequestState>("idle");
   const [activeTab, setActiveTab] = useState<SidebarTab>("history");
@@ -31,11 +46,32 @@ function App() {
     setRequestState("loading");
     setResponse(null);
 
+    // Build final URL with API key query param if needed
+    let finalUrl = url.trim();
+    if (auth.type === "apikey" && auth.apiKeyLocation === "query" && auth.apiKeyName && auth.apiKeyValue) {
+      const baseUrl = getBaseUrl(finalUrl);
+      const existingParams = parseQueryParams(finalUrl);
+      const apiKeyParam: KeyValuePair = {
+        id: "apikey",
+        key: auth.apiKeyName,
+        value: auth.apiKeyValue,
+        enabled: true,
+      };
+      // Filter out any existing params with the same key
+      const filteredParams = existingParams.filter((p) => p.key !== auth.apiKeyName);
+      finalUrl = buildUrlWithParams(baseUrl, [...filteredParams, apiKeyParam]);
+    }
+
+    // Merge custom headers with auth headers
+    const customHeaders = keyValuePairsToHeaders(headers);
+    const authHeaders = authToHeaders(auth);
+    const mergedHeaders = { ...customHeaders, ...authHeaders };
+
     try {
       const result = await SendRequest({
         method,
-        url: url.trim(),
-        headers: {},
+        url: finalUrl,
+        headers: mergedHeaders,
         body: requestBody,
         timeout: 0,
       });
@@ -67,6 +103,13 @@ function App() {
         setMethod(fullItem.method || "GET");
         setUrl(fullItem.url || "");
         setRequestBody(fullItem.body || "");
+        // Parse headers from history item
+        const itemHeaders = fullItem.headers || {};
+        setHeaders(headersToKeyValuePairs(itemHeaders));
+        // Parse query params from URL
+        setQueryParams(parseQueryParams(fullItem.url || ""));
+        // Reset auth (history doesn't store auth separately)
+        setAuth(defaultAuthSettings());
         setResponse(null);
         setRequestState("idle");
       }
@@ -82,6 +125,13 @@ function App() {
         setMethod(fullRequest.method || "GET");
         setUrl(fullRequest.url || "");
         setRequestBody(fullRequest.body || "");
+        // Parse headers from saved request
+        const requestHeaders = fullRequest.headers || {};
+        setHeaders(headersToKeyValuePairs(requestHeaders));
+        // Parse query params from URL
+        setQueryParams(parseQueryParams(fullRequest.url || ""));
+        // Reset auth (saved requests don't store auth separately yet)
+        setAuth(defaultAuthSettings());
         setResponse(null);
         setRequestState("idle");
       }
@@ -99,6 +149,13 @@ function App() {
     sidebarRef.current?.refreshCollections();
   };
 
+  // Get merged headers for save modal
+  const getMergedHeaders = () => {
+    const customHeaders = keyValuePairsToHeaders(headers);
+    const authHeaders = authToHeaders(auth);
+    return { ...customHeaders, ...authHeaders };
+  };
+
   return (
     <div className="flex h-screen bg-ctp-base text-ctp-text font-mono text-sm">
       <Sidebar
@@ -113,13 +170,13 @@ function App() {
         {/* Header */}
         <header className="h-11 border-b border-ctp-surface0 flex items-center justify-between px-4 bg-ctp-mantle">
           <div className="flex items-center gap-2">
-            <Icons.Globe size={14} className="text-ctp-subtext0" />
-            <span className="text-ctp-text text-sm">New Request</span>
+            <Icons.Globe size={14} className="text-ctp-overlay0" />
+            <span className="text-ctp-text text-sm font-medium">New Request</span>
           </div>
           <button
             onClick={handleSaveRequest}
             disabled={!url.trim()}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-ctp-subtext0 hover:text-ctp-text hover:bg-ctp-surface0 rounded disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-ctp-text hover:bg-ctp-surface0 rounded disabled:opacity-40 disabled:cursor-not-allowed"
             title="Save to Collection"
           >
             <Icons.Save size={14} />
@@ -132,9 +189,15 @@ function App() {
           url={url}
           requestBody={requestBody}
           requestState={requestState}
+          headers={headers}
+          queryParams={queryParams}
+          auth={auth}
           onMethodChange={setMethod}
           onUrlChange={setUrl}
           onBodyChange={setRequestBody}
+          onHeadersChange={setHeaders}
+          onQueryParamsChange={setQueryParams}
+          onAuthChange={setAuth}
           onSend={handleSend}
         />
 
@@ -150,7 +213,7 @@ function App() {
         onSaved={handleSavedRequest}
         method={method}
         url={url}
-        headers={{}}
+        headers={getMergedHeaders()}
         body={requestBody}
       />
     </div>

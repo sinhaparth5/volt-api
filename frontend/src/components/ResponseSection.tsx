@@ -16,9 +16,9 @@ export function ResponseSection({ response, requestState }: ResponseSectionProps
     return (
       <section className="flex-1 flex flex-col overflow-hidden bg-ctp-base">
         <div className="flex-1 flex items-center justify-center">
-          <div className="text-ctp-subtext0 flex flex-col items-center gap-3">
+          <div className="text-ctp-text flex flex-col items-center gap-3">
             <Icons.Spinner size={24} />
-            <span>Sending request...</span>
+            <span className="font-medium">Sending request...</span>
           </div>
         </div>
       </section>
@@ -33,7 +33,7 @@ export function ResponseSection({ response, requestState }: ResponseSectionProps
           {/* Status Bar */}
           <div className="px-4 py-3 bg-ctp-mantle border-b border-ctp-surface0 flex items-center gap-4">
             {response.error ? (
-              <span className="text-ctp-red flex items-center gap-2">
+              <span className="text-ctp-red font-medium flex items-center gap-2">
                 <Icons.X size={16} />
                 {response.error}
               </span>
@@ -42,13 +42,13 @@ export function ResponseSection({ response, requestState }: ResponseSectionProps
                 <span className={`font-bold text-lg ${getStatusColor(response.statusCode)}`}>
                   {response.statusCode}
                 </span>
-                <span className="text-ctp-surface2">•</span>
-                <span className="text-ctp-subtext1 flex items-center gap-1">
+                <span className="text-ctp-surface2">|</span>
+                <span className="text-ctp-text font-medium flex items-center gap-1.5">
                   <Icons.History size={12} />
                   {response.timingMs} ms
                 </span>
-                <span className="text-ctp-surface2">•</span>
-                <span className="text-ctp-subtext1">
+                <span className="text-ctp-surface2">|</span>
+                <span className="text-ctp-text font-medium">
                   {response.contentLength > 0
                     ? `${(response.contentLength / 1024).toFixed(2)} KB`
                     : `${(response.body.length / 1024).toFixed(2)} KB`}
@@ -60,15 +60,15 @@ export function ResponseSection({ response, requestState }: ResponseSectionProps
           {/* Headers */}
           {response.headers && Object.keys(response.headers).length > 0 && (
             <details className="border-b border-ctp-surface0 group">
-              <summary className="px-4 py-2.5 cursor-pointer text-ctp-subtext0 hover:text-ctp-text bg-ctp-mantle select-none flex items-center gap-2">
+              <summary className="px-4 py-2.5 cursor-pointer text-ctp-text font-medium hover:bg-ctp-surface0/30 bg-ctp-mantle select-none flex items-center gap-2">
                 <Icons.ChevronRight size={14} className="group-open:rotate-90 transition-transform" />
                 Headers ({Object.keys(response.headers).length})
               </summary>
               <div className="px-4 py-3 bg-ctp-base max-h-48 overflow-auto">
                 {Object.entries(response.headers).map(([key, value]) => (
                   <div key={key} className="py-1.5 flex text-xs">
-                    <span className="text-ctp-mauve min-w-52 font-medium">{key}</span>
-                    <span className="text-ctp-subtext1">{value}</span>
+                    <span className="text-ctp-mauve min-w-52 font-semibold">{key}</span>
+                    <span className="text-ctp-text font-medium">{value}</span>
                   </div>
                 ))}
               </div>
@@ -77,7 +77,7 @@ export function ResponseSection({ response, requestState }: ResponseSectionProps
 
           {/* Body */}
           <div className="flex-1 overflow-auto p-4">
-            <pre className="text-ctp-text whitespace-pre-wrap break-words leading-relaxed text-sm">
+            <pre className="text-ctp-text font-medium whitespace-pre-wrap break-words leading-relaxed text-sm">
               {formatJSON(response.body)}
             </pre>
           </div>
@@ -93,9 +93,9 @@ export function ResponseSection({ response, requestState }: ResponseSectionProps
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center flex flex-col items-center gap-3">
             <div className="w-16 h-16 rounded-2xl bg-ctp-surface0 flex items-center justify-center">
-              <Icons.Send size={28} className="text-ctp-overlay1" />
+              <Icons.Send size={28} className="text-ctp-overlay0" />
             </div>
-            <div className="text-ctp-subtext0">Enter a URL and click Send</div>
+            <div className="text-ctp-text font-medium">Enter a URL and click Send</div>
           </div>
         </div>
       </section>

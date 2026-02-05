@@ -213,7 +213,7 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
         <div className="p-2 border-b border-ctp-surface0 flex items-center gap-1">
           <button
             onClick={() => setIsCreating(true)}
-            className="flex-1 px-2 py-1.5 text-xs text-ctp-subtext0 hover:text-ctp-text hover:bg-ctp-surface0 rounded flex items-center justify-center gap-1"
+            className="flex-1 px-2 py-1.5 text-xs font-medium text-ctp-text hover:bg-ctp-surface0 rounded flex items-center justify-center gap-1"
             title="New Collection"
           >
             <Icons.Plus size={14} />
@@ -221,7 +221,7 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
           </button>
           <button
             onClick={handleImport}
-            className="px-2 py-1.5 text-xs text-ctp-subtext0 hover:text-ctp-text hover:bg-ctp-surface0 rounded"
+            className="px-2 py-1.5 text-xs text-ctp-text hover:bg-ctp-surface0 rounded"
             title="Import Collection"
           >
             <Icons.Import size={14} />
@@ -243,13 +243,13 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
                 }
               }}
               placeholder="Collection name..."
-              className="w-full bg-ctp-surface0 border border-ctp-surface1 px-2 py-1.5 rounded text-xs outline-none focus:border-ctp-lavender"
+              className="w-full bg-ctp-surface0 border border-ctp-surface1 px-2 py-1.5 rounded text-xs font-medium text-ctp-text outline-none focus:border-ctp-lavender placeholder:font-normal placeholder:text-ctp-overlay0"
               autoFocus
             />
             <div className="flex gap-1 mt-1">
               <button
                 onClick={handleCreate}
-                className="flex-1 px-2 py-1 text-xs bg-ctp-mauve text-ctp-base rounded hover:bg-ctp-mauve/80"
+                className="flex-1 px-2 py-1 text-xs font-semibold bg-ctp-mauve text-ctp-base rounded hover:bg-ctp-mauve/80"
               >
                 Create
               </button>
@@ -258,7 +258,7 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
                   setIsCreating(false);
                   setNewName("");
                 }}
-                className="px-2 py-1 text-xs text-ctp-subtext0 hover:text-ctp-text"
+                className="px-2 py-1 text-xs font-medium text-ctp-text hover:text-ctp-mauve"
               >
                 Cancel
               </button>
@@ -269,7 +269,7 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
         {/* Collections list */}
         <div className="flex-1 overflow-auto">
           {collections.length === 0 && !isCreating ? (
-            <div className="p-4 text-xs text-ctp-subtext0 text-center">
+            <div className="p-4 text-xs text-ctp-text font-medium text-center">
               No collections yet
             </div>
           ) : (
@@ -285,7 +285,7 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
                 >
                   <Icons.ChevronRight
                     size={12}
-                    className={`text-ctp-subtext0 transition-transform ${
+                    className={`text-ctp-overlay0 transition-transform ${
                       collection.isExpanded ? "rotate-90" : ""
                     }`}
                   />
@@ -302,16 +302,16 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
                         }
                       }}
                       onClick={(e) => e.stopPropagation()}
-                      className="flex-1 bg-ctp-surface0 border border-ctp-lavender px-1 py-0.5 rounded text-xs outline-none"
+                      className="flex-1 bg-ctp-surface0 border border-ctp-lavender px-1 py-0.5 rounded text-xs font-medium text-ctp-text outline-none"
                       autoFocus
                     />
                   ) : (
                     <>
                       <Icons.Folder size={14} className="text-ctp-peach" />
-                      <span className="flex-1 text-xs text-ctp-text truncate">
+                      <span className="flex-1 text-xs text-ctp-text font-medium truncate">
                         {collection.name}
                       </span>
-                      <span className="text-xs text-ctp-overlay0 opacity-0 group-hover:opacity-100">
+                      <span className="text-xs text-ctp-overlay0 font-medium opacity-0 group-hover:opacity-100">
                         {collection.requests.length > 0
                           ? collection.requests.length
                           : ""}
@@ -324,11 +324,11 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
                 {collection.isExpanded && (
                   <div className="bg-ctp-base/50">
                     {collection.isLoading ? (
-                      <div className="px-6 py-2 text-xs text-ctp-subtext0">
+                      <div className="px-6 py-2 text-xs text-ctp-text font-medium">
                         Loading...
                       </div>
                     ) : collection.requests.length === 0 ? (
-                      <div className="px-6 py-2 text-xs text-ctp-overlay0 italic">
+                      <div className="px-6 py-2 text-xs text-ctp-overlay0 font-medium italic">
                         Empty collection
                       </div>
                     ) : (
@@ -353,7 +353,7 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
                           >
                             {request.method}
                           </span>
-                          <span className="flex-1 text-xs text-ctp-subtext1 truncate">
+                          <span className="flex-1 text-xs text-ctp-text font-medium truncate">
                             {request.name}
                           </span>
                         </div>
@@ -369,7 +369,7 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
         {/* Context Menu */}
         {contextMenu && (
           <div
-            className="fixed bg-ctp-surface0 border border-ctp-surface1 rounded-lg shadow-lg shadow-ctp-crust/50 py-1 z-50 min-w-32"
+            className="fixed bg-ctp-mantle border border-ctp-surface1 rounded-lg shadow-lg shadow-ctp-crust/50 py-1 z-50 min-w-36"
             style={{ left: contextMenu.x, top: contextMenu.y }}
           >
             {contextMenu.type === "collection" ? (
@@ -383,7 +383,7 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
                     setEditingName(col?.name || "");
                     setContextMenu(null);
                   }}
-                  className="w-full px-3 py-1.5 text-xs text-left text-ctp-text hover:bg-ctp-surface1 flex items-center gap-2"
+                  className="w-full px-3 py-1.5 text-xs font-medium text-left text-ctp-text hover:bg-ctp-surface0 flex items-center gap-2"
                 >
                   <Icons.Edit size={12} />
                   Rename
@@ -393,7 +393,7 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
                     handleExport(contextMenu.id);
                     setContextMenu(null);
                   }}
-                  className="w-full px-3 py-1.5 text-xs text-left text-ctp-text hover:bg-ctp-surface1 flex items-center gap-2"
+                  className="w-full px-3 py-1.5 text-xs font-medium text-left text-ctp-text hover:bg-ctp-surface0 flex items-center gap-2"
                 >
                   <Icons.Export size={12} />
                   Export
@@ -404,7 +404,7 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
                     handleDeleteCollection(contextMenu.id);
                     setContextMenu(null);
                   }}
-                  className="w-full px-3 py-1.5 text-xs text-left text-ctp-red hover:bg-ctp-surface1 flex items-center gap-2"
+                  className="w-full px-3 py-1.5 text-xs font-medium text-left text-ctp-red hover:bg-ctp-surface0 flex items-center gap-2"
                 >
                   <Icons.Trash size={12} />
                   Delete
@@ -414,14 +414,14 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
               <>
                 {/* Move to submenu */}
                 <div className="relative group/move">
-                  <button className="w-full px-3 py-1.5 text-xs text-left text-ctp-text hover:bg-ctp-surface1 flex items-center gap-2 justify-between">
+                  <button className="w-full px-3 py-1.5 text-xs font-medium text-left text-ctp-text hover:bg-ctp-surface0 flex items-center gap-2 justify-between">
                     <span className="flex items-center gap-2">
                       <Icons.Folder size={12} />
                       Move to
                     </span>
                     <Icons.ChevronRight size={12} />
                   </button>
-                  <div className="absolute left-full top-0 bg-ctp-surface0 border border-ctp-surface1 rounded-lg shadow-lg py-1 min-w-32 hidden group-hover/move:block">
+                  <div className="absolute left-full top-0 bg-ctp-mantle border border-ctp-surface1 rounded-lg shadow-lg py-1 min-w-32 hidden group-hover/move:block">
                     {collections
                       .filter((c) => c.id !== contextMenu.collectionId)
                       .map((col) => (
@@ -431,7 +431,7 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
                             handleMoveRequest(contextMenu.id, col.id);
                             setContextMenu(null);
                           }}
-                          className="w-full px-3 py-1.5 text-xs text-left text-ctp-text hover:bg-ctp-surface1 flex items-center gap-2"
+                          className="w-full px-3 py-1.5 text-xs font-medium text-left text-ctp-text hover:bg-ctp-surface0 flex items-center gap-2"
                         >
                           <Icons.Folder size={12} className="text-ctp-peach" />
                           {col.name}
@@ -448,7 +448,7 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
                     );
                     setContextMenu(null);
                   }}
-                  className="w-full px-3 py-1.5 text-xs text-left text-ctp-red hover:bg-ctp-surface1 flex items-center gap-2"
+                  className="w-full px-3 py-1.5 text-xs font-medium text-left text-ctp-red hover:bg-ctp-surface0 flex items-center gap-2"
                 >
                   <Icons.Trash size={12} />
                   Delete

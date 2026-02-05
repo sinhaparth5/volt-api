@@ -34,10 +34,12 @@ export const Sidebar = forwardRef<SidebarRef, SidebarProps>(
     return (
       <aside className="w-60 bg-ctp-mantle border-r border-ctp-surface0 flex flex-col">
         {/* Logo */}
-        <div className="px-4 py-3 border-b border-ctp-surface0 flex items-center gap-2">
-          <Icons.Bolt size={18} className="text-ctp-mauve" />
-          <h1 className="text-ctp-mauve font-bold tracking-wide">VOLT</h1>
-          <span className="text-ctp-subtext0 text-xs">API</span>
+        <div className="px-4 py-3 border-b border-ctp-surface0 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Icons.Bolt size={18} className="text-ctp-mauve" />
+            <h1 className="text-ctp-mauve font-bold tracking-wide">VOLT</h1>
+            <span className="text-ctp-overlay0 text-xs font-medium">API</span>
+          </div>
           <ThemeToggle />
         </div>
 
