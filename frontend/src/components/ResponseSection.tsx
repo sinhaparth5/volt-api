@@ -9,13 +9,22 @@ import { app } from "../../wailsjs/go/models";
 
 type HTTPResponse = app.HTTPResponse;
 type RequestState = "idle" | "loading" | "success" | "error";
-type ResponseTab = "body" | "headers" | "cookies" | "tests" | "chain";
+type ResponseTab = "body" | "headers" | "cookies" | "tests" | "chain" | "request";
+
+// Sent request info to display in Request tab
+export interface SentRequestInfo {
+  method: string;
+  url: string;
+  headers: Record<string, string>;
+  body: string;
+}
 
 interface ResponseSectionProps {
   response: HTTPResponse | null;
   requestState: RequestState;
   assertionResults?: AssertionResult[];
   chainVariables?: ChainVariable[];
+  sentRequest?: SentRequestInfo | null;
   onAddChainVariable?: (variable: ChainVariable) => void;
   onRemoveChainVariable?: (id: string) => void;
 }
@@ -25,12 +34,61 @@ export function ResponseSection({
   requestState,
   assertionResults = [],
   chainVariables = [],
+  sentRequest,
   onAddChainVariable,
   onRemoveChainVariable,
 }: ResponseSectionProps) {
   const [activeTab, setActiveTab] = useState<ResponseTab>("body");
   const [copied, setCopied] = useState(false);
-  const [bodyView, setBodyView] = useState<"pretty" | "raw">("pretty");
+  const [bodyView, setBodyView] = useState<"pretty" | "raw" | "preview">("pretty");
+
+  // Detect content type from headers
+  const getContentType = (headers: Record<string, string>): string => {
+    for (const [key, value] of Object.entries(headers)) {
+      if (key.toLowerCase() === "content-type") {
+        return value.toLowerCase();
+      }
+    }
+    return "";
+  };
+
+  // Check if response is an image
+  const isImageResponse = (headers: Record<string, string>): boolean => {
+    const contentType = getContentType(headers);
+    return contentType.startsWith("image/");
+  };
+
+  // Check if response is HTML
+  const isHtmlResponse = (headers: Record<string, string>): boolean => {
+    const contentType = getContentType(headers);
+    return contentType.includes("text/html");
+  };
+
+  // Check if response is binary (non-text)
+  const isBinaryResponse = (headers: Record<string, string>): boolean => {
+    const contentType = getContentType(headers);
+    const textTypes = ["text/", "application/json", "application/xml", "application/javascript"];
+    return !textTypes.some((t) => contentType.includes(t)) && contentType !== "";
+  };
+
+  // Create data URL for image display
+  const getImageDataUrl = (body: string, headers: Record<string, string>): string | null => {
+    const contentType = getContentType(headers);
+    if (!contentType.startsWith("image/")) return null;
+
+    // Check if body looks like base64 (from Go backend)
+    // The body might be raw binary or base64 encoded
+    try {
+      // If the body contains mostly printable characters, it might be base64
+      const isPrintable = /^[\x20-\x7E\s]+$/.test(body.slice(0, 100));
+      if (isPrintable && body.length > 0) {
+        return `data:${contentType};base64,${body}`;
+      }
+    } catch {
+      // Fall through
+    }
+    return null;
+  };
 
   const handleCopy = async (text: string) => {
     try {
@@ -82,6 +140,8 @@ export function ResponseSection({
     const headersCount = Object.keys(response.headers || {}).length;
     const assertionsSummary = assertionResults.length > 0 ? getAssertionsSummary(assertionResults) : null;
 
+    const sentHeadersCount = sentRequest ? Object.keys(sentRequest.headers).length : 0;
+
     const tabs: { id: ResponseTab; label: string; count?: number; status?: "pass" | "fail"; highlight?: boolean }[] = [
       { id: "body", label: "Body" },
       { id: "headers", label: "Headers", count: headersCount },
@@ -95,6 +155,7 @@ export function ResponseSection({
           }]
         : []),
       { id: "chain", label: "Chain", count: chainVariables.length || undefined },
+      { id: "request", label: "Request", count: sentHeadersCount || undefined },
     ];
 
     return (
@@ -159,28 +220,42 @@ export function ResponseSection({
           {/* Actions - only show for body tab */}
           {activeTab === "body" && response.body && (
             <div className="flex items-center gap-2">
-              <div className="flex bg-ctp-surface0 rounded-md p-0.5">
-                <button
-                  onClick={() => setBodyView("pretty")}
-                  className={`px-2 py-1 text-xs rounded ${
-                    bodyView === "pretty"
-                      ? "bg-ctp-mauve text-ctp-base"
-                      : "text-ctp-subtext0 hover:text-ctp-text"
-                  }`}
-                >
-                  Pretty
-                </button>
-                <button
-                  onClick={() => setBodyView("raw")}
-                  className={`px-2 py-1 text-xs rounded ${
-                    bodyView === "raw"
-                      ? "bg-ctp-mauve text-ctp-base"
-                      : "text-ctp-subtext0 hover:text-ctp-text"
-                  }`}
-                >
-                  Raw
-                </button>
-              </div>
+              {!isImageResponse(response.headers || {}) && !isBinaryResponse(response.headers || {}) && (
+                <div className="flex bg-ctp-surface0 rounded-md p-0.5">
+                  <button
+                    onClick={() => setBodyView("pretty")}
+                    className={`px-2 py-1 text-xs rounded ${
+                      bodyView === "pretty"
+                        ? "bg-ctp-mauve text-ctp-base"
+                        : "text-ctp-subtext0 hover:text-ctp-text"
+                    }`}
+                  >
+                    Pretty
+                  </button>
+                  <button
+                    onClick={() => setBodyView("raw")}
+                    className={`px-2 py-1 text-xs rounded ${
+                      bodyView === "raw"
+                        ? "bg-ctp-mauve text-ctp-base"
+                        : "text-ctp-subtext0 hover:text-ctp-text"
+                    }`}
+                  >
+                    Raw
+                  </button>
+                  {isHtmlResponse(response.headers || {}) && (
+                    <button
+                      onClick={() => setBodyView("preview")}
+                      className={`px-2 py-1 text-xs rounded ${
+                        bodyView === "preview"
+                          ? "bg-ctp-mauve text-ctp-base"
+                          : "text-ctp-subtext0 hover:text-ctp-text"
+                      }`}
+                    >
+                      Preview
+                    </button>
+                  )}
+                </div>
+              )}
               <button
                 onClick={() => handleCopy(bodyView === "pretty" ? formatJSON(response.body) : response.body)}
                 className="flex items-center gap-1.5 px-2 py-1 text-xs text-ctp-subtext0 hover:text-ctp-text hover:bg-ctp-surface0 rounded-md"
@@ -207,9 +282,69 @@ export function ResponseSection({
           {activeTab === "body" && (
             <div className="p-4">
               {response.body ? (
-                <pre className="text-ctp-text whitespace-pre-wrap break-words text-sm leading-relaxed">
-                  {bodyView === "pretty" ? formatJSON(response.body) : response.body}
-                </pre>
+                <>
+                  {/* Image response */}
+                  {isImageResponse(response.headers || {}) && (
+                    <div className="flex flex-col items-center gap-4">
+                      {getImageDataUrl(response.body, response.headers || {}) ? (
+                        <img
+                          src={getImageDataUrl(response.body, response.headers || {}) || ""}
+                          alt="Response"
+                          className="max-w-full max-h-96 object-contain rounded-md border border-ctp-surface0"
+                        />
+                      ) : (
+                        <div className="text-ctp-subtext0 text-sm">
+                          Image data could not be displayed
+                        </div>
+                      )}
+                      <div className="text-xs text-ctp-subtext0">
+                        {getContentType(response.headers || {})} • {(response.body.length / 1024).toFixed(2)} KB
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Binary response (non-image) */}
+                  {isBinaryResponse(response.headers || {}) && !isImageResponse(response.headers || {}) && (
+                    <div className="flex flex-col items-center gap-4 py-8">
+                      <div className="w-16 h-16 rounded-xl bg-ctp-surface0 flex items-center justify-center">
+                        <Icons.File size={32} className="text-ctp-overlay0" />
+                      </div>
+                      <div className="text-center">
+                        <div className="text-ctp-text text-sm font-medium mb-1">Binary Response</div>
+                        <div className="text-xs text-ctp-subtext0">
+                          {getContentType(response.headers || {})} • {(response.body.length / 1024).toFixed(2)} KB
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleCopy(response.body)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-ctp-surface0 hover:bg-ctp-surface1 text-ctp-text rounded-md"
+                      >
+                        <Icons.Copy size={12} />
+                        Copy Raw Data
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Text response */}
+                  {!isImageResponse(response.headers || {}) && !isBinaryResponse(response.headers || {}) && (
+                    <>
+                      {bodyView === "preview" && isHtmlResponse(response.headers || {}) ? (
+                        <div className="bg-white rounded-md border border-ctp-surface0 overflow-hidden">
+                          <iframe
+                            srcDoc={response.body}
+                            title="HTML Preview"
+                            className="w-full h-96 border-0"
+                            sandbox="allow-same-origin"
+                          />
+                        </div>
+                      ) : (
+                        <pre className="text-ctp-text whitespace-pre-wrap break-words text-sm leading-relaxed">
+                          {bodyView === "pretty" ? formatJSON(response.body) : response.body}
+                        </pre>
+                      )}
+                    </>
+                  )}
+                </>
               ) : (
                 <div className="text-ctp-subtext0 text-center text-sm py-12">
                   No response body
@@ -278,6 +413,69 @@ export function ResponseSection({
                 onAddVariable={onAddChainVariable || (() => {})}
                 onRemoveVariable={onRemoveChainVariable || (() => {})}
               />
+            </div>
+          )}
+
+          {activeTab === "request" && (
+            <div className="p-4 space-y-4">
+              {sentRequest ? (
+                <>
+                  {/* Method and URL */}
+                  <div className="space-y-2">
+                    <div className="text-xs text-ctp-subtext0 uppercase tracking-wider">Request</div>
+                    <div className="p-3 bg-ctp-surface0/30 rounded-md border border-ctp-surface0">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-sm font-semibold ${
+                          sentRequest.method === "GET" ? "text-ctp-green" :
+                          sentRequest.method === "POST" ? "text-ctp-blue" :
+                          sentRequest.method === "PUT" ? "text-ctp-peach" :
+                          sentRequest.method === "DELETE" ? "text-ctp-red" :
+                          sentRequest.method === "PATCH" ? "text-ctp-mauve" :
+                          "text-ctp-text"
+                        }`}>
+                          {sentRequest.method}
+                        </span>
+                        <span className="text-sm text-ctp-text break-all">{sentRequest.url}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Headers Sent */}
+                  <div className="space-y-2">
+                    <div className="text-xs text-ctp-subtext0 uppercase tracking-wider">
+                      Headers Sent ({Object.keys(sentRequest.headers).length})
+                    </div>
+                    {Object.keys(sentRequest.headers).length > 0 ? (
+                      <div className="p-3 bg-ctp-surface0/30 rounded-md border border-ctp-surface0 space-y-0">
+                        {Object.entries(sentRequest.headers).map(([key, value]) => (
+                          <div key={key} className="py-2 grid grid-cols-[180px_1fr] gap-4 text-sm border-b border-ctp-surface0/50 last:border-0">
+                            <span className="text-ctp-mauve truncate">{key}</span>
+                            <span className="text-ctp-text break-all font-mono text-xs">{value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-3 bg-ctp-surface0/30 rounded-md border border-ctp-surface0 text-ctp-subtext0 text-sm text-center">
+                        No headers sent
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Body Sent */}
+                  {sentRequest.body && (
+                    <div className="space-y-2">
+                      <div className="text-xs text-ctp-subtext0 uppercase tracking-wider">Body Sent</div>
+                      <pre className="p-3 bg-ctp-surface0/30 rounded-md border border-ctp-surface0 text-sm text-ctp-text whitespace-pre-wrap break-words max-h-48 overflow-auto">
+                        {formatJSON(sentRequest.body)}
+                      </pre>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="text-ctp-subtext0 text-center text-sm py-12">
+                  No request data available
+                </div>
+              )}
             </div>
           )}
         </div>
