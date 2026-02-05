@@ -54,13 +54,13 @@
 - [x] Pretty/Raw toggle for response body
 
 ## Phase 5: Environments & Variables
-- [ ] Create environments (Dev, Staging, Prod)
-- [ ] Environment variables (key-value)
-- [ ] Variable syntax in URLs: `{{baseUrl}}/users`
-- [ ] Variable syntax in headers: `Authorization: Bearer {{token}}`
-- [ ] Environment selector dropdown
+- [x] Create environments (Dev, Staging, Prod)
+- [x] Environment variables (key-value)
+- [x] Variable syntax in URLs: `{{baseUrl}}/users`
+- [x] Variable syntax in headers: `Authorization: Bearer {{token}}`
+- [x] Environment selector dropdown
 - [ ] Quick variable substitution preview
-- [ ] Import/export environments
+- [x] Import/export environments
 
 ## Phase 6: Advanced Features
 - [ ] Pre-request scripts (JavaScript)

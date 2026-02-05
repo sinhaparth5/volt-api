@@ -1,10 +1,12 @@
-import { useState, useRef } from "react";
-import { SendRequest, LoadHistoryItem, LoadSavedRequest } from "../wailsjs/go/app/App";
+import { useState, useRef, useEffect } from "react";
+import { SendRequest, LoadHistoryItem, LoadSavedRequest, GetActiveVariables } from "../wailsjs/go/app/App";
 import { app } from "../wailsjs/go/models";
 import { Sidebar, SidebarRef } from "./components/Sidebar";
 import { RequestSection } from "./components/RequestSection";
 import { ResponseSection } from "./components/ResponseSection";
 import { SaveRequestModal } from "./components/SaveRequestModal";
+import { EnvironmentSelector } from "./components/EnvironmentSelector";
+import { EnvironmentManager } from "./components/EnvironmentManager";
 import { Icons } from "./components/Icons";
 import {
   KeyValuePair,
@@ -20,6 +22,8 @@ import {
   getBaseUrl,
   formDataToUrlEncoded,
   getContentTypeHeader,
+  substituteVariables,
+  substituteHeaderVariables,
 } from "./utils/helpers";
 import "./style.css";
 
@@ -42,8 +46,25 @@ function App() {
   const [requestState, setRequestState] = useState<RequestState>("idle");
   const [activeTab, setActiveTab] = useState<SidebarTab>("history");
   const [showSaveModal, setShowSaveModal] = useState(false);
+  const [showEnvManager, setShowEnvManager] = useState(false);
+  const [activeVariables, setActiveVariables] = useState<Record<string, string>>({});
 
   const sidebarRef = useRef<SidebarRef>(null);
+
+  // Load active environment variables
+  const loadActiveVariables = async () => {
+    try {
+      const vars = await GetActiveVariables();
+      setActiveVariables(vars || {});
+    } catch (err) {
+      console.error("Failed to load active variables:", err);
+      setActiveVariables({});
+    }
+  };
+
+  useEffect(() => {
+    loadActiveVariables();
+  }, []);
 
   const handleSend = async () => {
     if (!url.trim()) return;
@@ -51,8 +72,8 @@ function App() {
     setRequestState("loading");
     setResponse(null);
 
-    // Build final URL with API key query param if needed
-    let finalUrl = url.trim();
+    // Apply variable substitution
+    let finalUrl = substituteVariables(url.trim(), activeVariables);
     if (auth.type === "apikey" && auth.apiKeyLocation === "query" && auth.apiKeyName && auth.apiKeyValue) {
       const baseUrl = getBaseUrl(finalUrl);
       const existingParams = parseQueryParams(finalUrl);
@@ -73,10 +94,13 @@ function App() {
     const contentTypeHeader = getContentTypeHeader(bodyType);
     const mergedHeaders = { ...contentTypeHeader, ...customHeaders, ...authHeaders };
 
-    // Prepare body based on type
+    // Apply variable substitution to headers
+    const finalHeaders = substituteHeaderVariables(mergedHeaders, activeVariables);
+
+    // Prepare body based on type and apply variable substitution
     let finalBody = "";
     if (bodyType === "json" || bodyType === "raw") {
-      finalBody = requestBody;
+      finalBody = substituteVariables(requestBody, activeVariables);
     } else if (bodyType === "form-data") {
       finalBody = formDataToUrlEncoded(formData);
     }
@@ -85,7 +109,7 @@ function App() {
       const result = await SendRequest({
         method,
         url: finalUrl,
-        headers: mergedHeaders,
+        headers: finalHeaders,
         body: finalBody,
         timeout: 0,
       });
@@ -211,15 +235,21 @@ function App() {
             <Icons.Globe size={14} className="text-ctp-overlay0" />
             <span className="text-ctp-text text-sm">New Request</span>
           </div>
-          <button
-            onClick={handleSaveRequest}
-            disabled={!url.trim()}
-            className="flex items-center gap-1.5 px-2 py-1 text-xs text-ctp-subtext0 hover:text-ctp-text hover:bg-ctp-surface0 rounded-md disabled:opacity-50 disabled:pointer-events-none"
-            title="Save to Collection"
-          >
-            <Icons.Save size={12} />
-            Save
-          </button>
+          <div className="flex items-center gap-2">
+            <EnvironmentSelector
+              onEnvironmentChange={loadActiveVariables}
+              onManageClick={() => setShowEnvManager(true)}
+            />
+            <button
+              onClick={handleSaveRequest}
+              disabled={!url.trim()}
+              className="flex items-center gap-1.5 px-2 py-1 text-xs text-ctp-subtext0 hover:text-ctp-text hover:bg-ctp-surface0 rounded-md disabled:opacity-50 disabled:pointer-events-none"
+              title="Save to Collection"
+            >
+              <Icons.Save size={12} />
+              Save
+            </button>
+          </div>
         </header>
 
         <RequestSection
@@ -257,6 +287,12 @@ function App() {
         url={url}
         headers={getMergedHeaders()}
         body={requestBody}
+      />
+
+      <EnvironmentManager
+        isOpen={showEnvManager}
+        onClose={() => setShowEnvManager(false)}
+        onEnvironmentChange={loadActiveVariables}
       />
     </div>
   );

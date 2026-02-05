@@ -389,6 +389,32 @@ export const Icons = {
       />
     </svg>
   ),
+
+  ArrowUp: (props: IconProps) => (
+    <svg
+      {...defaultProps}
+      {...props}
+      width={props.size || 16}
+      height={props.size || 16}
+      viewBox="0 0 24 24"
+    >
+      <path d="M12 19V5" />
+      <path d="M5 12L12 5L19 12" />
+    </svg>
+  ),
+
+  ArrowDown: (props: IconProps) => (
+    <svg
+      {...defaultProps}
+      {...props}
+      width={props.size || 16}
+      height={props.size || 16}
+      viewBox="0 0 24 24"
+    >
+      <path d="M12 5V19" />
+      <path d="M19 12L12 19L5 12" />
+    </svg>
+  ),
 };
 
 export default Icons;

@@ -32,6 +32,50 @@ export namespace app {
 	        this.updatedAt = source["updatedAt"];
 	    }
 	}
+	export class Environment {
+	    id: string;
+	    name: string;
+	    isActive: boolean;
+	    createdAt: number;
+	    updatedAt: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new Environment(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	        this.isActive = source["isActive"];
+	        this.createdAt = source["createdAt"];
+	        this.updatedAt = source["updatedAt"];
+	    }
+	}
+	export class EnvironmentVariable {
+	    id: string;
+	    environmentId: string;
+	    key: string;
+	    value: string;
+	    enabled: boolean;
+	    createdAt: number;
+	    updatedAt: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new EnvironmentVariable(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.environmentId = source["environmentId"];
+	        this.key = source["key"];
+	        this.value = source["value"];
+	        this.enabled = source["enabled"];
+	        this.createdAt = source["createdAt"];
+	        this.updatedAt = source["updatedAt"];
+	    }
+	}
 	export class HTTPRequest {
 	    method: string;
 	    url: string;

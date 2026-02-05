@@ -10,8 +10,20 @@ export function CreateCollection(arg1) {
   return window['go']['app']['App']['CreateCollection'](arg1);
 }
 
+export function CreateEnvironment(arg1) {
+  return window['go']['app']['App']['CreateEnvironment'](arg1);
+}
+
 export function DeleteCollection(arg1) {
   return window['go']['app']['App']['DeleteCollection'](arg1);
+}
+
+export function DeleteEnvironment(arg1) {
+  return window['go']['app']['App']['DeleteEnvironment'](arg1);
+}
+
+export function DeleteEnvironmentVariable(arg1) {
+  return window['go']['app']['App']['DeleteEnvironmentVariable'](arg1);
 }
 
 export function DeleteHistoryItem(arg1) {
@@ -26,6 +38,18 @@ export function ExportCollection(arg1) {
   return window['go']['app']['App']['ExportCollection'](arg1);
 }
 
+export function ExportEnvironment(arg1) {
+  return window['go']['app']['App']['ExportEnvironment'](arg1);
+}
+
+export function GetActiveEnvironment() {
+  return window['go']['app']['App']['GetActiveEnvironment']();
+}
+
+export function GetActiveVariables() {
+  return window['go']['app']['App']['GetActiveVariables']();
+}
+
 export function GetAppInfo() {
   return window['go']['app']['App']['GetAppInfo']();
 }
@@ -38,12 +62,24 @@ export function GetCollections() {
   return window['go']['app']['App']['GetCollections']();
 }
 
+export function GetEnvironmentVariables(arg1) {
+  return window['go']['app']['App']['GetEnvironmentVariables'](arg1);
+}
+
+export function GetEnvironments() {
+  return window['go']['app']['App']['GetEnvironments']();
+}
+
 export function GetHistory(arg1, arg2) {
   return window['go']['app']['App']['GetHistory'](arg1, arg2);
 }
 
 export function ImportCollection(arg1) {
   return window['go']['app']['App']['ImportCollection'](arg1);
+}
+
+export function ImportEnvironment(arg1) {
+  return window['go']['app']['App']['ImportEnvironment'](arg1);
 }
 
 export function LoadHistoryItem(arg1) {
@@ -62,12 +98,24 @@ export function RenameCollection(arg1, arg2) {
   return window['go']['app']['App']['RenameCollection'](arg1, arg2);
 }
 
+export function RenameEnvironment(arg1, arg2) {
+  return window['go']['app']['App']['RenameEnvironment'](arg1, arg2);
+}
+
 export function SaveRequestToCollection(arg1, arg2) {
   return window['go']['app']['App']['SaveRequestToCollection'](arg1, arg2);
 }
 
 export function SendRequest(arg1) {
   return window['go']['app']['App']['SendRequest'](arg1);
+}
+
+export function SetActiveEnvironment(arg1) {
+  return window['go']['app']['App']['SetActiveEnvironment'](arg1);
+}
+
+export function SetEnvironmentVariable(arg1, arg2, arg3, arg4) {
+  return window['go']['app']['App']['SetEnvironmentVariable'](arg1, arg2, arg3, arg4);
 }
 
 export function UpdateSavedRequest(arg1, arg2) {

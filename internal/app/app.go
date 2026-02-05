@@ -515,3 +515,209 @@ func (a *App) ImportCollection(jsonData string) *Collection {
 		UpdatedAt: now,
 	}
 }
+
+// ============================================================================
+// Environment Methods
+// ============================================================================
+
+// CreateEnvironment creates a new environment
+func (a *App) CreateEnvironment(name string) *Environment {
+	if a.db == nil {
+		return nil
+	}
+
+	id, err := a.db.CreateEnvironment(name)
+	if err != nil {
+		return nil
+	}
+
+	now := time.Now().Unix()
+	return &Environment{
+		ID:        id,
+		Name:      name,
+		IsActive:  false,
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
+}
+
+// GetEnvironments returns all environments
+func (a *App) GetEnvironments() []Environment {
+	if a.db == nil {
+		return []Environment{}
+	}
+
+	items, err := a.db.GetEnvironments()
+	if err != nil {
+		return []Environment{}
+	}
+
+	result := make([]Environment, len(items))
+	for i, item := range items {
+		result[i] = Environment{
+			ID:        item.ID,
+			Name:      item.Name,
+			IsActive:  item.IsActive,
+			CreatedAt: item.CreatedAt,
+			UpdatedAt: item.UpdatedAt,
+		}
+	}
+	return result
+}
+
+// GetActiveEnvironment returns the currently active environment
+func (a *App) GetActiveEnvironment() *Environment {
+	if a.db == nil {
+		return nil
+	}
+
+	item, err := a.db.GetActiveEnvironment()
+	if err != nil || item == nil {
+		return nil
+	}
+
+	return &Environment{
+		ID:        item.ID,
+		Name:      item.Name,
+		IsActive:  item.IsActive,
+		CreatedAt: item.CreatedAt,
+		UpdatedAt: item.UpdatedAt,
+	}
+}
+
+// SetActiveEnvironment sets an environment as active
+func (a *App) SetActiveEnvironment(id string) error {
+	if a.db == nil {
+		return fmt.Errorf("database not initialized")
+	}
+	return a.db.SetActiveEnvironment(id)
+}
+
+// RenameEnvironment updates an environment's name
+func (a *App) RenameEnvironment(id, name string) error {
+	if a.db == nil {
+		return fmt.Errorf("database not initialized")
+	}
+	return a.db.RenameEnvironment(id, name)
+}
+
+// DeleteEnvironment removes an environment and all its variables
+func (a *App) DeleteEnvironment(id string) error {
+	if a.db == nil {
+		return fmt.Errorf("database not initialized")
+	}
+	return a.db.DeleteEnvironment(id)
+}
+
+// ============================================================================
+// Environment Variables Methods
+// ============================================================================
+
+// SetEnvironmentVariable creates or updates a variable
+func (a *App) SetEnvironmentVariable(environmentID, key, value string, enabled bool) string {
+	if a.db == nil {
+		return ""
+	}
+
+	id, err := a.db.SetEnvironmentVariable(environmentID, key, value, enabled)
+	if err != nil {
+		return ""
+	}
+	return id
+}
+
+// GetEnvironmentVariables returns all variables for an environment
+func (a *App) GetEnvironmentVariables(environmentID string) []EnvironmentVariable {
+	if a.db == nil {
+		return []EnvironmentVariable{}
+	}
+
+	items, err := a.db.GetEnvironmentVariables(environmentID)
+	if err != nil {
+		return []EnvironmentVariable{}
+	}
+
+	result := make([]EnvironmentVariable, len(items))
+	for i, item := range items {
+		result[i] = EnvironmentVariable{
+			ID:            item.ID,
+			EnvironmentID: item.EnvironmentID,
+			Key:           item.Key,
+			Value:         item.Value,
+			Enabled:       item.Enabled,
+			CreatedAt:     item.CreatedAt,
+			UpdatedAt:     item.UpdatedAt,
+		}
+	}
+	return result
+}
+
+// GetActiveVariables returns all enabled variables for the active environment
+func (a *App) GetActiveVariables() map[string]string {
+	if a.db == nil {
+		return map[string]string{}
+	}
+
+	vars, err := a.db.GetActiveEnvironmentVariables()
+	if err != nil {
+		return map[string]string{}
+	}
+	return vars
+}
+
+// DeleteEnvironmentVariable removes a variable
+func (a *App) DeleteEnvironmentVariable(id string) error {
+	if a.db == nil {
+		return fmt.Errorf("database not initialized")
+	}
+	return a.db.DeleteEnvironmentVariable(id)
+}
+
+// ============================================================================
+// Environment Export/Import Methods
+// ============================================================================
+
+// ExportEnvironment exports an environment as JSON string
+func (a *App) ExportEnvironment(id string) string {
+	if a.db == nil {
+		return ""
+	}
+
+	export, err := a.db.ExportEnvironment(id)
+	if err != nil {
+		return ""
+	}
+
+	data, err := json.MarshalIndent(export, "", "  ")
+	if err != nil {
+		return ""
+	}
+
+	return string(data)
+}
+
+// ImportEnvironment imports an environment from JSON string
+func (a *App) ImportEnvironment(jsonData string) *Environment {
+	if a.db == nil {
+		return nil
+	}
+
+	var export database.EnvironmentExport
+	if err := json.Unmarshal([]byte(jsonData), &export); err != nil {
+		return nil
+	}
+
+	id, err := a.db.ImportEnvironment(&export)
+	if err != nil {
+		return nil
+	}
+
+	now := time.Now().Unix()
+	return &Environment{
+		ID:        id,
+		Name:      export.Name,
+		IsActive:  false,
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
+}

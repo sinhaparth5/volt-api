@@ -73,3 +73,29 @@ type CollectionExport struct {
 	Name     string         `json:"name"`
 	Requests []SavedRequest `json:"requests"`
 }
+
+// Environment represents a named environment (e.g., Dev, Staging, Prod)
+type Environment struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	IsActive  bool   `json:"isActive"`
+	CreatedAt int64  `json:"createdAt"`
+	UpdatedAt int64  `json:"updatedAt"`
+}
+
+// EnvironmentVariable represents a variable within an environment
+type EnvironmentVariable struct {
+	ID            string `json:"id"`
+	EnvironmentID string `json:"environmentId"`
+	Key           string `json:"key"`
+	Value         string `json:"value"`
+	Enabled       bool   `json:"enabled"`
+	CreatedAt     int64  `json:"createdAt"`
+	UpdatedAt     int64  `json:"updatedAt"`
+}
+
+// EnvironmentExport represents an environment with its variables for export/import
+type EnvironmentExport struct {
+	Name      string                `json:"name"`
+	Variables []EnvironmentVariable `json:"variables"`
+}

@@ -6,7 +6,13 @@ export function ClearHistory():Promise<void>;
 
 export function CreateCollection(arg1:string):Promise<app.Collection>;
 
+export function CreateEnvironment(arg1:string):Promise<app.Environment>;
+
 export function DeleteCollection(arg1:string):Promise<void>;
+
+export function DeleteEnvironment(arg1:string):Promise<void>;
+
+export function DeleteEnvironmentVariable(arg1:string):Promise<void>;
 
 export function DeleteHistoryItem(arg1:string):Promise<void>;
 
@@ -14,15 +20,27 @@ export function DeleteSavedRequest(arg1:string):Promise<void>;
 
 export function ExportCollection(arg1:string):Promise<string>;
 
+export function ExportEnvironment(arg1:string):Promise<string>;
+
+export function GetActiveEnvironment():Promise<app.Environment>;
+
+export function GetActiveVariables():Promise<Record<string, string>>;
+
 export function GetAppInfo():Promise<app.AppInfo>;
 
 export function GetCollectionRequests(arg1:string):Promise<Array<app.SavedRequest>>;
 
 export function GetCollections():Promise<Array<app.Collection>>;
 
+export function GetEnvironmentVariables(arg1:string):Promise<Array<app.EnvironmentVariable>>;
+
+export function GetEnvironments():Promise<Array<app.Environment>>;
+
 export function GetHistory(arg1:number,arg2:string):Promise<Array<app.HistoryItem>>;
 
 export function ImportCollection(arg1:string):Promise<app.Collection>;
+
+export function ImportEnvironment(arg1:string):Promise<app.Environment>;
 
 export function LoadHistoryItem(arg1:string):Promise<app.HistoryItem>;
 
@@ -32,8 +50,14 @@ export function MoveSavedRequest(arg1:string,arg2:string):Promise<void>;
 
 export function RenameCollection(arg1:string,arg2:string):Promise<void>;
 
+export function RenameEnvironment(arg1:string,arg2:string):Promise<void>;
+
 export function SaveRequestToCollection(arg1:string,arg2:app.SaveRequestInput):Promise<app.SavedRequest>;
 
 export function SendRequest(arg1:app.HTTPRequest):Promise<app.HTTPResponse>;
+
+export function SetActiveEnvironment(arg1:string):Promise<void>;
+
+export function SetEnvironmentVariable(arg1:string,arg2:string,arg3:string,arg4:boolean):Promise<string>;
 
 export function UpdateSavedRequest(arg1:string,arg2:app.SaveRequestInput):Promise<void>;

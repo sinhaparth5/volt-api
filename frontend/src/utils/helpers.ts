@@ -200,3 +200,75 @@ export const getContentTypeHeader = (bodyType: BodyType): Record<string, string>
       return {};
   }
 };
+
+// ============================================================================
+// Variable Substitution
+// ============================================================================
+
+// Regex to match {{variableName}} patterns
+const VARIABLE_PATTERN = /\{\{([^}]+)\}\}/g;
+
+// Substitute variables in a string using the provided variables map
+export const substituteVariables = (
+  text: string,
+  variables: Record<string, string>
+): string => {
+  if (!text || !variables || Object.keys(variables).length === 0) {
+    return text;
+  }
+
+  return text.replace(VARIABLE_PATTERN, (match, varName) => {
+    const trimmedName = varName.trim();
+    return variables[trimmedName] !== undefined ? variables[trimmedName] : match;
+  });
+};
+
+// Substitute variables in headers
+export const substituteHeaderVariables = (
+  headers: Record<string, string>,
+  variables: Record<string, string>
+): Record<string, string> => {
+  if (!headers || !variables || Object.keys(variables).length === 0) {
+    return headers;
+  }
+
+  const result: Record<string, string> = {};
+  for (const [key, value] of Object.entries(headers)) {
+    result[substituteVariables(key, variables)] = substituteVariables(value, variables);
+  }
+  return result;
+};
+
+// Find all variables used in a string
+export const findVariables = (text: string): string[] => {
+  if (!text) return [];
+
+  const matches: string[] = [];
+  let match;
+  while ((match = VARIABLE_PATTERN.exec(text)) !== null) {
+    const varName = match[1].trim();
+    if (!matches.includes(varName)) {
+      matches.push(varName);
+    }
+  }
+  // Reset regex state
+  VARIABLE_PATTERN.lastIndex = 0;
+  return matches;
+};
+
+// Check if a string contains any variables
+export const hasVariables = (text: string): boolean => {
+  if (!text) return false;
+  VARIABLE_PATTERN.lastIndex = 0;
+  return VARIABLE_PATTERN.test(text);
+};
+
+// Preview substitution result - returns original with substitutions highlighted
+export const previewSubstitution = (
+  text: string,
+  variables: Record<string, string>
+): { original: string; substituted: string; hasUnresolved: boolean } => {
+  const substituted = substituteVariables(text, variables);
+  const hasUnresolved = hasVariables(substituted);
+  return { original: text, substituted, hasUnresolved };
+};
