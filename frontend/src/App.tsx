@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { SendRequest, LoadHistoryItem, LoadSavedRequest, GetActiveVariables } from "../wailsjs/go/app/App";
 import { app } from "../wailsjs/go/models";
 import { Sidebar, SidebarRef } from "./components/Sidebar";
@@ -7,6 +7,7 @@ import { ResponseSection } from "./components/ResponseSection";
 import { SaveRequestModal } from "./components/SaveRequestModal";
 import { EnvironmentSelector } from "./components/EnvironmentSelector";
 import { EnvironmentManager } from "./components/EnvironmentManager";
+import { ResizablePanel } from "./components/ResizablePanel";
 import { Icons } from "./components/Icons";
 import {
   KeyValuePair,
@@ -26,6 +27,7 @@ import {
   substituteHeaderVariables,
 } from "./utils/helpers";
 import { Assertion, AssertionResult, runAssertions } from "./utils/assertions";
+import { ChainVariable } from "./utils/chainVariables";
 import "./style.css";
 
 type HTTPResponse = app.HTTPResponse;
@@ -51,6 +53,8 @@ function App() {
   const [activeVariables, setActiveVariables] = useState<Record<string, string>>({});
   const [assertions, setAssertions] = useState<Assertion[]>([]);
   const [assertionResults, setAssertionResults] = useState<AssertionResult[]>([]);
+  const [chainVariables, setChainVariables] = useState<ChainVariable[]>([]);
+  const [requestTimeout, setRequestTimeout] = useState<number>(30); // seconds
 
   const sidebarRef = useRef<SidebarRef>(null);
 
@@ -69,6 +73,51 @@ function App() {
     loadActiveVariables();
   }, []);
 
+  // Global keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isMod = e.ctrlKey || e.metaKey;
+
+      // Ctrl/Cmd + Enter: Send request
+      if (isMod && e.key === "Enter") {
+        e.preventDefault();
+        if (url.trim() && requestState !== "loading") {
+          handleSend();
+        }
+        return;
+      }
+
+      // Ctrl/Cmd + S: Save to collection
+      if (isMod && e.key === "s") {
+        e.preventDefault();
+        if (url.trim() && !showSaveModal) {
+          setShowSaveModal(true);
+        }
+        return;
+      }
+
+      // Ctrl/Cmd + E: Open environment manager
+      if (isMod && e.key === "e") {
+        e.preventDefault();
+        setShowEnvManager((prev) => !prev);
+        return;
+      }
+
+      // Escape: Close modals
+      if (e.key === "Escape") {
+        if (showSaveModal) {
+          setShowSaveModal(false);
+        } else if (showEnvManager) {
+          setShowEnvManager(false);
+        }
+        return;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [url, requestState, showSaveModal, showEnvManager]);
+
   const handleSend = async () => {
     if (!url.trim()) return;
 
@@ -76,8 +125,15 @@ function App() {
     setResponse(null);
     setAssertionResults([]);
 
+    // Merge environment variables with chain variables (chain takes precedence)
+    const chainVarsMap = chainVariables.reduce((acc, v) => {
+      acc[v.name] = v.value;
+      return acc;
+    }, {} as Record<string, string>);
+    const allVariables = { ...activeVariables, ...chainVarsMap };
+
     // Apply variable substitution
-    let finalUrl = substituteVariables(url.trim(), activeVariables);
+    let finalUrl = substituteVariables(url.trim(), allVariables);
     if (auth.type === "apikey" && auth.apiKeyLocation === "query" && auth.apiKeyName && auth.apiKeyValue) {
       const baseUrl = getBaseUrl(finalUrl);
       const existingParams = parseQueryParams(finalUrl);
@@ -99,12 +155,12 @@ function App() {
     const mergedHeaders = { ...contentTypeHeader, ...customHeaders, ...authHeaders };
 
     // Apply variable substitution to headers
-    const finalHeaders = substituteHeaderVariables(mergedHeaders, activeVariables);
+    const finalHeaders = substituteHeaderVariables(mergedHeaders, allVariables);
 
     // Prepare body based on type and apply variable substitution
     let finalBody = "";
     if (bodyType === "json" || bodyType === "raw") {
-      finalBody = substituteVariables(requestBody, activeVariables);
+      finalBody = substituteVariables(requestBody, allVariables);
     } else if (bodyType === "form-data") {
       finalBody = formDataToUrlEncoded(formData);
     }
@@ -115,7 +171,7 @@ function App() {
         url: finalUrl,
         headers: finalHeaders,
         body: finalBody,
-        timeout: 0,
+        timeout: requestTimeout,
       });
 
       setResponse(result);
@@ -234,15 +290,37 @@ function App() {
     return { ...customHeaders, ...authHeaders };
   };
 
+  // Chain variable handlers
+  const handleAddChainVariable = (variable: ChainVariable) => {
+    setChainVariables((prev) => {
+      // Replace if same name exists
+      const filtered = prev.filter((v) => v.name !== variable.name);
+      return [...filtered, variable];
+    });
+  };
+
+  const handleRemoveChainVariable = (id: string) => {
+    setChainVariables((prev) => prev.filter((v) => v.id !== id));
+  };
+
   return (
     <div className="flex h-screen bg-ctp-base text-ctp-text font-mono text-sm">
-      <Sidebar
-        ref={sidebarRef}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        onSelectHistoryItem={handleSelectHistoryItem}
-        onSelectSavedRequest={handleSelectSavedRequest}
-      />
+      <ResizablePanel
+        direction="horizontal"
+        initialSize={240}
+        minSize={180}
+        maxSize={400}
+        storageKey="sidebar"
+        className="border-r border-ctp-surface0"
+      >
+        <Sidebar
+          ref={sidebarRef}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onSelectHistoryItem={handleSelectHistoryItem}
+          onSelectSavedRequest={handleSelectSavedRequest}
+        />
+      </ResizablePanel>
 
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Header - consistent 48px height */}
@@ -260,7 +338,7 @@ function App() {
               onClick={handleSaveRequest}
               disabled={!url.trim()}
               className="flex items-center gap-1.5 px-2 py-1 text-xs text-ctp-subtext0 hover:text-ctp-text hover:bg-ctp-surface0 rounded-md disabled:opacity-50 disabled:pointer-events-none"
-              title="Save to Collection"
+              title="Save to Collection (Ctrl+S)"
             >
               <Icons.Save size={12} />
               Save
@@ -279,6 +357,7 @@ function App() {
           bodyType={bodyType}
           formData={formData}
           assertions={assertions}
+          timeout={requestTimeout}
           onMethodChange={setMethod}
           onUrlChange={setUrl}
           onBodyChange={setRequestBody}
@@ -288,6 +367,7 @@ function App() {
           onBodyTypeChange={setBodyType}
           onFormDataChange={setFormData}
           onAssertionsChange={setAssertions}
+          onTimeoutChange={setRequestTimeout}
           onSend={handleSend}
         />
 
@@ -295,6 +375,9 @@ function App() {
           response={response}
           requestState={requestState}
           assertionResults={assertionResults}
+          chainVariables={chainVariables}
+          onAddChainVariable={handleAddChainVariable}
+          onRemoveChainVariable={handleRemoveChainVariable}
         />
       </main>
 

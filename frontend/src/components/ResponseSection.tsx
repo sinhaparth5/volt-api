@@ -2,20 +2,32 @@ import { useState } from "react";
 import { Icons } from "./Icons";
 import { formatJSON, getStatusColor } from "../utils/helpers";
 import { AssertionResults } from "./AssertionResults";
+import { ChainVariableExtractor } from "./ChainVariableExtractor";
 import { AssertionResult, getAssertionsSummary } from "../utils/assertions";
+import { ChainVariable } from "../utils/chainVariables";
 import { app } from "../../wailsjs/go/models";
 
 type HTTPResponse = app.HTTPResponse;
 type RequestState = "idle" | "loading" | "success" | "error";
-type ResponseTab = "body" | "headers" | "cookies" | "tests";
+type ResponseTab = "body" | "headers" | "cookies" | "tests" | "chain";
 
 interface ResponseSectionProps {
   response: HTTPResponse | null;
   requestState: RequestState;
   assertionResults?: AssertionResult[];
+  chainVariables?: ChainVariable[];
+  onAddChainVariable?: (variable: ChainVariable) => void;
+  onRemoveChainVariable?: (id: string) => void;
 }
 
-export function ResponseSection({ response, requestState, assertionResults = [] }: ResponseSectionProps) {
+export function ResponseSection({
+  response,
+  requestState,
+  assertionResults = [],
+  chainVariables = [],
+  onAddChainVariable,
+  onRemoveChainVariable,
+}: ResponseSectionProps) {
   const [activeTab, setActiveTab] = useState<ResponseTab>("body");
   const [copied, setCopied] = useState(false);
   const [bodyView, setBodyView] = useState<"pretty" | "raw">("pretty");
@@ -70,7 +82,7 @@ export function ResponseSection({ response, requestState, assertionResults = [] 
     const headersCount = Object.keys(response.headers || {}).length;
     const assertionsSummary = assertionResults.length > 0 ? getAssertionsSummary(assertionResults) : null;
 
-    const tabs: { id: ResponseTab; label: string; count?: number; status?: "pass" | "fail" }[] = [
+    const tabs: { id: ResponseTab; label: string; count?: number; status?: "pass" | "fail"; highlight?: boolean }[] = [
       { id: "body", label: "Body" },
       { id: "headers", label: "Headers", count: headersCount },
       { id: "cookies", label: "Cookies", count: cookies.length },
@@ -82,6 +94,7 @@ export function ResponseSection({ response, requestState, assertionResults = [] 
             status: (assertionsSummary?.failed === 0 ? "pass" : "fail") as "pass" | "fail",
           }]
         : []),
+      { id: "chain", label: "Chain", count: chainVariables.length || undefined },
     ];
 
     return (
@@ -251,6 +264,21 @@ export function ResponseSection({ response, requestState, assertionResults = [] 
 
           {activeTab === "tests" && (
             <AssertionResults results={assertionResults} />
+          )}
+
+          {activeTab === "chain" && (
+            <div className="p-4">
+              <ChainVariableExtractor
+                response={{
+                  statusCode: response.statusCode,
+                  headers: response.headers || {},
+                  body: response.body,
+                }}
+                chainVariables={chainVariables}
+                onAddVariable={onAddChainVariable || (() => {})}
+                onRemoveVariable={onRemoveChainVariable || (() => {})}
+              />
+            </div>
           )}
         </div>
       </section>

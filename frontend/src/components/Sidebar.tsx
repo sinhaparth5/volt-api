@@ -32,7 +32,7 @@ export const Sidebar = forwardRef<SidebarRef, SidebarProps>(
     }));
 
     return (
-      <aside className="w-60 bg-ctp-mantle border-r border-ctp-surface0 flex flex-col">
+      <aside className="w-full h-full bg-ctp-mantle flex flex-col">
         {/* Logo - consistent height */}
         <div className="h-12 px-4 border-b border-ctp-surface0 flex items-center justify-between">
           <div className="flex items-center gap-2">

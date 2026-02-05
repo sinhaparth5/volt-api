@@ -66,21 +66,23 @@
 - [ ] Pre-request scripts (JavaScript)
 - [ ] Post-response scripts (tests)
 - [x] Response assertions (status code, body contains)
-- [ ] Chained requests (use response in next request)
+- [x] Chained requests (use response in next request)
+
+### Future Release (v2.0)
 - [ ] WebSocket support
 - [ ] gRPC support
 - [ ] GraphQL support with schema explorer
 
 ## Phase 7: Polish & UX
-- [ ] Keyboard shortcuts (Ctrl+Enter to send)
+- [x] Keyboard shortcuts (Ctrl+Enter to send, Ctrl+S to save, Ctrl+E environments)
 - [ ] Request tabs (multiple requests open)
 - [x] Dark/Light theme toggle (Catppuccin Latte/Macchiato)
-- [ ] Resizable panels (sidebar, request/response)
+- [x] Resizable panels (sidebar)
 - [ ] Response preview modes (Pretty, Raw, Preview)
 - [ ] Binary response handling (images, files)
 - [ ] Certificate/SSL settings
 - [ ] Proxy configuration
-- [ ] Request timeout configuration
+- [x] Request timeout configuration
 
 ## Tech Debt & Improvements
 - [ ] Add unit tests for Go HTTP client
