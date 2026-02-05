@@ -415,6 +415,60 @@ export const Icons = {
       <path d="M19 12L12 19L5 12" />
     </svg>
   ),
+
+  ArrowRight: (props: IconProps) => (
+    <svg
+      {...defaultProps}
+      {...props}
+      width={props.size || 16}
+      height={props.size || 16}
+      viewBox="0 0 24 24"
+    >
+      <path d="M5 12H19" />
+      <path d="M12 5L19 12L12 19" />
+    </svg>
+  ),
+
+  AlertTriangle: (props: IconProps) => (
+    <svg
+      {...defaultProps}
+      {...props}
+      width={props.size || 16}
+      height={props.size || 16}
+      viewBox="0 0 24 24"
+    >
+      <path d="M10.29 3.86L1.82 18C1.64 18.31 1.54 18.67 1.54 19.03C1.54 19.39 1.64 19.75 1.82 20.06C2 20.37 2.26 20.63 2.57 20.81C2.88 20.99 3.24 21.09 3.6 21.09H20.34C20.7 21.09 21.06 20.99 21.37 20.81C21.68 20.63 21.94 20.37 22.12 20.06C22.3 19.75 22.4 19.39 22.4 19.03C22.4 18.67 22.3 18.31 22.12 18L13.65 3.86C13.47 3.56 13.21 3.31 12.9 3.14C12.59 2.97 12.24 2.88 11.88 2.88C11.52 2.88 11.17 2.97 10.86 3.14C10.55 3.31 10.29 3.56 10.11 3.86H10.29Z" />
+      <path d="M12 9V13" />
+      <path d="M12 17H12.01" />
+    </svg>
+  ),
+
+  File: (props: IconProps) => (
+    <svg
+      {...defaultProps}
+      {...props}
+      width={props.size || 16}
+      height={props.size || 16}
+      viewBox="0 0 24 24"
+    >
+      <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" />
+      <path d="M14 2V8H20" />
+    </svg>
+  ),
+
+  Image: (props: IconProps) => (
+    <svg
+      {...defaultProps}
+      {...props}
+      width={props.size || 16}
+      height={props.size || 16}
+      viewBox="0 0 24 24"
+    >
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <circle cx="8.5" cy="8.5" r="1.5" />
+      <path d="M21 15L16 10L5 21" />
+    </svg>
+  ),
 };
 
 export default Icons;
