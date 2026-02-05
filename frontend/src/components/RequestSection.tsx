@@ -4,7 +4,7 @@ import { MethodDropdown } from "./MethodDropdown";
 import { KeyValueEditor } from "./KeyValueEditor";
 import { AuthEditor } from "./AuthEditor";
 import { AssertionsEditor } from "./AssertionsEditor";
-import { ClientSettings } from "./ClientSettings";
+import { ClientSettings, ProxySettings, SSLSettings, RedirectSettings } from "./ClientSettings";
 import {
   KeyValuePair,
   AuthSettings,
@@ -12,6 +12,8 @@ import {
   buildUrlWithParams,
   getBaseUrl,
   formatJSON,
+  hasVariables,
+  substituteVariables,
 } from "../utils/helpers";
 import { Assertion } from "../utils/assertions";
 
@@ -32,6 +34,10 @@ interface RequestSectionProps {
   assertions: Assertion[];
   timeout: number;
   userAgent: string;
+  proxy: ProxySettings;
+  ssl: SSLSettings;
+  redirects: RedirectSettings;
+  activeVariables?: Record<string, string>;
   onMethodChange: (method: string) => void;
   onUrlChange: (url: string) => void;
   onBodyChange: (body: string) => void;
@@ -43,6 +49,9 @@ interface RequestSectionProps {
   onAssertionsChange: (assertions: Assertion[]) => void;
   onTimeoutChange: (timeout: number) => void;
   onUserAgentChange: (userAgent: string) => void;
+  onProxyChange: (proxy: ProxySettings) => void;
+  onSSLChange: (ssl: SSLSettings) => void;
+  onRedirectsChange: (redirects: RedirectSettings) => void;
   onSend: () => void;
 }
 
@@ -59,6 +68,10 @@ export function RequestSection({
   assertions,
   timeout,
   userAgent,
+  proxy,
+  ssl,
+  redirects,
+  activeVariables = {},
   onMethodChange,
   onUrlChange,
   onBodyChange,
@@ -70,6 +83,9 @@ export function RequestSection({
   onAssertionsChange,
   onTimeoutChange,
   onUserAgentChange,
+  onProxyChange,
+  onSSLChange,
+  onRedirectsChange,
   onSend,
 }: RequestSectionProps) {
   const [methodDropdownOpen, setMethodDropdownOpen] = useState(false);
@@ -125,13 +141,18 @@ export function RequestSection({
 
   const showBody = ["POST", "PUT", "PATCH"].includes(method);
 
+  // Check for variables in URL and get preview
+  const urlHasVars = hasVariables(url);
+  const resolvedUrl = urlHasVars ? substituteVariables(url, activeVariables) : url;
+  const hasUnresolvedVars = urlHasVars && hasVariables(resolvedUrl);
+
   // Count active items for badges
   const activeHeadersCount = headers.filter((h) => h.enabled && h.key.trim()).length;
   const activeParamsCount = queryParams.filter((p) => p.enabled && p.key.trim()).length;
   const activeAssertionsCount = assertions.filter((a) => a.enabled).length;
   const hasAuth = auth.type !== "none";
 
-  const hasCustomUserAgent = userAgent !== "";
+  const hasCustomClientSettings = userAgent !== "" || proxy.enabled || ssl.skipVerify || !redirects.follow;
 
   const tabs: { id: RequestTab; label: string; badge?: number; highlight?: boolean }[] = [
     { id: "params", label: "Params", badge: activeParamsCount || undefined },
@@ -139,7 +160,7 @@ export function RequestSection({
     { id: "auth", label: "Auth", highlight: hasAuth },
     ...(showBody ? [{ id: "body" as RequestTab, label: "Body" }] : []),
     { id: "tests", label: "Tests", badge: activeAssertionsCount || undefined },
-    { id: "client", label: "Client", highlight: hasCustomUserAgent },
+    { id: "client", label: "Client", highlight: hasCustomClientSettings },
   ];
 
   return (
@@ -201,6 +222,27 @@ export function RequestSection({
           )}
         </button>
       </div>
+
+      {/* Variable Substitution Preview */}
+      {urlHasVars && (
+        <div className="px-4 pb-2 -mt-2">
+          <div className={`flex items-start gap-2 px-3 py-2 rounded-md text-xs ${
+            hasUnresolvedVars
+              ? "bg-ctp-peach/10 border border-ctp-peach/30"
+              : "bg-ctp-green/10 border border-ctp-green/30"
+          }`}>
+            <Icons.Bolt size={12} className={`mt-0.5 flex-shrink-0 ${
+              hasUnresolvedVars ? "text-ctp-peach" : "text-ctp-green"
+            }`} />
+            <div className="min-w-0 flex-1">
+              <span className={`font-medium ${hasUnresolvedVars ? "text-ctp-peach" : "text-ctp-green"}`}>
+                {hasUnresolvedVars ? "Unresolved variables" : "Resolved URL"}:
+              </span>
+              <div className="text-ctp-text break-all mt-0.5 font-mono">{resolvedUrl}</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tabs - consistent spacing */}
       <div className="flex border-b border-ctp-surface0 px-4 gap-1">
@@ -338,7 +380,13 @@ export function RequestSection({
         {activeTab === "client" && (
           <ClientSettings
             userAgent={userAgent}
+            proxy={proxy}
+            ssl={ssl}
+            redirects={redirects}
             onUserAgentChange={onUserAgentChange}
+            onProxyChange={onProxyChange}
+            onSSLChange={onSSLChange}
+            onRedirectsChange={onRedirectsChange}
           />
         )}
       </div>

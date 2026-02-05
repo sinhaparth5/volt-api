@@ -24,12 +24,43 @@ export const USER_AGENTS = {
 
 export type UserAgentKey = keyof typeof USER_AGENTS;
 
-interface ClientSettingsProps {
-  userAgent: string;
-  onUserAgentChange: (userAgent: string) => void;
+export interface ProxySettings {
+  enabled: boolean;
+  url: string;
 }
 
-export function ClientSettings({ userAgent, onUserAgentChange }: ClientSettingsProps) {
+export interface SSLSettings {
+  skipVerify: boolean;
+  clientCertPath: string;
+  clientKeyPath: string;
+}
+
+export interface RedirectSettings {
+  follow: boolean;
+  maxRedirects: number;
+}
+
+interface ClientSettingsProps {
+  userAgent: string;
+  proxy: ProxySettings;
+  ssl: SSLSettings;
+  redirects: RedirectSettings;
+  onUserAgentChange: (userAgent: string) => void;
+  onProxyChange: (proxy: ProxySettings) => void;
+  onSSLChange: (ssl: SSLSettings) => void;
+  onRedirectsChange: (redirects: RedirectSettings) => void;
+}
+
+export function ClientSettings({
+  userAgent,
+  proxy,
+  ssl,
+  redirects,
+  onUserAgentChange,
+  onProxyChange,
+  onSSLChange,
+  onRedirectsChange,
+}: ClientSettingsProps) {
   const [selectedKey, setSelectedKey] = useState<UserAgentKey>("Default (Volt-API)");
   const [customAgent, setCustomAgent] = useState("");
   const [isCustom, setIsCustom] = useState(false);
@@ -157,6 +188,118 @@ export function ClientSettings({ userAgent, onUserAgentChange }: ClientSettingsP
         </div>
       </div>
 
+      {/* Proxy Settings */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-xs text-ctp-subtext0">
+          <Icons.Globe size={12} />
+          <span>Proxy</span>
+        </div>
+
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={proxy.enabled}
+            onChange={(e) => onProxyChange({ ...proxy, enabled: e.target.checked })}
+            className="w-4 h-4 rounded border-ctp-surface1 bg-ctp-surface0 text-ctp-mauve focus:ring-ctp-mauve focus:ring-offset-0"
+          />
+          <span className="text-xs text-ctp-text">Use Proxy</span>
+        </label>
+
+        {proxy.enabled && (
+          <input
+            type="text"
+            value={proxy.url}
+            onChange={(e) => onProxyChange({ ...proxy, url: e.target.value })}
+            placeholder="http://localhost:8080"
+            className="w-full bg-ctp-surface0 border border-ctp-surface1 px-3 py-2 rounded-md text-xs outline-none focus:border-ctp-lavender text-ctp-text placeholder:text-ctp-overlay0"
+          />
+        )}
+      </div>
+
+      {/* SSL Settings */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-xs text-ctp-subtext0">
+          <Icons.Lock size={12} />
+          <span>SSL / TLS</span>
+        </div>
+
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={ssl.skipVerify}
+            onChange={(e) => onSSLChange({ ...ssl, skipVerify: e.target.checked })}
+            className="w-4 h-4 rounded border-ctp-surface1 bg-ctp-surface0 text-ctp-mauve focus:ring-ctp-mauve focus:ring-offset-0"
+          />
+          <span className="text-xs text-ctp-text">Skip SSL Certificate Verification</span>
+        </label>
+
+        {ssl.skipVerify && (
+          <div className="p-2 bg-ctp-peach/10 border border-ctp-peach/30 rounded-md">
+            <div className="flex items-start gap-2">
+              <Icons.AlertTriangle size={12} className="text-ctp-peach mt-0.5 flex-shrink-0" />
+              <span className="text-xs text-ctp-peach">
+                Warning: Disabling SSL verification makes connections insecure. Only use for testing.
+              </span>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <label className="text-xs text-ctp-overlay0">Client Certificate (optional):</label>
+          <input
+            type="text"
+            value={ssl.clientCertPath}
+            onChange={(e) => onSSLChange({ ...ssl, clientCertPath: e.target.value })}
+            placeholder="/path/to/client.crt"
+            className="w-full bg-ctp-surface0 border border-ctp-surface1 px-3 py-2 rounded-md text-xs outline-none focus:border-ctp-lavender text-ctp-text placeholder:text-ctp-overlay0"
+          />
+          <input
+            type="text"
+            value={ssl.clientKeyPath}
+            onChange={(e) => onSSLChange({ ...ssl, clientKeyPath: e.target.value })}
+            placeholder="/path/to/client.key"
+            className="w-full bg-ctp-surface0 border border-ctp-surface1 px-3 py-2 rounded-md text-xs outline-none focus:border-ctp-lavender text-ctp-text placeholder:text-ctp-overlay0"
+          />
+        </div>
+      </div>
+
+      {/* Redirect Settings */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-xs text-ctp-subtext0">
+          <Icons.ArrowRight size={12} />
+          <span>Redirects</span>
+        </div>
+
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={redirects.follow}
+            onChange={(e) => onRedirectsChange({ ...redirects, follow: e.target.checked })}
+            className="w-4 h-4 rounded border-ctp-surface1 bg-ctp-surface0 text-ctp-mauve focus:ring-ctp-mauve focus:ring-offset-0"
+          />
+          <span className="text-xs text-ctp-text">Follow Redirects</span>
+        </label>
+
+        {redirects.follow && (
+          <div className="flex items-center gap-2">
+            <label className="text-xs text-ctp-overlay0">Max Redirects:</label>
+            <input
+              type="number"
+              value={redirects.maxRedirects}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                if (val >= 0 && val <= 50) {
+                  onRedirectsChange({ ...redirects, maxRedirects: val });
+                }
+              }}
+              min={0}
+              max={50}
+              className="w-16 bg-ctp-surface0 border border-ctp-surface1 px-2 py-1 rounded-md text-xs outline-none focus:border-ctp-lavender text-ctp-text text-center"
+            />
+          </div>
+        )}
+      </div>
+
       {/* Quick Tips */}
       <div className="p-3 bg-ctp-blue/10 border border-ctp-blue/20 rounded-md">
         <div className="flex items-start gap-2">
@@ -164,9 +307,9 @@ export function ClientSettings({ userAgent, onUserAgentChange }: ClientSettingsP
           <div className="text-xs text-ctp-blue">
             <p className="font-medium mb-1">Tips:</p>
             <ul className="list-disc list-inside space-y-0.5 text-ctp-blue/80">
-              <li>Some APIs behave differently based on User-Agent</li>
-              <li>Use browser agents to test responsive behavior</li>
-              <li>Mobile agents may trigger mobile-specific responses</li>
+              <li>Use proxy to debug requests with tools like Burp or mitmproxy</li>
+              <li>Skip SSL only for local/development APIs</li>
+              <li>Client certs are for mTLS authentication</li>
             </ul>
           </div>
         </div>
