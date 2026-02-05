@@ -9,6 +9,7 @@ import { Icons } from "./components/Icons";
 import {
   KeyValuePair,
   AuthSettings,
+  BodyType,
   createEmptyPair,
   defaultAuthSettings,
   keyValuePairsToHeaders,
@@ -17,6 +18,8 @@ import {
   parseQueryParams,
   buildUrlWithParams,
   getBaseUrl,
+  formDataToUrlEncoded,
+  getContentTypeHeader,
 } from "./utils/helpers";
 import "./style.css";
 
@@ -33,6 +36,8 @@ function App() {
   const [headers, setHeaders] = useState<KeyValuePair[]>([createEmptyPair()]);
   const [queryParams, setQueryParams] = useState<KeyValuePair[]>([createEmptyPair()]);
   const [auth, setAuth] = useState<AuthSettings>(defaultAuthSettings());
+  const [bodyType, setBodyType] = useState<BodyType>("json");
+  const [formData, setFormData] = useState<KeyValuePair[]>([createEmptyPair()]);
   const [response, setResponse] = useState<HTTPResponse | null>(null);
   const [requestState, setRequestState] = useState<RequestState>("idle");
   const [activeTab, setActiveTab] = useState<SidebarTab>("history");
@@ -62,17 +67,26 @@ function App() {
       finalUrl = buildUrlWithParams(baseUrl, [...filteredParams, apiKeyParam]);
     }
 
-    // Merge custom headers with auth headers
+    // Merge custom headers with auth headers and content-type
     const customHeaders = keyValuePairsToHeaders(headers);
     const authHeaders = authToHeaders(auth);
-    const mergedHeaders = { ...customHeaders, ...authHeaders };
+    const contentTypeHeader = getContentTypeHeader(bodyType);
+    const mergedHeaders = { ...contentTypeHeader, ...customHeaders, ...authHeaders };
+
+    // Prepare body based on type
+    let finalBody = "";
+    if (bodyType === "json" || bodyType === "raw") {
+      finalBody = requestBody;
+    } else if (bodyType === "form-data") {
+      finalBody = formDataToUrlEncoded(formData);
+    }
 
     try {
       const result = await SendRequest({
         method,
         url: finalUrl,
         headers: mergedHeaders,
-        body: requestBody,
+        body: finalBody,
         timeout: 0,
       });
 
@@ -110,6 +124,18 @@ function App() {
         setQueryParams(parseQueryParams(fullItem.url || ""));
         // Reset auth (history doesn't store auth separately)
         setAuth(defaultAuthSettings());
+        // Detect body type from content
+        if (fullItem.body) {
+          try {
+            JSON.parse(fullItem.body);
+            setBodyType("json");
+          } catch {
+            setBodyType("raw");
+          }
+        } else {
+          setBodyType("json");
+        }
+        setFormData([createEmptyPair()]);
         setResponse(null);
         setRequestState("idle");
       }
@@ -132,6 +158,18 @@ function App() {
         setQueryParams(parseQueryParams(fullRequest.url || ""));
         // Reset auth (saved requests don't store auth separately yet)
         setAuth(defaultAuthSettings());
+        // Detect body type from content
+        if (fullRequest.body) {
+          try {
+            JSON.parse(fullRequest.body);
+            setBodyType("json");
+          } catch {
+            setBodyType("raw");
+          }
+        } else {
+          setBodyType("json");
+        }
+        setFormData([createEmptyPair()]);
         setResponse(null);
         setRequestState("idle");
       }
@@ -167,19 +205,19 @@ function App() {
       />
 
       <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="h-11 border-b border-ctp-surface0 flex items-center justify-between px-4 bg-ctp-mantle">
+        {/* Header - consistent 48px height */}
+        <header className="h-12 border-b border-ctp-surface0 flex items-center justify-between px-4 bg-ctp-mantle">
           <div className="flex items-center gap-2">
             <Icons.Globe size={14} className="text-ctp-overlay0" />
-            <span className="text-ctp-text text-sm font-medium">New Request</span>
+            <span className="text-ctp-text text-sm">New Request</span>
           </div>
           <button
             onClick={handleSaveRequest}
             disabled={!url.trim()}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-ctp-text hover:bg-ctp-surface0 rounded disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 px-2 py-1 text-xs text-ctp-subtext0 hover:text-ctp-text hover:bg-ctp-surface0 rounded-md disabled:opacity-50 disabled:pointer-events-none"
             title="Save to Collection"
           >
-            <Icons.Save size={14} />
+            <Icons.Save size={12} />
             Save
           </button>
         </header>
@@ -192,12 +230,16 @@ function App() {
           headers={headers}
           queryParams={queryParams}
           auth={auth}
+          bodyType={bodyType}
+          formData={formData}
           onMethodChange={setMethod}
           onUrlChange={setUrl}
           onBodyChange={setRequestBody}
           onHeadersChange={setHeaders}
           onQueryParamsChange={setQueryParams}
           onAuthChange={setAuth}
+          onBodyTypeChange={setBodyType}
+          onFormDataChange={setFormData}
           onSend={handleSend}
         />
 

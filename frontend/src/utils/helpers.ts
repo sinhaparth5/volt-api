@@ -13,6 +13,9 @@ export interface KeyValuePair {
 // Authentication types
 export type AuthType = "none" | "basic" | "bearer" | "apikey";
 
+// Body types
+export type BodyType = "json" | "form-data" | "raw" | "none";
+
 export interface AuthSettings {
   type: AuthType;
   username?: string;
@@ -173,5 +176,27 @@ export const getMethodBg = (method: string): string => {
     case "DELETE": return "bg-ctp-red/10 border-ctp-red/30";
     case "PATCH": return "bg-ctp-mauve/10 border-ctp-mauve/30";
     default: return "bg-ctp-surface0 border-ctp-surface1";
+  }
+};
+
+// Convert form data key-value pairs to URL encoded string
+export const formDataToUrlEncoded = (pairs: KeyValuePair[]): string => {
+  return pairs
+    .filter((p) => p.enabled && p.key.trim())
+    .map((p) => `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`)
+    .join("&");
+};
+
+// Get content type header based on body type
+export const getContentTypeHeader = (bodyType: BodyType): Record<string, string> => {
+  switch (bodyType) {
+    case "json":
+      return { "Content-Type": "application/json" };
+    case "form-data":
+      return { "Content-Type": "application/x-www-form-urlencoded" };
+    case "raw":
+      return { "Content-Type": "text/plain" };
+    default:
+      return {};
   }
 };

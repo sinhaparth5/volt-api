@@ -31,6 +31,12 @@
 
   /* Fonts */
   --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Consolas', monospace;
+
+  /* Design System - 4px base unit */
+  --spacing-unit: 4px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
 }
 
 /* Catppuccin Latte (Light Theme - Default) */
@@ -105,7 +111,6 @@ body {
   font-family: var(--font-mono);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-weight: 500;
 }
 
 #app {
@@ -115,12 +120,9 @@ body {
 /* Smooth theme transitions */
 html,
 html * {
-  transition: background-color 0.25s ease,
-              border-color 0.25s ease,
-              color 0.25s ease,
-              box-shadow 0.25s ease,
-              fill 0.25s ease,
-              stroke 0.25s ease;
+  transition: background-color 0.2s ease,
+              border-color 0.2s ease,
+              color 0.2s ease;
 }
 
 /* Disable transitions on page load to prevent flash */
@@ -131,17 +133,17 @@ html.no-transitions * {
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-ctp-mantle);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--color-ctp-surface2);
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -150,14 +152,20 @@ html.no-transitions * {
 
 /* Selection colors */
 ::selection {
-  background-color: var(--color-ctp-lavender);
+  background-color: var(--color-ctp-mauve);
   color: var(--color-ctp-base);
 }
 
-/* Focus ring */
+/* Focus ring - consistent 2px offset */
 *:focus-visible {
   outline: 2px solid var(--color-ctp-lavender);
   outline-offset: 2px;
+}
+
+/* Remove default focus from buttons, use custom states */
+button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-ctp-base), 0 0 0 4px var(--color-ctp-lavender);
 }
 
 /* Clean icon styling */
@@ -165,14 +173,14 @@ svg {
   flex-shrink: 0;
 }
 
-/* Button hover effects */
+/* Button defaults */
 button {
   cursor: pointer;
-  font-weight: 500;
 }
 
 button:disabled {
   cursor: not-allowed;
+  opacity: 0.5;
 }
 
 /* Input styling improvements */
@@ -180,13 +188,11 @@ input,
 textarea,
 select {
   font-family: inherit;
-  font-weight: 500;
 }
 
 input::placeholder,
 textarea::placeholder {
-  opacity: 0.7;
-  font-weight: 400;
+  opacity: 0.6;
 }
 
 /* Smooth dropdown animations */
@@ -199,30 +205,14 @@ details summary::-webkit-details-marker {
   display: none;
 }
 
-/* Modal backdrop blur */
-.modal-backdrop {
-  backdrop-filter: blur(4px);
-}
-
 /* Code/pre styling */
-pre {
+pre, code {
   font-family: var(--font-mono);
-  font-size: 0.875rem;
-  line-height: 1.5;
-  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 /* Better text rendering */
 * {
   text-rendering: optimizeLegibility;
-}
-
-/* Ensure text is readable */
-.text-ctp-text {
-  font-weight: 500;
-}
-
-.text-ctp-subtext0,
-.text-ctp-subtext1 {
-  font-weight: 500;
 }

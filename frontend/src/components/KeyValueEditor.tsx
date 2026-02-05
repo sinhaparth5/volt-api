@@ -84,11 +84,11 @@ export function KeyValueEditor({
 
   return (
     <div className="space-y-1">
-      {/* Header */}
-      <div className="grid grid-cols-[24px_1fr_1fr_28px] gap-2 text-xs text-ctp-subtext0 font-medium px-1">
+      {/* Header - aligned with grid below */}
+      <div className="grid grid-cols-[20px_1fr_1fr_28px] gap-2 text-xs text-ctp-subtext0 pb-1">
         <div></div>
-        <div>{keyPlaceholder}</div>
-        <div>{valuePlaceholder}</div>
+        <div className="px-1">{keyPlaceholder}</div>
+        <div className="px-1">{valuePlaceholder}</div>
         <div></div>
       </div>
 
@@ -96,12 +96,12 @@ export function KeyValueEditor({
       {displayPairs.map((pair, index) => (
         <div
           key={pair.id}
-          className="grid grid-cols-[24px_1fr_1fr_28px] gap-2 items-center group"
+          className="grid grid-cols-[20px_1fr_1fr_28px] gap-2 items-center group"
         >
           {/* Checkbox */}
           <button
             onClick={() => togglePair(pair.id)}
-            className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+            className={`w-4 h-4 rounded border flex items-center justify-center ${
               pair.enabled
                 ? "bg-ctp-mauve/20 border-ctp-mauve text-ctp-mauve"
                 : "bg-ctp-surface0 border-ctp-surface1 text-transparent"
@@ -118,7 +118,7 @@ export function KeyValueEditor({
             onChange={(e) => updatePair(pair.id, "key", e.target.value)}
             onKeyDown={(e) => handleKeyDown(e, index, "key")}
             placeholder={keyPlaceholder}
-            className={`bg-ctp-surface0 border border-ctp-surface1 px-2 py-1.5 rounded text-sm outline-none focus:border-ctp-lavender placeholder:text-ctp-overlay0 ${
+            className={`bg-ctp-surface0 border border-ctp-surface1 px-2 py-1.5 rounded-md text-sm outline-none focus:border-ctp-lavender placeholder:text-ctp-overlay0 ${
               !pair.enabled ? "opacity-50" : ""
             }`}
           />
@@ -130,7 +130,7 @@ export function KeyValueEditor({
             onChange={(e) => updatePair(pair.id, "value", e.target.value)}
             onKeyDown={(e) => handleKeyDown(e, index, "value")}
             placeholder={valuePlaceholder}
-            className={`bg-ctp-surface0 border border-ctp-surface1 px-2 py-1.5 rounded text-sm outline-none focus:border-ctp-lavender placeholder:text-ctp-overlay0 ${
+            className={`bg-ctp-surface0 border border-ctp-surface1 px-2 py-1.5 rounded-md text-sm outline-none focus:border-ctp-lavender placeholder:text-ctp-overlay0 ${
               !pair.enabled ? "opacity-50" : ""
             }`}
           />
@@ -138,7 +138,7 @@ export function KeyValueEditor({
           {/* Remove button */}
           <button
             onClick={() => removePair(pair.id)}
-            className="w-7 h-7 flex items-center justify-center text-ctp-overlay0 hover:text-ctp-red hover:bg-ctp-red/10 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+            className="w-7 h-7 flex items-center justify-center text-ctp-overlay0 hover:text-ctp-red hover:bg-ctp-red/10 rounded-md opacity-0 group-hover:opacity-100"
           >
             <Icons.X size={14} />
           </button>
@@ -148,10 +148,10 @@ export function KeyValueEditor({
       {/* Add button */}
       <button
         onClick={addPair}
-        className="flex items-center gap-1.5 text-xs text-ctp-subtext0 hover:text-ctp-text px-1 py-1 mt-1"
+        className="flex items-center gap-1.5 text-xs text-ctp-subtext0 hover:text-ctp-text px-1 py-1.5 mt-1 rounded-md hover:bg-ctp-surface0/50"
       >
         <Icons.Plus size={12} />
-        Add
+        Add row
       </button>
     </div>
   );

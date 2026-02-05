@@ -29,29 +29,29 @@ export function MethodDropdown({ method, isOpen, onToggle, onSelect }: MethodDro
       <button
         type="button"
         onClick={onToggle}
-        className={`border px-3 py-2.5 rounded-lg outline-none w-28 font-bold text-xs flex items-center justify-between gap-2 ${getMethodBg(method)} ${getMethodColor(method)} hover:brightness-110 transition-all`}
+        className={`border px-3 py-2 rounded-md w-24 text-xs flex items-center justify-between gap-1 ${getMethodBg(method)} ${getMethodColor(method)}`}
       >
-        {method}
+        <span className="font-semibold">{method}</span>
         <Icons.ChevronDown
-          size={14}
+          size={12}
           className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-32 bg-ctp-surface0 border border-ctp-surface1 rounded-lg shadow-lg shadow-ctp-crust/50 overflow-hidden z-50">
+        <div className="absolute top-full left-0 mt-1 w-28 bg-ctp-surface0 border border-ctp-surface1 rounded-md shadow-lg shadow-ctp-crust/30 overflow-hidden z-50">
           {METHODS.map((m) => (
             <button
               key={m}
               type="button"
               onClick={() => onSelect(m)}
-              className={`w-full px-3 py-2 text-left text-xs font-bold flex items-center gap-2 transition-colors ${
+              className={`w-full px-3 py-2 text-left text-xs flex items-center gap-2 ${
                 method === m
                   ? `${getMethodBg(m)} ${getMethodColor(m)}`
-                  : `text-ctp-subtext1 hover:bg-ctp-surface1 hover:text-ctp-text`
+                  : `text-ctp-subtext1 hover:bg-ctp-surface1`
               }`}
             >
-              <span className={`w-2 h-2 rounded-full ${method === m ? "bg-current" : "bg-transparent"}`} />
-              {m}
+              <span className={`w-1.5 h-1.5 rounded-full ${method === m ? "bg-current" : "bg-transparent"}`} />
+              <span className="font-semibold">{m}</span>
             </button>
           ))}
         </div>

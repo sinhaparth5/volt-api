@@ -73,10 +73,10 @@ export const HistorySidebar = forwardRef<HistorySidebarRef, Props>(
       const now = Date.now() / 1000;
       const diff = now - timestamp;
 
-      if (diff < 60) return "just now";
-      if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-      if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-      if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+      if (diff < 60) return "now";
+      if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+      if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+      if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
 
       const date = new Date(timestamp * 1000);
       return date.toLocaleDateString();
@@ -84,18 +84,12 @@ export const HistorySidebar = forwardRef<HistorySidebarRef, Props>(
 
     const getMethodColor = (method: string): string => {
       switch (method.toUpperCase()) {
-        case "GET":
-          return "text-ctp-green";
-        case "POST":
-          return "text-ctp-blue";
-        case "PUT":
-          return "text-ctp-peach";
-        case "DELETE":
-          return "text-ctp-red";
-        case "PATCH":
-          return "text-ctp-mauve";
-        default:
-          return "text-ctp-text";
+        case "GET": return "text-ctp-green";
+        case "POST": return "text-ctp-blue";
+        case "PUT": return "text-ctp-peach";
+        case "DELETE": return "text-ctp-red";
+        case "PATCH": return "text-ctp-mauve";
+        default: return "text-ctp-text";
       }
     };
 
@@ -110,9 +104,9 @@ export const HistorySidebar = forwardRef<HistorySidebarRef, Props>(
       try {
         const parsed = new URL(url);
         const path = parsed.pathname + parsed.search;
-        return path.length > 30 ? path.substring(0, 30) + "..." : path;
+        return path.length > 26 ? path.substring(0, 26) + "..." : path;
       } catch {
-        return url.length > 30 ? url.substring(0, 30) + "..." : url;
+        return url.length > 26 ? url.substring(0, 26) + "..." : url;
       }
     };
 
@@ -121,13 +115,13 @@ export const HistorySidebar = forwardRef<HistorySidebarRef, Props>(
         {/* Search */}
         <div className="p-2 border-b border-ctp-surface0">
           <div className="relative">
-            <Icons.Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ctp-overlay0" />
+            <Icons.Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-ctp-overlay0" />
             <input
               type="text"
-              placeholder="Search history..."
+              placeholder="Search..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-ctp-surface0 border border-ctp-surface1 pl-8 pr-3 py-1.5 rounded-lg text-xs font-medium outline-none focus:border-ctp-lavender text-ctp-text placeholder:text-ctp-overlay0 placeholder:font-normal"
+              className="w-full bg-ctp-surface0 border border-ctp-surface1 pl-7 pr-2 py-1.5 rounded-md text-xs outline-none focus:border-ctp-lavender text-ctp-text placeholder:text-ctp-overlay0"
             />
           </div>
         </div>
@@ -135,16 +129,16 @@ export const HistorySidebar = forwardRef<HistorySidebarRef, Props>(
         {/* History List */}
         <div className="flex-1 overflow-y-auto">
           {isLoading && history.length === 0 && (
-            <div className="p-4 text-center text-ctp-text text-xs font-medium flex flex-col items-center gap-2">
-              <Icons.Spinner size={16} />
+            <div className="p-6 text-center text-ctp-subtext0 text-xs flex flex-col items-center gap-2">
+              <Icons.Spinner size={14} className="text-ctp-mauve" />
               Loading...
             </div>
           )}
 
           {!isLoading && history.length === 0 && (
-            <div className="p-4 text-center text-ctp-text text-xs font-medium flex flex-col items-center gap-2">
-              <Icons.History size={24} className="text-ctp-overlay0" />
-              {search ? "No matching requests" : "No history yet"}
+            <div className="p-6 text-center text-ctp-subtext0 text-xs flex flex-col items-center gap-3">
+              <Icons.History size={20} className="text-ctp-surface2" />
+              {search ? "No matches" : "No history yet"}
             </div>
           )}
 
@@ -152,34 +146,30 @@ export const HistorySidebar = forwardRef<HistorySidebarRef, Props>(
             <div
               key={item.id}
               onClick={() => onSelectItem(item)}
-              className="p-2.5 hover:bg-ctp-surface0/50 cursor-pointer border-b border-ctp-surface0/50 group"
+              className="px-3 py-2 hover:bg-ctp-surface0/50 cursor-pointer border-b border-ctp-surface0/50 group"
             >
               <div className="flex items-center gap-2">
-                <span
-                  className={`font-bold text-xs w-12 ${getMethodColor(
-                    item.method
-                  )}`}
-                >
+                <span className={`text-xs w-9 font-semibold ${getMethodColor(item.method)}`}>
                   {item.method}
                 </span>
-                <span className="text-xs text-ctp-text font-medium truncate flex-1">
+                <span className="text-xs text-ctp-text truncate flex-1">
                   {getUrlPath(item.url)}
                 </span>
                 <button
                   onClick={(e) => handleDelete(item.id, e)}
-                  className="opacity-0 group-hover:opacity-100 text-ctp-overlay0 hover:text-ctp-red transition-opacity p-0.5"
+                  className="opacity-0 group-hover:opacity-100 text-ctp-overlay0 hover:text-ctp-red p-0.5 rounded"
                   title="Delete"
                 >
-                  <Icons.Trash size={12} />
+                  <Icons.Trash size={11} />
                 </button>
               </div>
-              <div className="flex items-center gap-2 mt-1.5 text-xs text-ctp-subtext0 font-medium">
-                <span className={`font-semibold ${getStatusColor(item.statusCode)}`}>
+              <div className="flex items-center gap-1.5 mt-1 text-xs text-ctp-subtext0">
+                <span className={getStatusColor(item.statusCode)}>
                   {item.statusCode || "—"}
                 </span>
-                <span className="text-ctp-surface2">|</span>
+                <span className="text-ctp-surface2">·</span>
                 <span>{item.timingMs}ms</span>
-                <span className="text-ctp-surface2">|</span>
+                <span className="text-ctp-surface2">·</span>
                 <span>{formatTime(item.createdAt)}</span>
               </div>
             </div>
@@ -187,17 +177,17 @@ export const HistorySidebar = forwardRef<HistorySidebarRef, Props>(
         </div>
 
         {/* Footer */}
-        <div className="p-2.5 border-t border-ctp-surface0 flex justify-between items-center bg-ctp-mantle">
-          <span className="text-xs text-ctp-text font-medium">
-            {history.length} {history.length === 1 ? "request" : "requests"}
+        <div className="px-3 py-2 border-t border-ctp-surface0 flex justify-between items-center">
+          <span className="text-xs text-ctp-subtext0">
+            {history.length} {history.length === 1 ? "item" : "items"}
           </span>
           {history.length > 0 && (
             <button
               onClick={handleClear}
-              className="text-xs text-ctp-subtext0 font-medium hover:text-ctp-red transition-colors flex items-center gap-1"
+              className="text-xs text-ctp-subtext0 hover:text-ctp-red flex items-center gap-1 px-1 py-0.5 rounded hover:bg-ctp-red/10"
             >
-              <Icons.Trash size={12} />
-              Clear All
+              <Icons.Trash size={10} />
+              Clear
             </button>
           )}
         </div>

@@ -47,11 +47,11 @@
 - [x] Headers editor (key-value pairs)
 - [x] Query params editor (key-value pairs with bidirectional URL sync)
 - [x] Auth tab (None, Basic Auth, Bearer Token, API Key)
-- [ ] Request body types (JSON, Form Data, Raw, Binary)
-- [ ] Syntax highlighting for JSON body
-- [ ] Pretty print / format JSON button
-- [ ] Copy response to clipboard
-- [ ] Response tabs (Body, Headers, Cookies)
+- [x] Request body types (JSON, Form Data, Raw, None)
+- [x] Pretty print / format JSON button
+- [x] Copy response to clipboard
+- [x] Response tabs (Body, Headers, Cookies)
+- [x] Pretty/Raw toggle for response body
 
 ## Phase 5: Environments & Variables
 - [ ] Create environments (Dev, Staging, Prod)
