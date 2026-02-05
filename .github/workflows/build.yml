@@ -80,6 +80,10 @@ jobs:
         run: cd frontend && npm ci
 
       - name: Build macOS arm64
+        env:
+          CGO_ENABLED: 1
+          CC: clang
+          CXX: clang++
         run: wails build -clean -platform darwin/arm64 -ldflags="-s -w"
 
       - name: Ad-hoc Sign arm64
@@ -93,6 +97,10 @@ jobs:
           rm -rf volt-api.app
 
       - name: Build macOS amd64
+        env:
+          CGO_ENABLED: 1
+          CC: clang
+          CXX: clang++
         run: wails build -clean -platform darwin/amd64 -ldflags="-s -w"
 
       - name: Ad-hoc Sign amd64
@@ -145,24 +153,22 @@ jobs:
         run: cd frontend && npm ci
 
       - name: Build Linux amd64
+        env:
+          CGO_ENABLED: 1
         run: wails build -clean -platform linux/amd64 -ldflags="-s -w" -tags webkit2_41 -o volt-api-linux-amd64
-
-      - name: Build Linux arm64
-        run: wails build -clean -platform linux/arm64 -ldflags="-s -w" -tags webkit2_41 -o volt-api-linux-arm64
 
       - name: Generate Checksums
         run: |
           cd build/bin
           sha256sum volt-api-linux-amd64 > volt-api-linux-amd64.sha256
-          sha256sum volt-api-linux-arm64 > volt-api-linux-arm64.sha256
 
       - name: Upload Linux Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: linux-builds
           path: |
-            build/bin/volt-api-linux-*
-            build/bin/*.sha256
+            build/bin/volt-api-linux-amd64
+            build/bin/volt-api-linux-amd64.sha256
 
   release:
     needs: [build-windows, build-macos, build-linux]
@@ -195,7 +201,7 @@ jobs:
             ### macOS
             1. Download the `.tar.gz` for your Mac type.
             2. Extract and move to Applications.
-            3. Right-click -> Open to bypass security warning.
+            3. Right-click → Open to bypass security warning.
 
             ### Linux
             1. `chmod +x volt-api-linux-amd64`
