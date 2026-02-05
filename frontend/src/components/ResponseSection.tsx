@@ -125,7 +125,7 @@ export function ResponseSection({
     return (
       <section className="flex-1 flex flex-col overflow-hidden bg-ctp-base">
         <div className="flex-1 flex items-center justify-center">
-          <div className="text-ctp-subtext0 flex flex-col items-center gap-3">
+          <div className="text-ctp-text flex flex-col items-center gap-3">
             <Icons.Spinner size={20} className="text-ctp-mauve" />
             <span className="text-sm">Sending request...</span>
           </div>
@@ -173,11 +173,11 @@ export function ResponseSection({
                 <div className={`text-sm font-semibold px-2 py-0.5 rounded ${getStatusColor(response.statusCode)} bg-current/10`}>
                   {response.statusCode}
                 </div>
-                <div className="flex items-center gap-1 text-ctp-subtext0 text-sm">
+                <div className="flex items-center gap-1 text-ctp-text text-sm">
                   <Icons.History size={12} />
                   <span>{response.timingMs} ms</span>
                 </div>
-                <div className="text-ctp-subtext0 text-sm">
+                <div className="text-ctp-text text-sm">
                   {response.contentLength > 0
                     ? `${(response.contentLength / 1024).toFixed(2)} KB`
                     : `${(response.body.length / 1024).toFixed(2)} KB`}
@@ -293,11 +293,11 @@ export function ResponseSection({
                           className="max-w-full max-h-96 object-contain rounded-md border border-ctp-surface0"
                         />
                       ) : (
-                        <div className="text-ctp-subtext0 text-sm">
+                        <div className="text-ctp-text text-sm">
                           Image data could not be displayed
                         </div>
                       )}
-                      <div className="text-xs text-ctp-subtext0">
+                      <div className="text-xs text-ctp-text">
                         {getContentType(response.headers || {})} • {(response.body.length / 1024).toFixed(2)} KB
                       </div>
                     </div>
@@ -311,7 +311,7 @@ export function ResponseSection({
                       </div>
                       <div className="text-center">
                         <div className="text-ctp-text text-sm font-medium mb-1">Binary Response</div>
-                        <div className="text-xs text-ctp-subtext0">
+                        <div className="text-xs text-ctp-text">
                           {getContentType(response.headers || {})} • {(response.body.length / 1024).toFixed(2)} KB
                         </div>
                       </div>
@@ -346,7 +346,7 @@ export function ResponseSection({
                   )}
                 </>
               ) : (
-                <div className="text-ctp-subtext0 text-center text-sm py-12">
+                <div className="text-ctp-text text-center text-sm py-12">
                   No response body
                 </div>
               )}
@@ -365,7 +365,7 @@ export function ResponseSection({
                   ))}
                 </div>
               ) : (
-                <div className="text-ctp-subtext0 text-center text-sm py-12">
+                <div className="text-ctp-text text-center text-sm py-12">
                   No headers
                 </div>
               )}
@@ -390,7 +390,7 @@ export function ResponseSection({
                   ))}
                 </div>
               ) : (
-                <div className="text-ctp-subtext0 text-center text-sm py-12">
+                <div className="text-ctp-text text-center text-sm py-12">
                   No cookies in response
                 </div>
               )}
@@ -422,7 +422,7 @@ export function ResponseSection({
                 <>
                   {/* Method and URL */}
                   <div className="space-y-2">
-                    <div className="text-xs text-ctp-subtext0 uppercase tracking-wider">Request</div>
+                    <div className="text-xs text-ctp-text uppercase tracking-wider">Request</div>
                     <div className="p-3 bg-ctp-surface0/30 rounded-md border border-ctp-surface0">
                       <div className="flex items-center gap-2">
                         <span className={`text-sm font-semibold ${
@@ -442,7 +442,7 @@ export function ResponseSection({
 
                   {/* Headers Sent */}
                   <div className="space-y-2">
-                    <div className="text-xs text-ctp-subtext0 uppercase tracking-wider">
+                    <div className="text-xs text-ctp-text uppercase tracking-wider">
                       Headers Sent ({Object.keys(sentRequest.headers).length})
                     </div>
                     {Object.keys(sentRequest.headers).length > 0 ? (
@@ -455,7 +455,7 @@ export function ResponseSection({
                         ))}
                       </div>
                     ) : (
-                      <div className="p-3 bg-ctp-surface0/30 rounded-md border border-ctp-surface0 text-ctp-subtext0 text-sm text-center">
+                      <div className="p-3 bg-ctp-surface0/30 rounded-md border border-ctp-surface0 text-ctp-text text-sm text-center">
                         No headers sent
                       </div>
                     )}
@@ -464,7 +464,7 @@ export function ResponseSection({
                   {/* Body Sent */}
                   {sentRequest.body && (
                     <div className="space-y-2">
-                      <div className="text-xs text-ctp-subtext0 uppercase tracking-wider">Body Sent</div>
+                      <div className="text-xs text-ctp-text uppercase tracking-wider">Body Sent</div>
                       <pre className="p-3 bg-ctp-surface0/30 rounded-md border border-ctp-surface0 text-sm text-ctp-text whitespace-pre-wrap break-words max-h-48 overflow-auto">
                         {formatJSON(sentRequest.body)}
                       </pre>
@@ -472,7 +472,7 @@ export function ResponseSection({
                   )}
                 </>
               ) : (
-                <div className="text-ctp-subtext0 text-center text-sm py-12">
+                <div className="text-ctp-text text-center text-sm py-12">
                   No request data available
                 </div>
               )}
@@ -492,7 +492,7 @@ export function ResponseSection({
             <div className="w-14 h-14 rounded-xl bg-ctp-surface0 flex items-center justify-center">
               <Icons.Send size={24} className="text-ctp-overlay0" />
             </div>
-            <div className="text-ctp-subtext0 text-sm">Enter a URL and click Send</div>
+            <div className="text-ctp-text text-sm">Enter a URL and click Send</div>
           </div>
         </div>
       </section>

@@ -123,7 +123,7 @@ export function ClientSettings({
     <div className="space-y-6">
       {/* User-Agent Selection */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-xs text-ctp-subtext0">
+        <div className="flex items-center gap-2 text-xs text-ctp-text">
           <Icons.Globe size={12} />
           <span>User-Agent</span>
         </div>
@@ -144,7 +144,7 @@ export function ClientSettings({
 
         {/* Custom Input */}
         <div className="space-y-1">
-          <label className="text-xs text-ctp-overlay0">Custom User-Agent:</label>
+          <label className="text-xs text-ctp-text">Custom User-Agent:</label>
           <input
             type="text"
             value={isCustom ? customAgent : ""}
@@ -156,14 +156,14 @@ export function ClientSettings({
 
         {/* Current Value Preview */}
         <div className="p-3 bg-ctp-surface0/50 rounded-md border border-ctp-surface0">
-          <div className="text-xs text-ctp-overlay0 mb-1">Will be sent as:</div>
+          <div className="text-xs text-ctp-text mb-1">Will be sent as:</div>
           <code className="text-xs text-ctp-green break-all">{getCurrentUserAgent()}</code>
         </div>
       </div>
 
       {/* Client Info */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-xs text-ctp-subtext0">
+        <div className="flex items-center gap-2 text-xs text-ctp-text">
           <Icons.Settings size={12} />
           <span>Client Information</span>
         </div>
@@ -172,15 +172,15 @@ export function ClientSettings({
           {clientInfo && (
             <>
               <div className="flex items-center justify-between p-2 bg-ctp-surface0/30 rounded-md">
-                <span className="text-xs text-ctp-subtext0">Platform</span>
+                <span className="text-xs text-ctp-text">Platform</span>
                 <span className="text-xs text-ctp-text">{clientInfo.platform}</span>
               </div>
               <div className="flex items-center justify-between p-2 bg-ctp-surface0/30 rounded-md">
-                <span className="text-xs text-ctp-subtext0">Language</span>
+                <span className="text-xs text-ctp-text">Language</span>
                 <span className="text-xs text-ctp-text">{clientInfo.language}</span>
               </div>
               <div className="flex items-center justify-between p-2 bg-ctp-surface0/30 rounded-md">
-                <span className="text-xs text-ctp-subtext0">Screen Size</span>
+                <span className="text-xs text-ctp-text">Screen Size</span>
                 <span className="text-xs text-ctp-text">{clientInfo.screenSize}</span>
               </div>
             </>
@@ -190,7 +190,7 @@ export function ClientSettings({
 
       {/* Proxy Settings */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-xs text-ctp-subtext0">
+        <div className="flex items-center gap-2 text-xs text-ctp-text">
           <Icons.Globe size={12} />
           <span>Proxy</span>
         </div>
@@ -218,7 +218,7 @@ export function ClientSettings({
 
       {/* SSL Settings */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-xs text-ctp-subtext0">
+        <div className="flex items-center gap-2 text-xs text-ctp-text">
           <Icons.Lock size={12} />
           <span>SSL / TLS</span>
         </div>
@@ -245,7 +245,7 @@ export function ClientSettings({
         )}
 
         <div className="space-y-2">
-          <label className="text-xs text-ctp-overlay0">Client Certificate (optional):</label>
+          <label className="text-xs text-ctp-text">Client Certificate (optional):</label>
           <input
             type="text"
             value={ssl.clientCertPath}
@@ -265,7 +265,7 @@ export function ClientSettings({
 
       {/* Redirect Settings */}
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-xs text-ctp-subtext0">
+        <div className="flex items-center gap-2 text-xs text-ctp-text">
           <Icons.ArrowRight size={12} />
           <span>Redirects</span>
         </div>
@@ -282,7 +282,7 @@ export function ClientSettings({
 
         {redirects.follow && (
           <div className="flex items-center gap-2">
-            <label className="text-xs text-ctp-overlay0">Max Redirects:</label>
+            <label className="text-xs text-ctp-text">Max Redirects:</label>
             <input
               type="number"
               value={redirects.maxRedirects}

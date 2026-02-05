@@ -91,7 +91,7 @@ export function AssertionsEditor({ assertions, onChange }: AssertionsEditorProps
     <div className="p-4 space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="text-xs text-ctp-subtext0">
+        <div className="text-xs text-ctp-text">
           {assertions.length === 0
             ? "No assertions yet"
             : `${assertions.length} assertion${assertions.length !== 1 ? "s" : ""}`}
@@ -107,9 +107,9 @@ export function AssertionsEditor({ assertions, onChange }: AssertionsEditorProps
 
       {/* Assertions List */}
       {assertions.length === 0 ? (
-        <div className="text-center py-8 text-ctp-subtext0 text-xs">
+        <div className="text-center py-8 text-ctp-text text-xs">
           <p>Add assertions to test your API responses</p>
-          <p className="mt-1 text-ctp-overlay0">
+          <p className="mt-1 text-ctp-text/70">
             Check status codes, response times, headers, and body content
           </p>
         </div>

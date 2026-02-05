@@ -124,7 +124,7 @@ export function ChainVariableExtractor({
       {/* Saved Chain Variables */}
       {chainVariables.length > 0 && (
         <div className="space-y-2">
-          <div className="text-xs text-ctp-subtext0 flex items-center gap-2">
+          <div className="text-xs text-ctp-text flex items-center gap-2">
             <Icons.Bolt size={12} className="text-ctp-yellow" />
             Chain Variables ({chainVariables.length})
           </div>
@@ -160,7 +160,7 @@ export function ChainVariableExtractor({
 
       {/* Extract New Variable */}
       <div className="space-y-3">
-        <div className="text-xs text-ctp-subtext0">Extract Value to Variable</div>
+        <div className="text-xs text-ctp-text">Extract Value to Variable</div>
 
         {/* Extraction Type */}
         <div className="flex gap-1 bg-ctp-surface0 rounded-md p-0.5">

@@ -88,7 +88,7 @@ export function EnvironmentSelector({
         className={`flex items-center gap-1.5 px-2 py-1 text-xs rounded-md ${
           activeEnv
             ? "bg-ctp-green/10 text-ctp-green border border-ctp-green/30"
-            : "text-ctp-subtext0 hover:text-ctp-text hover:bg-ctp-surface0"
+            : "text-ctp-text hover:bg-ctp-surface0"
         }`}
       >
         <Icons.Globe size={12} />
@@ -100,14 +100,14 @@ export function EnvironmentSelector({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full right-0 mt-1 w-48 bg-ctp-surface0 border border-ctp-surface1 rounded-md shadow-lg shadow-ctp-crust/30 overflow-hidden z-50">
+        <div className="absolute top-full left-0 mt-1 w-48 bg-ctp-surface0 border border-ctp-surface1 rounded-md shadow-lg shadow-ctp-crust/30 overflow-hidden z-50">
           {/* No Environment option */}
           <button
             onClick={handleClearEnvironment}
             className={`w-full px-3 py-2 text-left text-xs flex items-center gap-2 ${
               !activeEnv
                 ? "bg-ctp-surface1 text-ctp-text"
-                : "text-ctp-subtext0 hover:bg-ctp-surface1 hover:text-ctp-text"
+                : "text-ctp-text hover:bg-ctp-surface1"
             }`}
           >
             <span className={`w-1.5 h-1.5 rounded-full ${!activeEnv ? "bg-ctp-green" : "bg-transparent"}`} />
@@ -127,7 +127,7 @@ export function EnvironmentSelector({
               className={`w-full px-3 py-2 text-left text-xs flex items-center gap-2 ${
                 activeEnv?.id === env.id
                   ? "bg-ctp-green/10 text-ctp-green"
-                  : "text-ctp-subtext0 hover:bg-ctp-surface1 hover:text-ctp-text"
+                  : "text-ctp-text hover:bg-ctp-surface1"
               }`}
             >
               <span className={`w-1.5 h-1.5 rounded-full ${activeEnv?.id === env.id ? "bg-ctp-green" : "bg-transparent"}`} />
@@ -144,7 +144,7 @@ export function EnvironmentSelector({
               setIsOpen(false);
               onManageClick();
             }}
-            className="w-full px-3 py-2 text-left text-xs text-ctp-subtext0 hover:bg-ctp-surface1 hover:text-ctp-text flex items-center gap-2"
+            className="w-full px-3 py-2 text-left text-xs text-ctp-text hover:bg-ctp-surface1 flex items-center gap-2"
           >
             <Icons.Settings size={12} />
             Manage Environments

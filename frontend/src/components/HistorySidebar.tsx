@@ -129,14 +129,14 @@ export const HistorySidebar = forwardRef<HistorySidebarRef, Props>(
         {/* History List */}
         <div className="flex-1 overflow-y-auto">
           {isLoading && history.length === 0 && (
-            <div className="p-6 text-center text-ctp-subtext0 text-xs flex flex-col items-center gap-2">
+            <div className="p-6 text-center text-ctp-text text-xs flex flex-col items-center gap-2">
               <Icons.Spinner size={14} className="text-ctp-mauve" />
               Loading...
             </div>
           )}
 
           {!isLoading && history.length === 0 && (
-            <div className="p-6 text-center text-ctp-subtext0 text-xs flex flex-col items-center gap-3">
+            <div className="p-6 text-center text-ctp-text text-xs flex flex-col items-center gap-3">
               <Icons.History size={20} className="text-ctp-surface2" />
               {search ? "No matches" : "No history yet"}
             </div>
@@ -178,13 +178,13 @@ export const HistorySidebar = forwardRef<HistorySidebarRef, Props>(
 
         {/* Footer */}
         <div className="px-3 py-2 border-t border-ctp-surface0 flex justify-between items-center">
-          <span className="text-xs text-ctp-subtext0">
+          <span className="text-xs text-ctp-text">
             {history.length} {history.length === 1 ? "item" : "items"}
           </span>
           {history.length > 0 && (
             <button
               onClick={handleClear}
-              className="text-xs text-ctp-subtext0 hover:text-ctp-red flex items-center gap-1 px-1 py-0.5 rounded hover:bg-ctp-red/10"
+              className="text-xs text-ctp-text hover:text-ctp-red flex items-center gap-1 px-1 py-0.5 rounded hover:bg-ctp-red/10"
             >
               <Icons.Trash size={10} />
               Clear

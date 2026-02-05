@@ -85,7 +85,7 @@ export function KeyValueEditor({
   return (
     <div className="space-y-1">
       {/* Header - aligned with grid below */}
-      <div className="grid grid-cols-[20px_1fr_1fr_28px] gap-2 text-xs text-ctp-subtext0 pb-1">
+      <div className="grid grid-cols-[20px_1fr_1fr_28px] gap-2 text-xs text-ctp-text pb-1">
         <div></div>
         <div className="px-1">{keyPlaceholder}</div>
         <div className="px-1">{valuePlaceholder}</div>
@@ -148,7 +148,7 @@ export function KeyValueEditor({
       {/* Add button */}
       <button
         onClick={addPair}
-        className="flex items-center gap-1.5 text-xs text-ctp-subtext0 hover:text-ctp-text px-1 py-1.5 mt-1 rounded-md hover:bg-ctp-surface0/50"
+        className="flex items-center gap-1.5 text-xs text-ctp-text hover:text-ctp-mauve px-1 py-1.5 mt-1 rounded-md hover:bg-ctp-surface0/50"
       >
         <Icons.Plus size={12} />
         Add row

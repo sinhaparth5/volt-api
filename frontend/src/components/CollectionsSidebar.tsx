@@ -377,7 +377,7 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
                         Loading...
                       </div>
                     ) : collection.requests.length === 0 ? (
-                      <div className="px-6 py-2 text-xs text-ctp-overlay0 font-medium italic">
+                      <div className="px-6 py-2 text-xs text-ctp-text font-medium italic">
                         Empty collection
                       </div>
                     ) : (

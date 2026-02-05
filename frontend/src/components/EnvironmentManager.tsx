@@ -228,7 +228,7 @@ export function EnvironmentManager({
             {/* List */}
             <div className="flex-1 overflow-y-auto">
               {environments.length === 0 && (
-                <div className="p-4 text-center text-ctp-subtext0 text-xs">
+                <div className="p-4 text-center text-ctp-text text-xs">
                   No environments yet
                 </div>
               )}
@@ -324,7 +324,7 @@ export function EnvironmentManager({
                 {/* Variables list */}
                 <div className="flex-1 overflow-y-auto p-4">
                   {/* Header */}
-                  <div className="grid grid-cols-[20px_1fr_1fr_28px] gap-2 text-xs text-ctp-subtext0 pb-2">
+                  <div className="grid grid-cols-[20px_1fr_1fr_28px] gap-2 text-xs text-ctp-text pb-2">
                     <div></div>
                     <div>Variable</div>
                     <div>Value</div>
@@ -395,12 +395,12 @@ export function EnvironmentManager({
                 </div>
 
                 {/* Usage hint */}
-                <div className="px-4 py-2 border-t border-ctp-surface0 text-xs text-ctp-subtext0">
+                <div className="px-4 py-2 border-t border-ctp-surface0 text-xs text-ctp-text">
                   Use <code className="bg-ctp-surface0 px-1 py-0.5 rounded text-ctp-mauve">{"{{variableName}}"}</code> in URLs, headers, or body
                 </div>
               </>
             ) : (
-              <div className="flex-1 flex items-center justify-center text-ctp-subtext0 text-sm">
+              <div className="flex-1 flex items-center justify-center text-ctp-text text-sm">
                 Select an environment to manage variables
               </div>
             )}

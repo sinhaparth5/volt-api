@@ -27,7 +27,7 @@ export function AuthEditor({ auth, onChange }: AuthEditorProps) {
     <div className="space-y-4">
       {/* Auth Type Selector */}
       <div className="space-y-1.5">
-        <label className="text-xs text-ctp-subtext0 font-medium">Type</label>
+        <label className="text-xs text-ctp-text font-medium">Type</label>
         <div className="relative">
           <select
             value={auth.type}
@@ -50,7 +50,7 @@ export function AuthEditor({ auth, onChange }: AuthEditorProps) {
       {/* Basic Auth Fields */}
       {auth.type === "basic" && (
         <div className="space-y-3 p-3 bg-ctp-surface0/50 rounded-lg border border-ctp-surface1">
-          <div className="flex items-center gap-2 text-ctp-subtext0">
+          <div className="flex items-center gap-2 text-ctp-text">
             <Icons.Lock size={14} />
             <span className="text-xs font-medium">Basic Authentication</span>
           </div>
@@ -85,7 +85,7 @@ export function AuthEditor({ auth, onChange }: AuthEditorProps) {
       {/* Bearer Token Fields */}
       {auth.type === "bearer" && (
         <div className="space-y-3 p-3 bg-ctp-surface0/50 rounded-lg border border-ctp-surface1">
-          <div className="flex items-center gap-2 text-ctp-subtext0">
+          <div className="flex items-center gap-2 text-ctp-text">
             <Icons.Key size={14} />
             <span className="text-xs font-medium">Bearer Token</span>
           </div>
@@ -111,7 +111,7 @@ export function AuthEditor({ auth, onChange }: AuthEditorProps) {
       {/* API Key Fields */}
       {auth.type === "apikey" && (
         <div className="space-y-3 p-3 bg-ctp-surface0/50 rounded-lg border border-ctp-surface1">
-          <div className="flex items-center gap-2 text-ctp-subtext0">
+          <div className="flex items-center gap-2 text-ctp-text">
             <Icons.Key size={14} />
             <span className="text-xs font-medium">API Key</span>
           </div>
@@ -145,7 +145,7 @@ export function AuthEditor({ auth, onChange }: AuthEditorProps) {
                 className={`flex-1 py-1.5 text-xs font-medium rounded transition-colors ${
                   auth.apiKeyLocation === "header"
                     ? "bg-ctp-mauve/20 text-ctp-mauve border border-ctp-mauve"
-                    : "bg-ctp-surface0 text-ctp-subtext0 border border-ctp-surface1 hover:border-ctp-surface2"
+                    : "bg-ctp-surface0 text-ctp-text border border-ctp-surface1 hover:border-ctp-surface2"
                 }`}
               >
                 Add to Header
@@ -155,7 +155,7 @@ export function AuthEditor({ auth, onChange }: AuthEditorProps) {
                 className={`flex-1 py-1.5 text-xs font-medium rounded transition-colors ${
                   auth.apiKeyLocation === "query"
                     ? "bg-ctp-mauve/20 text-ctp-mauve border border-ctp-mauve"
-                    : "bg-ctp-surface0 text-ctp-subtext0 border border-ctp-surface1 hover:border-ctp-surface2"
+                    : "bg-ctp-surface0 text-ctp-text border border-ctp-surface1 hover:border-ctp-surface2"
                 }`}
               >
                 Add to Query
@@ -167,7 +167,7 @@ export function AuthEditor({ auth, onChange }: AuthEditorProps) {
 
       {/* No Auth Message */}
       {auth.type === "none" && (
-        <div className="p-4 text-center text-ctp-overlay0 text-sm">
+        <div className="p-4 text-center text-ctp-text text-sm">
           No authentication will be used for this request.
         </div>
       )}

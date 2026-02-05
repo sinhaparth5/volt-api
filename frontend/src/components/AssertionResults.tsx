@@ -8,7 +8,7 @@ interface AssertionResultsProps {
 export function AssertionResults({ results }: AssertionResultsProps) {
   if (results.length === 0) {
     return (
-      <div className="p-4 text-center text-ctp-subtext0 text-xs">
+      <div className="p-4 text-center text-ctp-text text-xs">
         No assertions to run
       </div>
     );
@@ -69,7 +69,7 @@ export function AssertionResults({ results }: AssertionResultsProps) {
                 {result.message}
               </div>
               {!result.passed && result.actual && (
-                <div className="text-xs text-ctp-subtext0 mt-0.5 truncate">
+                <div className="text-xs text-ctp-text mt-0.5 truncate">
                   Actual: {result.actual}
                 </div>
               )}

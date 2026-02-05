@@ -336,7 +336,7 @@ export function RequestSection({
 
             {/* Body Content */}
             {bodyType === "none" && (
-              <div className="text-ctp-subtext0 text-center text-sm py-8 bg-ctp-surface0/30 rounded-md border border-ctp-surface0 border-dashed">
+              <div className="text-ctp-text text-center text-sm py-8 bg-ctp-surface0/30 rounded-md border border-ctp-surface0 border-dashed">
                 No body content for this request
               </div>
             )}
