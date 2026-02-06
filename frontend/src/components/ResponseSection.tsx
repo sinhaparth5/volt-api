@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Icons } from "./Icons";
-import { formatJSON, getStatusColor } from "../utils/helpers";
+import { getStatusColor } from "../utils/helpers";
 import { AssertionResults } from "./AssertionResults";
 import { ChainVariableExtractor } from "./ChainVariableExtractor";
 import { AssertionResult, getAssertionsSummary } from "../utils/assertions";
 import { ChainVariable } from "../utils/chainVariables";
 import { app } from "../../wailsjs/go/models";
+import { wasmJsonFormat } from "../utils/wasm";
 
 type HTTPResponse = app.HTTPResponse;
 type RequestState = "idle" | "loading" | "success" | "error";
@@ -41,6 +42,25 @@ export function ResponseSection({
   const [activeTab, setActiveTab] = useState<ResponseTab>("body");
   const [copied, setCopied] = useState(false);
   const [bodyView, setBodyView] = useState<"pretty" | "raw" | "preview">("pretty");
+  const [formattedBody, setFormattedBody] = useState<string>("");
+  const [formattedSentBody, setFormattedSentBody] = useState<string>("");
+
+  // Pre-format JSON bodies using WASM (faster for large responses)
+  useEffect(() => {
+    if (response?.body) {
+      wasmJsonFormat(response.body).then(setFormattedBody).catch(() => setFormattedBody(response.body));
+    } else {
+      setFormattedBody("");
+    }
+  }, [response?.body]);
+
+  useEffect(() => {
+    if (sentRequest?.body) {
+      wasmJsonFormat(sentRequest.body).then(setFormattedSentBody).catch(() => setFormattedSentBody(sentRequest.body));
+    } else {
+      setFormattedSentBody("");
+    }
+  }, [sentRequest?.body]);
 
   // Detect content type from headers
   const getContentType = (headers: Record<string, string>): string => {
@@ -257,7 +277,7 @@ export function ResponseSection({
                 </div>
               )}
               <button
-                onClick={() => handleCopy(bodyView === "pretty" ? formatJSON(response.body) : response.body)}
+                onClick={() => handleCopy(bodyView === "pretty" ? formattedBody : response.body)}
                 className="flex items-center gap-1.5 px-2 py-1 text-xs text-ctp-subtext0 hover:text-ctp-text hover:bg-ctp-surface0 rounded-md"
                 title="Copy to clipboard"
               >
@@ -339,7 +359,7 @@ export function ResponseSection({
                         </div>
                       ) : (
                         <pre className="text-ctp-text whitespace-pre-wrap break-words text-sm leading-relaxed">
-                          {bodyView === "pretty" ? formatJSON(response.body) : response.body}
+                          {bodyView === "pretty" ? formattedBody : response.body}
                         </pre>
                       )}
                     </>
@@ -466,7 +486,7 @@ export function ResponseSection({
                     <div className="space-y-2">
                       <div className="text-xs text-ctp-text uppercase tracking-wider">Body Sent</div>
                       <pre className="p-3 bg-ctp-surface0/30 rounded-md border border-ctp-surface0 text-sm text-ctp-text whitespace-pre-wrap break-words max-h-48 overflow-auto">
-                        {formatJSON(sentRequest.body)}
+                        {formattedSentBody}
                       </pre>
                     </div>
                   )}

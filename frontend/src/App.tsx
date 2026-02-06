@@ -28,11 +28,16 @@ import {
   getBaseUrl,
   formDataToUrlEncoded,
   getContentTypeHeader,
-  substituteVariables,
-  substituteHeaderVariables,
 } from "./utils/helpers";
-import { Assertion, AssertionResult, runAssertions } from "./utils/assertions";
+import { Assertion, AssertionResult } from "./utils/assertions";
 import { ChainVariable } from "./utils/chainVariables";
+import {
+  preloadWasm,
+  wasmRunAssertions,
+  wasmSubstituteVariables,
+  wasmSubstituteVariablesBatch,
+  isWasmLoaded
+} from "./utils/wasm";
 import { RequestTab, createDefaultTab } from "./utils/tabs";
 import "./style.css";
 
@@ -84,6 +89,8 @@ function App() {
 
   useEffect(() => {
     loadActiveVariables();
+    // Preload WASM module for faster response processing
+    preloadWasm().catch((err) => console.warn("WASM preload failed:", err));
   }, []);
 
   // Tab operations
@@ -213,8 +220,8 @@ function App() {
     }, {} as Record<string, string>);
     const allVariables = { ...activeVariables, ...chainVarsMap };
 
-    // Apply variable substitution
-    let finalUrl = substituteVariables(activeTab.url.trim(), allVariables);
+    // Apply variable substitution using WASM (faster regex processing)
+    let finalUrl = await wasmSubstituteVariables(activeTab.url.trim(), allVariables);
     if (activeTab.auth.type === "apikey" && activeTab.auth.apiKeyLocation === "query" && activeTab.auth.apiKeyName && activeTab.auth.apiKeyValue) {
       const baseUrl = getBaseUrl(finalUrl);
       const existingParams = parseQueryParams(finalUrl);
@@ -235,13 +242,22 @@ function App() {
     const userAgentHeader: Record<string, string> = activeTab.userAgent ? { "User-Agent": activeTab.userAgent } : {};
     const mergedHeaders = { ...contentTypeHeader, ...userAgentHeader, ...customHeaders, ...authHeaders };
 
-    // Apply variable substitution to headers
-    const finalHeaders = substituteHeaderVariables(mergedHeaders, allVariables);
+    // Apply variable substitution to headers using WASM batch processing
+    const headerKeys = Object.keys(mergedHeaders);
+    const headerValues = Object.values(mergedHeaders);
+    const [substitutedKeys, substitutedValues] = await Promise.all([
+      wasmSubstituteVariablesBatch(headerKeys, allVariables),
+      wasmSubstituteVariablesBatch(headerValues, allVariables),
+    ]);
+    const finalHeaders: Record<string, string> = {};
+    for (let i = 0; i < headerKeys.length; i++) {
+      finalHeaders[substitutedKeys[i]] = substitutedValues[i];
+    }
 
     // Prepare body based on type and apply variable substitution
     let finalBody = "";
     if (activeTab.bodyType === "json" || activeTab.bodyType === "raw") {
-      finalBody = substituteVariables(activeTab.requestBody, allVariables);
+      finalBody = await wasmSubstituteVariables(activeTab.requestBody, allVariables);
     } else if (activeTab.bodyType === "form-data") {
       finalBody = formDataToUrlEncoded(activeTab.formData);
     }
@@ -279,13 +295,15 @@ function App() {
 
       // Run assertions if we have a valid response (no error)
       if (!result.error && activeTab.assertions.length > 0) {
-        const results = runAssertions(activeTab.assertions, {
+        const responseData = {
           statusCode: result.statusCode,
           statusText: result.statusText,
           headers: result.headers || {},
           body: result.body,
           timingMs: result.timingMs,
-        });
+        };
+        // Use WASM for faster assertion evaluation (parses JSON once)
+        const results = await wasmRunAssertions(activeTab.assertions, responseData);
         updateActiveTab("assertionResults", results);
       }
 

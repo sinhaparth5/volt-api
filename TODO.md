@@ -96,6 +96,14 @@
 - [x] Compress stored responses in SQLite
 - [x] App icon and branding (About dialog, logo)
 
+## Performance - Rust/WASM Core
+- [x] WASM module for high-performance operations (`frontend/wasm-core/volt-wasm/`)
+- [x] Variable substitution via WASM (faster regex)
+- [x] JSON formatting via WASM (pre-formatted on response)
+- [x] Assertion evaluation via WASM (single JSON parse for all assertions)
+- [x] Lazy loading with preload on app startup
+- [ ] Optimize WASM size (consider lighter regex library)
+
 ---
 
 ## Cross-Platform Builds

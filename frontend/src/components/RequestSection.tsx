@@ -11,11 +11,11 @@ import {
   parseQueryParams,
   buildUrlWithParams,
   getBaseUrl,
-  formatJSON,
   hasVariables,
   substituteVariables,
 } from "../utils/helpers";
 import { Assertion } from "../utils/assertions";
+import { wasmJsonFormat } from "../utils/wasm";
 
 type RequestState = "idle" | "loading" | "success" | "error";
 type RequestTab = "params" | "headers" | "auth" | "body" | "tests" | "client";
@@ -299,9 +299,9 @@ export function RequestSection({
 
               {bodyType === "json" && (
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     try {
-                      const formatted = formatJSON(requestBody);
+                      const formatted = await wasmJsonFormat(requestBody);
                       if (formatted !== requestBody) {
                         onBodyChange(formatted);
                       }

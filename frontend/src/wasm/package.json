@@ -1,0 +1,16 @@
+{
+  "name": "volt-wasm",
+  "type": "module",
+  "description": "High-performance WASM core for Volt-API",
+  "version": "0.1.0",
+  "files": [
+    "volt_wasm_bg.wasm",
+    "volt_wasm.js",
+    "volt_wasm.d.ts"
+  ],
+  "main": "volt_wasm.js",
+  "types": "volt_wasm.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
