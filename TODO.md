@@ -90,11 +90,11 @@
 ## Tech Debt & Improvements
 - [ ] Add unit tests for Go HTTP client
 - [ ] Add React component tests
-- [ ] Error boundaries in React
-- [ ] Request cancellation (abort in-flight requests)
+- [x] Error boundaries in React
+- [x] Request cancellation (abort in-flight requests)
 - [ ] Response streaming for large payloads
 - [ ] Compress stored responses in SQLite
-- [ ] Add app icon and branding
+- [x] App icon and branding (About dialog, logo)
 
 ---
 

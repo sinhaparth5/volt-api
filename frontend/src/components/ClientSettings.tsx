@@ -42,10 +42,12 @@ export interface RedirectSettings {
 
 interface ClientSettingsProps {
   userAgent: string;
+  timeout: number;
   proxy: ProxySettings;
   ssl: SSLSettings;
   redirects: RedirectSettings;
   onUserAgentChange: (userAgent: string) => void;
+  onTimeoutChange: (timeout: number) => void;
   onProxyChange: (proxy: ProxySettings) => void;
   onSSLChange: (ssl: SSLSettings) => void;
   onRedirectsChange: (redirects: RedirectSettings) => void;
@@ -53,10 +55,12 @@ interface ClientSettingsProps {
 
 export function ClientSettings({
   userAgent,
+  timeout,
   proxy,
   ssl,
   redirects,
   onUserAgentChange,
+  onTimeoutChange,
   onProxyChange,
   onSSLChange,
   onRedirectsChange,
@@ -158,6 +162,45 @@ export function ClientSettings({
         <div className="p-3 bg-ctp-surface0/50 rounded-md border border-ctp-surface0">
           <div className="text-xs text-ctp-text mb-1">Will be sent as:</div>
           <code className="text-xs text-ctp-green break-all">{getCurrentUserAgent()}</code>
+        </div>
+      </div>
+
+      {/* Timeout */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-xs text-ctp-text">
+          <Icons.History size={12} />
+          <span>Request Timeout</span>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <input
+            type="range"
+            min={1}
+            max={300}
+            value={timeout}
+            onChange={(e) => onTimeoutChange(parseInt(e.target.value, 10))}
+            className="flex-1 h-1.5 bg-ctp-surface0 rounded-lg appearance-none cursor-pointer accent-ctp-mauve"
+          />
+          <div className="flex items-center gap-1 bg-ctp-surface0 border border-ctp-surface1 rounded px-2 py-1">
+            <input
+              type="number"
+              value={timeout}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                if (val >= 1 && val <= 300) {
+                  onTimeoutChange(val);
+                }
+              }}
+              min={1}
+              max={300}
+              className="w-10 bg-transparent text-xs text-ctp-text outline-none text-center"
+            />
+            <span className="text-xs text-ctp-overlay0">sec</span>
+          </div>
+        </div>
+
+        <div className="text-xs text-ctp-overlay0">
+          Time to wait for a response before timing out (1-300 seconds)
         </div>
       </div>
 

@@ -53,6 +53,7 @@ interface RequestSectionProps {
   onSSLChange: (ssl: SSLSettings) => void;
   onRedirectsChange: (redirects: RedirectSettings) => void;
   onSend: () => void;
+  onCancel?: () => void;
 }
 
 export function RequestSection({
@@ -87,6 +88,7 @@ export function RequestSection({
   onSSLChange,
   onRedirectsChange,
   onSend,
+  onCancel,
 }: RequestSectionProps) {
   const [methodDropdownOpen, setMethodDropdownOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<RequestTab>("params");
@@ -183,44 +185,26 @@ export function RequestSection({
             className="w-full bg-ctp-surface0 border border-ctp-surface1 px-3 py-2 rounded-md outline-none focus:border-ctp-lavender focus:bg-ctp-surface0/80 text-ctp-text text-sm placeholder:text-ctp-overlay0"
           />
         </div>
-        {/* Timeout Input */}
-        <div className="flex items-center gap-1 bg-ctp-surface0 border border-ctp-surface1 rounded-md px-2">
-          <Icons.History size={12} className="text-ctp-overlay0" />
-          <input
-            type="number"
-            value={timeout}
-            onChange={(e) => {
-              const val = parseInt(e.target.value, 10);
-              if (val > 0 && val <= 300) {
-                onTimeoutChange(val);
-              }
-            }}
-            min={1}
-            max={300}
-            className="w-12 bg-transparent py-2 text-xs text-ctp-text outline-none text-center"
-            title="Request timeout in seconds"
-          />
-          <span className="text-xs text-ctp-overlay0">s</span>
-        </div>
-
-        <button
-          onClick={onSend}
-          disabled={requestState === "loading" || !url.trim()}
-          className="bg-ctp-mauve hover:bg-ctp-mauve/90 active:bg-ctp-mauve/80 px-4 py-2 rounded-md text-ctp-base text-sm flex items-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
-          title="Send Request (Ctrl+Enter)"
-        >
-          {requestState === "loading" ? (
-            <>
-              <Icons.Spinner size={14} />
-              <span>Sending</span>
-            </>
-          ) : (
-            <>
-              <Icons.Send size={14} />
-              <span>Send</span>
-            </>
-          )}
-        </button>
+        {requestState === "loading" ? (
+          <button
+            onClick={onCancel}
+            className="bg-ctp-red hover:bg-ctp-red/90 active:bg-ctp-red/80 px-4 py-2 rounded-md text-ctp-base text-sm flex items-center gap-2"
+            title="Cancel Request (Esc)"
+          >
+            <Icons.X size={14} />
+            <span>Cancel</span>
+          </button>
+        ) : (
+          <button
+            onClick={onSend}
+            disabled={!url.trim()}
+            className="bg-ctp-mauve hover:bg-ctp-mauve/90 active:bg-ctp-mauve/80 px-4 py-2 rounded-md text-ctp-base text-sm flex items-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
+            title="Send Request (Ctrl+Enter)"
+          >
+            <Icons.Send size={14} />
+            <span>Send</span>
+          </button>
+        )}
       </div>
 
       {/* Variable Substitution Preview */}
@@ -380,10 +364,12 @@ export function RequestSection({
         {activeTab === "client" && (
           <ClientSettings
             userAgent={userAgent}
+            timeout={timeout}
             proxy={proxy}
             ssl={ssl}
             redirects={redirects}
             onUserAgentChange={onUserAgentChange}
+            onTimeoutChange={onTimeoutChange}
             onProxyChange={onProxyChange}
             onSSLChange={onSSLChange}
             onRedirectsChange={onRedirectsChange}

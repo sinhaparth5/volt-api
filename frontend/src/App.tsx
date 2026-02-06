@@ -9,7 +9,10 @@ import { SaveRequestModal } from "./components/SaveRequestModal";
 import { EnvironmentSelector } from "./components/EnvironmentSelector";
 import { EnvironmentManager } from "./components/EnvironmentManager";
 import { ResizablePanel } from "./components/ResizablePanel";
-import { RequestTabs } from "./components/RequestTabs";
+import { TitleBar } from "./components/TitleBar";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { AboutDialog } from "./components/AboutDialog";
+import { AppIcon } from "./components/AppLogo";
 import { Icons } from "./components/Icons";
 import {
   KeyValuePair,
@@ -50,9 +53,11 @@ function App() {
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>("history");
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showEnvManager, setShowEnvManager] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
   const [activeVariables, setActiveVariables] = useState<Record<string, string>>({});
 
   const sidebarRef = useRef<SidebarRef>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Update a field in the current tab
   const updateActiveTab = useCallback(
@@ -149,12 +154,23 @@ function App() {
         return;
       }
 
-      // Escape: Close modals
+      // Ctrl/Cmd + Shift + A: About dialog
+      if (isMod && e.shiftKey && e.key === "A") {
+        e.preventDefault();
+        setShowAbout(true);
+        return;
+      }
+
+      // Escape: Close modals or cancel request
       if (e.key === "Escape") {
-        if (showSaveModal) {
+        if (showAbout) {
+          setShowAbout(false);
+        } else if (showSaveModal) {
           setShowSaveModal(false);
         } else if (showEnvManager) {
           setShowEnvManager(false);
+        } else if (activeTab.requestState === "loading") {
+          handleCancel();
         }
         return;
       }
@@ -164,8 +180,26 @@ function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [activeTab, showSaveModal, showEnvManager, tabs.length, activeTabId]);
 
+  // Cancel current request
+  const handleCancel = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    updateActiveTab("requestState", "idle");
+  };
+
   const handleSend = async () => {
     if (!activeTab.url.trim()) return;
+
+    // Cancel any existing request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Create new abort controller for this request
+    abortControllerRef.current = new AbortController();
+    const currentAbortController = abortControllerRef.current;
 
     updateActiveTab("requestState", "loading");
     updateActiveTab("response", null);
@@ -235,6 +269,11 @@ function App() {
         maxRedirects: activeTab.redirects.maxRedirects,
       });
 
+      // Check if request was cancelled
+      if (currentAbortController.signal.aborted) {
+        return;
+      }
+
       updateActiveTab("response", result);
       updateActiveTab("requestState", result.error ? "error" : "success");
 
@@ -254,6 +293,11 @@ function App() {
         sidebarRef.current?.refreshHistory();
       }, 100);
     } catch (err) {
+      // Check if request was cancelled
+      if (currentAbortController.signal.aborted) {
+        return;
+      }
+
       updateActiveTab("response", {
         statusCode: 0,
         statusText: "",
@@ -360,97 +404,106 @@ function App() {
   };
 
   return (
-    <div className="flex h-screen bg-ctp-base text-ctp-text font-mono text-sm">
-      <ResizablePanel
-        direction="horizontal"
-        initialSize={240}
-        minSize={180}
-        maxSize={400}
-        storageKey="sidebar"
-        className="border-r border-ctp-surface0"
-      >
-        <Sidebar
-          ref={sidebarRef}
-          activeTab={sidebarTab}
-          onTabChange={setSidebarTab}
-          onSelectHistoryItem={handleSelectHistoryItem}
-          onSelectSavedRequest={handleSelectSavedRequest}
-        />
-      </ResizablePanel>
+    <div className="flex flex-col h-screen bg-ctp-base text-ctp-text font-mono text-sm">
+      {/* Custom Title Bar - spans full width at top */}
+      <TitleBar
+        tabs={tabs}
+        activeTabId={activeTabId}
+        onTabSelect={setActiveTabId}
+        onTabClose={handleCloseTab}
+        onNewTab={handleNewTab}
+        onLogoClick={() => setShowAbout(true)}
+      />
 
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Request Tabs */}
-        <RequestTabs
-          tabs={tabs}
-          activeTabId={activeTabId}
-          onTabSelect={setActiveTabId}
-          onTabClose={handleCloseTab}
-          onNewTab={handleNewTab}
-        />
-
-        {/* Header - Environment and Save */}
-        <header className="h-10 border-b border-ctp-surface0 flex items-center justify-between px-4 bg-ctp-mantle">
-          <div className="flex items-center gap-2">
-            <EnvironmentSelector
-              onEnvironmentChange={loadActiveVariables}
-              onManageClick={() => setShowEnvManager(true)}
+      {/* Main content area with sidebar */}
+      <div className="flex flex-1 overflow-hidden">
+        <ResizablePanel
+          direction="horizontal"
+          initialSize={240}
+          minSize={180}
+          maxSize={400}
+          storageKey="sidebar"
+          className="border-r border-ctp-surface0"
+        >
+          <ErrorBoundary>
+            <Sidebar
+              ref={sidebarRef}
+              activeTab={sidebarTab}
+              onTabChange={setSidebarTab}
+              onSelectHistoryItem={handleSelectHistoryItem}
+              onSelectSavedRequest={handleSelectSavedRequest}
             />
-          </div>
+          </ErrorBoundary>
+        </ResizablePanel>
+
+        <main className="flex-1 flex flex-col overflow-hidden">
+          {/* Toolbar - Environment and Save */}
+          <header className="h-8 border-b border-ctp-surface0 flex items-center justify-between px-3 bg-ctp-mantle">
+          <EnvironmentSelector
+            onEnvironmentChange={loadActiveVariables}
+            onManageClick={() => setShowEnvManager(true)}
+          />
           <button
             onClick={handleSaveRequest}
             disabled={!activeTab.url.trim()}
-            className="flex items-center gap-1.5 px-2 py-1 text-xs text-ctp-subtext0 hover:text-ctp-text hover:bg-ctp-surface0 rounded-md disabled:opacity-50 disabled:pointer-events-none"
+            className="flex items-center gap-1 px-2 py-0.5 text-xs text-ctp-subtext0 hover:text-ctp-text hover:bg-ctp-surface0 rounded disabled:opacity-50 disabled:pointer-events-none"
             title="Save to Collection (Ctrl+S)"
           >
-            <Icons.Save size={12} />
+            <Icons.Save size={10} />
             Save
           </button>
         </header>
 
-        <RequestSection
-          method={activeTab.method}
-          url={activeTab.url}
-          requestBody={activeTab.requestBody}
-          requestState={activeTab.requestState}
-          headers={activeTab.headers}
-          queryParams={activeTab.queryParams}
-          auth={activeTab.auth}
-          bodyType={activeTab.bodyType}
-          formData={activeTab.formData}
-          assertions={activeTab.assertions}
-          timeout={activeTab.timeout}
-          userAgent={activeTab.userAgent}
-          proxy={activeTab.proxy}
-          ssl={activeTab.ssl}
-          redirects={activeTab.redirects}
-          activeVariables={activeVariables}
-          onMethodChange={(v) => updateActiveTab("method", v)}
-          onUrlChange={(v) => updateActiveTab("url", v)}
-          onBodyChange={(v) => updateActiveTab("requestBody", v)}
-          onHeadersChange={(v) => updateActiveTab("headers", v)}
-          onQueryParamsChange={(v) => updateActiveTab("queryParams", v)}
-          onAuthChange={(v) => updateActiveTab("auth", v)}
-          onBodyTypeChange={(v) => updateActiveTab("bodyType", v)}
-          onFormDataChange={(v) => updateActiveTab("formData", v)}
-          onAssertionsChange={(v) => updateActiveTab("assertions", v)}
-          onTimeoutChange={(v) => updateActiveTab("timeout", v)}
-          onUserAgentChange={(v) => updateActiveTab("userAgent", v)}
-          onProxyChange={(v) => updateActiveTab("proxy", v)}
-          onSSLChange={(v) => updateActiveTab("ssl", v)}
-          onRedirectsChange={(v) => updateActiveTab("redirects", v)}
-          onSend={handleSend}
-        />
+        <ErrorBoundary>
+          <RequestSection
+            method={activeTab.method}
+            url={activeTab.url}
+            requestBody={activeTab.requestBody}
+            requestState={activeTab.requestState}
+            headers={activeTab.headers}
+            queryParams={activeTab.queryParams}
+            auth={activeTab.auth}
+            bodyType={activeTab.bodyType}
+            formData={activeTab.formData}
+            assertions={activeTab.assertions}
+            timeout={activeTab.timeout}
+            userAgent={activeTab.userAgent}
+            proxy={activeTab.proxy}
+            ssl={activeTab.ssl}
+            redirects={activeTab.redirects}
+            activeVariables={activeVariables}
+            onMethodChange={(v) => updateActiveTab("method", v)}
+            onUrlChange={(v) => updateActiveTab("url", v)}
+            onBodyChange={(v) => updateActiveTab("requestBody", v)}
+            onHeadersChange={(v) => updateActiveTab("headers", v)}
+            onQueryParamsChange={(v) => updateActiveTab("queryParams", v)}
+            onAuthChange={(v) => updateActiveTab("auth", v)}
+            onBodyTypeChange={(v) => updateActiveTab("bodyType", v)}
+            onFormDataChange={(v) => updateActiveTab("formData", v)}
+            onAssertionsChange={(v) => updateActiveTab("assertions", v)}
+            onTimeoutChange={(v) => updateActiveTab("timeout", v)}
+            onUserAgentChange={(v) => updateActiveTab("userAgent", v)}
+            onProxyChange={(v) => updateActiveTab("proxy", v)}
+            onSSLChange={(v) => updateActiveTab("ssl", v)}
+            onRedirectsChange={(v) => updateActiveTab("redirects", v)}
+            onSend={handleSend}
+            onCancel={handleCancel}
+          />
+        </ErrorBoundary>
 
-        <ResponseSection
-          response={activeTab.response}
-          requestState={activeTab.requestState}
-          assertionResults={activeTab.assertionResults}
-          chainVariables={activeTab.chainVariables}
-          sentRequest={activeTab.sentRequest}
-          onAddChainVariable={handleAddChainVariable}
-          onRemoveChainVariable={handleRemoveChainVariable}
-        />
-      </main>
+        <ErrorBoundary>
+          <ResponseSection
+            response={activeTab.response}
+            requestState={activeTab.requestState}
+            assertionResults={activeTab.assertionResults}
+            chainVariables={activeTab.chainVariables}
+            sentRequest={activeTab.sentRequest}
+            onAddChainVariable={handleAddChainVariable}
+            onRemoveChainVariable={handleRemoveChainVariable}
+          />
+        </ErrorBoundary>
+        </main>
+      </div>
 
       <SaveRequestModal
         isOpen={showSaveModal}
@@ -466,6 +519,11 @@ function App() {
         isOpen={showEnvManager}
         onClose={() => setShowEnvManager(false)}
         onEnvironmentChange={loadActiveVariables}
+      />
+
+      <AboutDialog
+        isOpen={showAbout}
+        onClose={() => setShowAbout(false)}
       />
     </div>
   );
