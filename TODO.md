@@ -88,8 +88,8 @@
 - [x] Redirect settings (follow/max redirects)
 
 ## Tech Debt & Improvements
-- [ ] Add unit tests for Go HTTP client
-- [ ] Add React component tests
+- [x] Add unit tests for Go HTTP client
+- [x] Add React component tests
 - [x] Error boundaries in React
 - [x] Request cancellation (abort in-flight requests)
 - [ ] Response streaming for large payloads
