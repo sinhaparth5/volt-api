@@ -1,9 +1,13 @@
 package database
 
 import (
+	"bytes"
+	"compress/gzip"
 	"database/sql"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -14,6 +18,62 @@ import (
 	"github.com/google/uuid"
 	_ "modernc.org/sqlite"
 )
+
+// Compression prefix for identifying compressed bodies
+const compressedPrefix = "gzip:"
+
+// Minimum size to compress (smaller bodies don't benefit from compression)
+const minCompressSize = 1024
+
+// compressBody compresses a string using gzip and returns base64-encoded result with prefix
+func compressBody(body string) string {
+	if len(body) < minCompressSize {
+		return body // Don't compress small bodies
+	}
+
+	var buf bytes.Buffer
+	gz := gzip.NewWriter(&buf)
+	if _, err := gz.Write([]byte(body)); err != nil {
+		return body // Return original on error
+	}
+	if err := gz.Close(); err != nil {
+		return body
+	}
+
+	// Only use compression if it actually saves space
+	compressed := compressedPrefix + base64.StdEncoding.EncodeToString(buf.Bytes())
+	if len(compressed) >= len(body) {
+		return body // Compression didn't help
+	}
+
+	return compressed
+}
+
+// decompressBody decompresses a gzip+base64 encoded string, or returns original if not compressed
+func decompressBody(body string) string {
+	if !strings.HasPrefix(body, compressedPrefix) {
+		return body // Not compressed, return as-is (backward compatible)
+	}
+
+	encoded := strings.TrimPrefix(body, compressedPrefix)
+	compressed, err := base64.StdEncoding.DecodeString(encoded)
+	if err != nil {
+		return body // Return as-is on decode error
+	}
+
+	gz, err := gzip.NewReader(bytes.NewReader(compressed))
+	if err != nil {
+		return body
+	}
+	defer gz.Close()
+
+	decompressed, err := io.ReadAll(gz)
+	if err != nil {
+		return body
+	}
+
+	return string(decompressed)
+}
 
 // HistoryItem represents a saved request in history
 type HistoryItem struct {
@@ -355,7 +415,10 @@ func (d *Database) SaveRequest(method, url string, headers map[string]string, bo
 		headersJSON = []byte("{}")
 	}
 
-	_, err = d.stmtInsert.Exec(id, method, url, string(headersJSON), body, statusCode, timingMs, createdAt)
+	// Compress body to save storage space
+	compressedBody := compressBody(body)
+
+	_, err = d.stmtInsert.Exec(id, method, url, string(headersJSON), compressedBody, statusCode, timingMs, createdAt)
 	if err != nil {
 		return "", fmt.Errorf("failed to save request: %w", err)
 	}
@@ -395,11 +458,15 @@ func (d *Database) GetHistory(limit int, search string) ([]HistoryItem, error) {
 	for rows.Next() {
 		var item HistoryItem
 		var headersJSON string
+		var compressedBody string
 
-		err := rows.Scan(&item.ID, &item.Method, &item.URL, &headersJSON, &item.Body, &item.StatusCode, &item.TimingMs, &item.CreatedAt)
+		err := rows.Scan(&item.ID, &item.Method, &item.URL, &headersJSON, &compressedBody, &item.StatusCode, &item.TimingMs, &item.CreatedAt)
 		if err != nil {
 			continue
 		}
+
+		// Decompress body (backward compatible with uncompressed entries)
+		item.Body = decompressBody(compressedBody)
 
 		if headersJSON != "" {
 			json.Unmarshal([]byte(headersJSON), &item.Headers)
@@ -421,11 +488,15 @@ func (d *Database) GetHistoryItem(id string) (*HistoryItem, error) {
 
 	var item HistoryItem
 	var headersJSON string
+	var compressedBody string
 
-	err := d.stmtGetByID.QueryRow(id).Scan(&item.ID, &item.Method, &item.URL, &headersJSON, &item.Body, &item.StatusCode, &item.TimingMs, &item.CreatedAt)
+	err := d.stmtGetByID.QueryRow(id).Scan(&item.ID, &item.Method, &item.URL, &headersJSON, &compressedBody, &item.StatusCode, &item.TimingMs, &item.CreatedAt)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get history item: %w", err)
 	}
+
+	// Decompress body (backward compatible with uncompressed entries)
+	item.Body = decompressBody(compressedBody)
 
 	if headersJSON != "" {
 		json.Unmarshal([]byte(headersJSON), &item.Headers)

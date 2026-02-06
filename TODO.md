@@ -93,7 +93,7 @@
 - [x] Error boundaries in React
 - [x] Request cancellation (abort in-flight requests)
 - [ ] Response streaming for large payloads
-- [ ] Compress stored responses in SQLite
+- [x] Compress stored responses in SQLite
 - [x] App icon and branding (About dialog, logo)
 
 ---
