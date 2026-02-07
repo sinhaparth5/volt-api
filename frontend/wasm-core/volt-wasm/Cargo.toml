@@ -1,6 +1,6 @@
 [package]
 name = "volt-wasm"
-version = "0.1.0"
+version = "0.0.3"
 edition = "2024"
 description = "High-performance WASM core for Volt-API"
 
