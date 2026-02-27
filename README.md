@@ -1,72 +1,185 @@
-# Volt-API
+# Volt API
 
-A high-performance, cross-platform API client built with Go and React.
+A high-performance, cross-platform API client built with Go, React, and Rust/WASM. Fast, lightweight, and designed for developers who live in their IDE.
 
-## Philosophy
+> **No Electron. No bloat. Under 20MB.**
 
-Volt-API follows three guiding principles:
+![Volt API Screenshot](docs/screenshot.png)
 
-1. **Performance First**: No Electron bloat. Uses the system's native WebView engine to stay under 20MB.
-2. **IDE Aesthetic**: A high-density, "no-nonsense" interface inspired by JetBrains (Darcula theme).
-3. **Protocol Flexibility**: Starting with REST, but architected to handle gRPC and RPC from day one.
+---
 
-## Architecture
+## Features
 
-The application is structured as a **High-Performance Bridge** between a native systems language (Go) and a modern UI framework (React):
+### Core
+- **Full HTTP support** — GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS
+- **Multiple tabs** — work on several requests at once
+- **Request history** — every request saved locally with search and relative timestamps
+- **Response streaming** — progress indicator for large payloads
 
-| Component | Role | Responsibility |
-|-----------|------|----------------|
-| **Frontend (React)** | The Waiter | Handles the user experience—takes input (URL, Headers, Method) and presents responses. Doesn't make network calls directly. |
-| **Backend (Go)** | The Chef | Makes actual network connections, handles security/certificates, and processes raw data. |
-| **Bridge (Wails)** | The Service Window | Enables instant communication between frontend and backend without network overhead. |
+### Request Builder
+- **Headers editor** — key-value pairs with enable/disable toggles
+- **Query params** — bidirectional sync with the URL bar
+- **Auth** — None, Basic Auth, Bearer Token, API Key (header or query)
+- **Body types** — JSON, Form Data, Raw, None
+- **Pretty-print** — format JSON body with one click
 
-## Development Roadmap
+### Response Viewer
+- **Body tabs** — Pretty, Raw, Preview (HTML rendered in iframe)
+- **Metadata** — status code (colour-coded), timing (ms), size (KB)
+- **Headers & Cookies** — parsed and displayed in a table
+- **Copy to clipboard** — copy the full response body instantly
+- **Binary handling** — images rendered inline, other binary files shown as download
 
-### Phase 1: The "Functional" Client (Current)
+### Collections
+- Create folders to organise requests
+- Drag and drop requests into collections
+- Rename, delete, move between collections via context menu
+- **Export / Import** as JSON — share collections with your team
 
-Establish the basic connection.
+### Environments & Variables
+- Create environments (Dev, Staging, Prod, …)
+- Use `{{variable}}` syntax anywhere — URL, headers, body
+- Switch environments from the toolbar
+- **Import / Export** environments as JSON
 
-- **UI**: A JetBrains-style URL bar and "Send" button
-- **Logic**: Make real HTTP calls and display JSON results
-- **Goal**: Prove the bridge works and outperforms Postman
+### Advanced
+- **Response assertions** — assert on status code, body content, headers, timing
+- **Chained requests** — extract values from a response and use them in the next request
+- **SSL settings** — skip verification, custom client certificates
+- **Proxy support** — per-request proxy configuration
+- **Timeout & redirect** — configurable per request
 
-### Phase 2: Persistence & History
+### UX
+- **Catppuccin theme** — Dark (Macchiato) and Light (Latte) with a toggle
+- **Resizable sidebar**
+- **Keyboard shortcuts** — see table below
+- **About dialog** — version info and branding
 
-Implement data lifecycle management.
+---
 
-- **Storage**: Local database (SQLite) for request persistence
-- **Feature**: Sidebar tracking request history
-- **Goal**: Demonstrate understanding of data lifecycle management
+## Keyboard Shortcuts
 
-### Phase 3: Pro Features
+| Action | Windows / Linux | macOS |
+|--------|----------------|-------|
+| Send request | `Ctrl + Enter` | `⌘ + Enter` |
+| Save to collection | `Ctrl + S` | `⌘ + S` |
+| Open environment manager | `Ctrl + E` | `⌘ + E` |
+| New tab | `Ctrl + T` | `⌘ + T` |
+| Close tab | `Ctrl + W` | `⌘ + W` |
+| About dialog | `Ctrl + Shift + A` | `⌘ + Shift + A` |
 
-- **Multi-Protocol**: gRPC support (vital for fintech infrastructure)
-- **Scripting**: Pre-request script execution
-- **Environments**: Staging vs Production variable management (API keys, etc.)
+---
 
-## Development
+## Download
 
-### Live Development
+Go to the [Releases](../../releases) page and download the binary for your platform:
 
-Run in live development mode:
+| Platform | File |
+|----------|------|
+| Windows (64-bit) | `volt-api-amd64-installer.exe` |
+| Windows (ARM) | `volt-api-arm64-installer.exe` |
+| macOS (Intel) | `volt-api-darwin-amd64.dmg` |
+| macOS (Apple Silicon) | `volt-api-darwin-arm64.dmg` |
+| Linux (64-bit) | `volt-api-linux-amd64` |
+| Linux (ARM) | `volt-api-linux-arm64` |
+
+---
+
+## Build from Source
+
+### Prerequisites
 
 ```bash
+go version          # Go 1.21+
+wails version       # Wails v2
+rustc --version     # Rust 1.85+
+wasm-pack --version # wasm-pack 0.13+
+node --version      # Node.js 18+
+```
+
+Install Wails:
+```bash
+go install github.com/wailsapp/wails/v2/cmd/wails@latest
+```
+
+Install wasm-pack:
+```bash
+curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+```
+
+### Build
+
+```bash
+# Clone the repo
+git clone https://github.com/your-username/volt-api.git
+cd volt-api
+
+# Build WASM core + app in one command
+(cd frontend/wasm-core/volt-wasm && wasm-pack build --target web --out-dir ../../src/wasm) && wails build -clean
+
+# Output: build/bin/volt-api (or .exe on Windows)
+```
+
+### Development mode (hot reload)
+
+```bash
+# Build WASM first (only needed once, or after Rust changes)
+cd frontend/wasm-core/volt-wasm
+wasm-pack build --target web --out-dir ../../src/wasm
+cd ../../..
+
+# Start dev server
 wails dev
-
-# Linux mint
-wails dev -tags webkit2_41
 ```
 
-This starts a Vite development server with hot reload. A dev server also runs on http://localhost:34115 for browser-based development with access to Go methods.
+---
 
-### Building
+## Tech Stack
 
-Build a redistributable, production package:
+| Layer | Technology | Role |
+|-------|-----------|------|
+| UI | React + TypeScript + Tailwind | Interface, state management |
+| Bridge | Wails v2 | Native window, Go ↔ JS bindings |
+| Backend | Go | HTTP client, security, business logic |
+| Performance | Rust → WASM | Variable substitution, JSON formatting, assertions |
+| Storage | SQLite | Request history, collections, environments |
+| Theme | Catppuccin | Colour palette (Macchiato / Latte) |
 
-```bash
-wails build
+The WASM core handles all regex-heavy and JSON operations in the browser thread, keeping the UI fast even on large (50MB) responses.
+
+---
+
+## Project Structure
+
+```
+volt-api/
+├── main.go                    # Wails entry point
+├── internal/
+│   ├── app/app.go             # HTTP client, all Go methods
+│   └── database/database.go   # SQLite persistence
+├── frontend/
+│   ├── src/
+│   │   ├── App.tsx            # Root component, tab management
+│   │   ├── components/        # UI components
+│   │   └── utils/             # Helpers, WASM bindings, types
+│   └── wasm-core/volt-wasm/   # Rust WASM source
+└── build/
+    ├── appicon.png            # App icon (1024×1024)
+    ├── darwin/                # macOS plist templates
+    └── windows/               # Windows manifest + icon
 ```
 
-## Configuration
+---
 
-Configure the project by editing `wails.json`. See the [Wails documentation](https://wails.io/docs/reference/project-config) for details.
+## Contributing
+
+1. Fork the repo
+2. Create a feature branch: `git checkout -b feature/my-feature`
+3. Run tests: `go test ./... && cd frontend && npm run test:run`
+4. Submit a pull request
+
+---
+
+## License
+
+MIT © 2025 Volt API
