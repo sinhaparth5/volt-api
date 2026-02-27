@@ -11,10 +11,6 @@ pub fn init() {
     console_error_panic_hook::set_once();
 }
 
-// ============================================================================
-// Variable Substitution (High Impact)
-// ============================================================================
-
 /// Substitutes {{variable}} patterns in a string with values from the provided map.
 /// Returns the substituted string.
 #[wasm_bindgen]
@@ -112,10 +108,6 @@ pub fn has_variables(text: &str) -> bool {
     let re = Regex::new(r"\{\{[^}]+\}\}").unwrap();
     re.is_match(text)
 }
-
-// ============================================================================
-// JSON Processing (High Impact)
-// ============================================================================
 
 /// Extract a value from JSON using dot notation path (e.g., "data.users[0].name").
 /// Returns the extracted value as a JSON string, or "undefined" if not found.
@@ -250,10 +242,6 @@ fn get_json_path<'a>(value: &'a Value, path: &str) -> Option<&'a Value> {
 
     Some(current)
 }
-
-// ============================================================================
-// Assertion Evaluation (High Impact)
-// ============================================================================
 
 #[derive(Deserialize)]
 struct Assertion {
@@ -660,10 +648,6 @@ fn run_header_equals_assertion(
     }
 }
 
-// ============================================================================
-// URL Utilities (High Impact — runs on every URL keystroke)
-// ============================================================================
-
 /// Parse query parameters from a URL string.
 /// Returns a JSON array of {key, value} objects.
 #[wasm_bindgen]
@@ -785,10 +769,6 @@ pub fn parse_cookies(headers_json: &str) -> String {
 
     serde_json::to_string(&cookies).unwrap_or_else(|_| "[]".to_string())
 }
-
-// ============================================================================
-// Private helpers
-// ============================================================================
 
 fn percent_encode(s: &str) -> String {
     let mut out = String::with_capacity(s.len() * 3);
