@@ -92,7 +92,7 @@
 - [x] Add React component tests
 - [x] Error boundaries in React
 - [x] Request cancellation (abort in-flight requests)
-- [ ] Response streaming for large payloads
+- [x] Response streaming for large payloads
 - [x] Compress stored responses in SQLite
 - [x] App icon and branding (About dialog, logo)
 
@@ -102,7 +102,7 @@
 - [x] JSON formatting via WASM (pre-formatted on response)
 - [x] Assertion evaluation via WASM (single JSON parse for all assertions)
 - [x] Lazy loading with preload on app startup
-- [ ] Optimize WASM size (consider lighter regex library)
+- [x] Optimize WASM size (swapped `regex` → `regex-lite`, ~78% size reduction)
 
 ---
 
@@ -177,12 +177,12 @@ build/bin/
 Create `.github/workflows/build.yml` for automated multi-platform builds on every release.
 
 ### App Metadata (wails.json)
-- [ ] Set app name
-- [ ] Set app version
-- [ ] Set app description
-- [ ] Add app icon (1024x1024 PNG)
-- [ ] Set bundle identifier (com.voltapi.app)
-- [ ] Configure file associations
+- [x] Set app name
+- [x] Set app version (1.0.0)
+- [x] Set app description
+- [x] Add app icon (1024x1024 PNG)
+- [x] Set bundle identifier (com.voltapi.app)
+- [x] Configure file associations (.json → Volt API Collection)
 
 ### Code Signing (Required for Trusted Installation)
 See `docs/CODE_SIGNING.md` for detailed instructions.

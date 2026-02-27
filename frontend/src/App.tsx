@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { SendRequest, LoadHistoryItem, LoadSavedRequest, GetActiveVariables } from "../wailsjs/go/app/App";
+import { EventsOn, EventsOff } from "../wailsjs/runtime/runtime";
 import { app } from "../wailsjs/go/models";
 import { Sidebar, SidebarRef } from "./components/Sidebar";
 import { RequestSection } from "./components/RequestSection";
@@ -60,6 +61,8 @@ function App() {
   const [showEnvManager, setShowEnvManager] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [activeVariables, setActiveVariables] = useState<Record<string, string>>({});
+
+  const [downloadProgress, setDownloadProgress] = useState<{ bytesRead: number; total: number } | null>(null);
 
   const sidebarRef = useRef<SidebarRef>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -212,6 +215,12 @@ function App() {
     updateActiveTab("response", null);
     updateActiveTab("assertionResults", []);
     updateActiveTab("sentRequest", null);
+    setDownloadProgress(null);
+
+    // Listen for streaming progress events from Go backend
+    EventsOn("response:progress", (data: { bytesRead: number; total: number }) => {
+      setDownloadProgress({ bytesRead: data.bytesRead, total: data.total });
+    });
 
     // Merge environment variables with chain variables (chain takes precedence)
     const chainVarsMap = activeTab.chainVariables.reduce((acc, v) => {
@@ -287,9 +296,13 @@ function App() {
 
       // Check if request was cancelled
       if (currentAbortController.signal.aborted) {
+        EventsOff("response:progress");
+        setDownloadProgress(null);
         return;
       }
 
+      EventsOff("response:progress");
+      setDownloadProgress(null);
       updateActiveTab("response", result);
       updateActiveTab("requestState", result.error ? "error" : "success");
 
@@ -311,6 +324,9 @@ function App() {
         sidebarRef.current?.refreshHistory();
       }, 100);
     } catch (err) {
+      EventsOff("response:progress");
+      setDownloadProgress(null);
+
       // Check if request was cancelled
       if (currentAbortController.signal.aborted) {
         return;
@@ -513,6 +529,7 @@ function App() {
           <ResponseSection
             response={activeTab.response}
             requestState={activeTab.requestState}
+            downloadProgress={downloadProgress}
             assertionResults={activeTab.assertionResults}
             chainVariables={activeTab.chainVariables}
             sentRequest={activeTab.sentRequest}

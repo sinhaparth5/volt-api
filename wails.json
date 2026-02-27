@@ -13,10 +13,19 @@
   "info": {
     "companyName": "Volt API",
     "productName": "Volt API Client",
-    "productVersion": "0.0.1",
-    "copyright": "Copyright 2024",
+    "productVersion": "1.0.0",
+    "copyright": "Copyright © 2025 Volt API",
     "comments": "A high-performance, cross-platform API client"
   },
+  "fileAssociations": [
+    {
+      "ext": "json",
+      "name": "Volt API Collection",
+      "description": "Volt API collection or environment file",
+      "iconName": "fileicon",
+      "role": "Editor"
+    }
+  ],
   "nsisType": "multiple",
   "obfuscated": false,
   "garbleargs": ""

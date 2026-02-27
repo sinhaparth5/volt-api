@@ -1,4 +1,4 @@
-use regex::Regex;
+use regex_lite::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
@@ -33,7 +33,7 @@ pub fn substitute_variables(text: &str, variables_json: &str) -> String {
     }
 
     let re = Regex::new(r"\{\{([^}]+)\}\}").unwrap();
-    re.replace_all(text, |caps: &regex::Captures| {
+    re.replace_all(text, |caps: &regex_lite::Captures| {
         let var_name = caps.get(1).unwrap().as_str().trim();
         variables
             .get(var_name)
@@ -68,7 +68,7 @@ pub fn substitute_variables_batch(texts_json: &str, variables_json: &str) -> Str
             if !text.contains("{{") {
                 return text.clone();
             }
-            re.replace_all(text, |caps: &regex::Captures| {
+            re.replace_all(text, |caps: &regex_lite::Captures| {
                 let var_name = caps.get(1).unwrap().as_str().trim();
                 variables
                     .get(var_name)

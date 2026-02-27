@@ -23,6 +23,7 @@ export interface SentRequestInfo {
 interface ResponseSectionProps {
   response: HTTPResponse | null;
   requestState: RequestState;
+  downloadProgress?: { bytesRead: number; total: number } | null;
   assertionResults?: AssertionResult[];
   chainVariables?: ChainVariable[];
   sentRequest?: SentRequestInfo | null;
@@ -33,6 +34,7 @@ interface ResponseSectionProps {
 export function ResponseSection({
   response,
   requestState,
+  downloadProgress,
   assertionResults = [],
   chainVariables = [],
   sentRequest,
@@ -142,12 +144,38 @@ export function ResponseSection({
 
   // Loading state
   if (requestState === "loading") {
+    const hasProgress = downloadProgress && downloadProgress.bytesRead > 0;
+    const progressPercent =
+      hasProgress && downloadProgress.total > 0
+        ? Math.min(100, Math.round((downloadProgress.bytesRead / downloadProgress.total) * 100))
+        : null;
+    const receivedKB = hasProgress ? (downloadProgress.bytesRead / 1024).toFixed(1) : null;
+    const totalKB =
+      hasProgress && downloadProgress.total > 0
+        ? (downloadProgress.total / 1024).toFixed(1)
+        : null;
+
     return (
       <section className="flex-1 flex flex-col overflow-hidden bg-ctp-base">
         <div className="flex-1 flex items-center justify-center">
-          <div className="text-ctp-text flex flex-col items-center gap-3">
+          <div className="text-ctp-text flex flex-col items-center gap-3 w-64">
             <Icons.Spinner size={20} className="text-ctp-mauve" />
-            <span className="text-sm">Sending request...</span>
+            {hasProgress ? (
+              <>
+                <span className="text-sm">Downloading response...</span>
+                <div className="w-full bg-ctp-surface0 rounded-full h-1.5">
+                  <div
+                    className="bg-ctp-mauve h-1.5 rounded-full transition-all duration-150"
+                    style={{ width: progressPercent !== null ? `${progressPercent}%` : "100%" }}
+                  />
+                </div>
+                <span className="text-xs text-ctp-subtext0">
+                  {totalKB ? `${receivedKB} / ${totalKB} KB` : `${receivedKB} KB received`}
+                </span>
+              </>
+            ) : (
+              <span className="text-sm">Sending request...</span>
+            )}
           </div>
         </div>
       </section>

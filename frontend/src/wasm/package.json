@@ -2,7 +2,7 @@
   "name": "volt-wasm",
   "type": "module",
   "description": "High-performance WASM core for Volt-API",
-  "version": "0.1.0",
+  "version": "0.0.3",
   "files": [
     "volt_wasm_bg.wasm",
     "volt_wasm.js",

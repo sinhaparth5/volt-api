@@ -1,6 +1,7 @@
 package app
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"encoding/base64"
@@ -27,10 +28,11 @@ var (
 
 // Security limits
 const (
-	MaxRequestBodySize  = 10 * 1024 * 1024  // 10MB max request body
-	MaxResponseBodySize = 50 * 1024 * 1024  // 50MB max response body
+	MaxRequestBodySize  = 10 * 1024 * 1024 // 10MB max request body
+	MaxResponseBodySize = 50 * 1024 * 1024 // 50MB max response body
 	DefaultTimeout      = 30 * time.Second
 	MaxTimeout          = 5 * time.Minute
+	StreamingThreshold  = 1 * 1024 * 1024  // 1MB: emit progress events above this size
 )
 
 // App is the main application struct
@@ -385,9 +387,8 @@ func (a *App) SendRequest(request HTTPRequest) HTTPResponse {
 	}
 	defer resp.Body.Close()
 
-	// Read response body with size limit
-	limitedReader := io.LimitReader(resp.Body, MaxResponseBodySize)
-	bodyBytes, err := io.ReadAll(limitedReader)
+	// Read response body, streaming progress events for large payloads
+	bodyBytes, err := a.readResponseBody(resp)
 	if err != nil {
 		return HTTPResponse{
 			StatusCode: resp.StatusCode,
@@ -427,6 +428,49 @@ func (a *App) SendRequest(request HTTPRequest) HTTPResponse {
 	}
 
 	return response
+}
+
+// readResponseBody reads the response body in chunks, emitting response:progress
+// events via the Wails runtime for payloads that exceed StreamingThreshold.
+func (a *App) readResponseBody(resp *http.Response) ([]byte, error) {
+	contentLength := resp.ContentLength // -1 when unknown (chunked transfer, etc.)
+	isLarge := contentLength == -1 || contentLength > StreamingThreshold
+
+	const chunkSize = 32 * 1024 // 32KB read buffer
+	buf := make([]byte, chunkSize)
+	var body bytes.Buffer
+	var totalRead int64
+
+	for {
+		n, err := resp.Body.Read(buf)
+		if n > 0 {
+			body.Write(buf[:n])
+			totalRead += int64(n)
+
+			// Promote to streaming once we cross the threshold mid-stream
+			if !isLarge && totalRead > StreamingThreshold {
+				isLarge = true
+			}
+
+			if isLarge {
+				runtime.EventsEmit(a.ctx, "response:progress", map[string]interface{}{
+					"bytesRead": totalRead,
+					"total":     contentLength,
+				})
+			}
+		}
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		if totalRead > MaxResponseBodySize {
+			return nil, fmt.Errorf("response too large (>%dMB)", MaxResponseBodySize/(1024*1024))
+		}
+	}
+
+	return body.Bytes(), nil
 }
 
 // ============================================================================
