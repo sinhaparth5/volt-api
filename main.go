@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"net/http"
 	"runtime"
 
 	"volt-api/internal/app"
@@ -28,7 +29,27 @@ func main() {
 		MinHeight: 600,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
+			Middleware: func(next http.Handler) http.Handler {
+				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Set("Content-Security-Policy",
+						"default-src 'self'; "+
+							"script-src 'self' 'unsafe-inline' 'unsafe-eval'; "+
+							"style-src 'self' 'unsafe-inline'; "+
+							"img-src 'self' data: blob: https: http:; "+
+							"connect-src 'self'; "+
+							"font-src 'self' data:; "+
+							"object-src 'none'; "+
+							"base-uri 'self'; "+
+							"frame-src 'self' blob: data:;",
+					)
+					w.Header().Set("X-Content-Type-Options", "nosniff")
+					w.Header().Set("X-Frame-Options", "SAMEORIGIN")
+					w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
+					next.ServeHTTP(w, r)
+				})
+			},
 		},
+		EnableDefaultContextMenu: !productionMode,
 		BackgroundColour: &options.RGBA{R: 30, G: 30, B: 46, A: 1}, // ctp-base
 		Frameless:        runtime.GOOS == "windows",                // Frameless on Windows for custom title bar
 		OnStartup:        application.Startup,
