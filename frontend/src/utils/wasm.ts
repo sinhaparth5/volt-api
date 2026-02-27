@@ -180,6 +180,61 @@ export async function wasmRunAssertions(
 }
 
 // ============================================================================
+// URL Utilities
+// ============================================================================
+
+/**
+ * Parse query parameters from a URL string.
+ * Returns an array of {key, value} objects.
+ */
+export async function wasmParseQueryParams(url: string): Promise<{ key: string; value: string }[]> {
+  const wasm = await loadWasm();
+  return JSON.parse(wasm.parse_query_params(url));
+}
+
+/**
+ * Build a URL with percent-encoded query parameters.
+ * params: array of {key, value, enabled} objects.
+ */
+export async function wasmBuildUrlWithParams(
+  baseUrl: string,
+  params: { key: string; value: string; enabled: boolean }[]
+): Promise<string> {
+  const wasm = await loadWasm();
+  return wasm.build_url_with_params(baseUrl, JSON.stringify(params));
+}
+
+/**
+ * Encode form data as application/x-www-form-urlencoded.
+ * pairs: array of {key, value, enabled} objects.
+ */
+export async function wasmEncodeFormData(
+  pairs: { key: string; value: string; enabled: boolean }[]
+): Promise<string> {
+  const wasm = await loadWasm();
+  return wasm.encode_form_data(JSON.stringify(pairs));
+}
+
+/**
+ * Build a Basic Auth header value: "Basic <base64(username:password)>"
+ */
+export async function wasmBuildBasicAuth(username: string, password: string): Promise<string> {
+  const wasm = await loadWasm();
+  return wasm.build_basic_auth(username, password);
+}
+
+/**
+ * Parse Set-Cookie response headers into structured cookie objects.
+ * headers: response headers object.
+ */
+export async function wasmParseCookies(
+  headers: Record<string, string>
+): Promise<{ name: string; value: string; path?: string; domain?: string; expires?: string; maxAge?: string; secure?: boolean; httpOnly?: boolean; sameSite?: string }[]> {
+  const wasm = await loadWasm();
+  return JSON.parse(wasm.parse_cookies(JSON.stringify(headers)));
+}
+
+// ============================================================================
 // Sync versions (only use if WASM is definitely loaded)
 // ============================================================================
 
@@ -231,4 +286,52 @@ export function wasmRunAssertionsSync(
     JSON.stringify(response)
   );
   return JSON.parse(result);
+}
+
+/**
+ * Sync version of parseQueryParams - only use if you've called preloadWasm()
+ */
+export function wasmParseQueryParamsSync(url: string): { key: string; value: string }[] {
+  if (!wasmModule) return [];
+  return JSON.parse(wasmModule.parse_query_params(url));
+}
+
+/**
+ * Sync version of buildUrlWithParams - only use if you've called preloadWasm()
+ */
+export function wasmBuildUrlWithParamsSync(
+  baseUrl: string,
+  params: { key: string; value: string; enabled: boolean }[]
+): string {
+  if (!wasmModule) return baseUrl;
+  return wasmModule.build_url_with_params(baseUrl, JSON.stringify(params));
+}
+
+/**
+ * Sync version of encodeFormData - only use if you've called preloadWasm()
+ */
+export function wasmEncodeFormDataSync(
+  pairs: { key: string; value: string; enabled: boolean }[]
+): string {
+  if (!wasmModule) return '';
+  return wasmModule.encode_form_data(JSON.stringify(pairs));
+}
+
+/**
+ * Sync version of buildBasicAuth - only use if you've called preloadWasm()
+ */
+export function wasmBuildBasicAuthSync(username: string, password: string): string {
+  if (!wasmModule) return `Basic ${btoa(`${username}:${password}`)}`;
+  return wasmModule.build_basic_auth(username, password);
+}
+
+/**
+ * Sync version of parseCookies - only use if you've called preloadWasm()
+ */
+export function wasmParseCookiesSync(headers: Record<string, string>): {
+  name: string; value: string; path?: string; domain?: string;
+  expires?: string; maxAge?: string; secure?: boolean; httpOnly?: boolean; sameSite?: string;
+}[] {
+  if (!wasmModule) return [];
+  return JSON.parse(wasmModule.parse_cookies(JSON.stringify(headers)));
 }

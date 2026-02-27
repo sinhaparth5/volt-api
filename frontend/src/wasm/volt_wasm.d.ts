@@ -2,6 +2,25 @@
 /* eslint-disable */
 
 /**
+ * Build a Basic Auth header value from username and password.
+ * Returns the full "Basic <base64>" string ready to use as a header value.
+ */
+export function build_basic_auth(username: string, password: string): string;
+
+/**
+ * Build a URL with percent-encoded query parameters.
+ * params_json: JSON array of {key, value, enabled} objects.
+ * Returns the full URL string.
+ */
+export function build_url_with_params(base_url: string, params_json: string): string;
+
+/**
+ * Encode form data pairs as application/x-www-form-urlencoded.
+ * pairs_json: JSON array of {key, value, enabled} objects.
+ */
+export function encode_form_data(pairs_json: string): string;
+
+/**
  * Find all variable names used in a string.
  * Returns JSON array of variable names.
  */
@@ -48,6 +67,19 @@ export function json_minify(json_str: string): string;
 export function json_validate(json_str: string): boolean;
 
 /**
+ * Parse Set-Cookie response headers into structured cookie objects.
+ * headers_json: JSON object of response headers (key → value).
+ * Returns JSON array of {name, value, path?, domain?, expires?, maxAge?, secure?, httpOnly?, sameSite?}.
+ */
+export function parse_cookies(headers_json: string): string;
+
+/**
+ * Parse query parameters from a URL string.
+ * Returns a JSON array of {key, value} objects.
+ */
+export function parse_query_params(url: string): string;
+
+/**
  * Run all assertions against response data.
  * assertions_json: JSON array of assertion objects
  * response_json: JSON object with statusCode, headers, body, timingMs
@@ -71,6 +103,9 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
+    readonly build_basic_auth: (a: number, b: number, c: number, d: number) => [number, number];
+    readonly build_url_with_params: (a: number, b: number, c: number, d: number) => [number, number];
+    readonly encode_form_data: (a: number, b: number) => [number, number];
     readonly find_variables: (a: number, b: number) => [number, number];
     readonly has_variables: (a: number, b: number) => number;
     readonly init: () => void;
@@ -80,6 +115,8 @@ export interface InitOutput {
     readonly json_info: (a: number, b: number) => [number, number];
     readonly json_minify: (a: number, b: number) => [number, number];
     readonly json_validate: (a: number, b: number) => number;
+    readonly parse_cookies: (a: number, b: number) => [number, number];
+    readonly parse_query_params: (a: number, b: number) => [number, number];
     readonly run_assertions: (a: number, b: number, c: number, d: number) => [number, number];
     readonly substitute_variables: (a: number, b: number, c: number, d: number) => [number, number];
     readonly substitute_variables_batch: (a: number, b: number, c: number, d: number) => [number, number];

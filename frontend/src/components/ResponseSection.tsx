@@ -6,7 +6,7 @@ import { ChainVariableExtractor } from "./ChainVariableExtractor";
 import { AssertionResult, getAssertionsSummary } from "../utils/assertions";
 import { ChainVariable } from "../utils/chainVariables";
 import { app } from "../../wailsjs/go/models";
-import { wasmJsonFormat } from "../utils/wasm";
+import { wasmJsonFormat, wasmParseCookiesSync, isWasmLoaded } from "../utils/wasm";
 
 type HTTPResponse = app.HTTPResponse;
 type RequestState = "idle" | "loading" | "success" | "error";
@@ -124,21 +124,30 @@ export function ResponseSection({
 
   // Parse cookies from Set-Cookie headers
   const parseCookies = (headers: Record<string, string>): { name: string; value: string; attributes: string }[] => {
+    if (isWasmLoaded()) {
+      return wasmParseCookiesSync(headers).map((c) => ({
+        name: c.name,
+        value: c.value,
+        attributes: [
+          c.path     ? `Path=${c.path}`         : null,
+          c.domain   ? `Domain=${c.domain}`     : null,
+          c.expires  ? `Expires=${c.expires}`   : null,
+          c.maxAge   ? `Max-Age=${c.maxAge}`     : null,
+          c.sameSite ? `SameSite=${c.sameSite}` : null,
+          c.secure   ? "Secure"                 : null,
+          c.httpOnly ? "HttpOnly"               : null,
+        ].filter(Boolean).join("; "),
+      }));
+    }
     const cookies: { name: string; value: string; attributes: string }[] = [];
-
     for (const [key, value] of Object.entries(headers)) {
       if (key.toLowerCase() === "set-cookie") {
         const parts = value.split(";");
         const [nameValue, ...attrs] = parts;
         const [name, ...valueParts] = nameValue.split("=");
-        cookies.push({
-          name: name.trim(),
-          value: valueParts.join("=").trim(),
-          attributes: attrs.join(";").trim(),
-        });
+        cookies.push({ name: name.trim(), value: valueParts.join("=").trim(), attributes: attrs.join(";").trim() });
       }
     }
-
     return cookies;
   };
 

@@ -661,6 +661,228 @@ fn run_header_equals_assertion(
 }
 
 // ============================================================================
+// URL Utilities (High Impact — runs on every URL keystroke)
+// ============================================================================
+
+/// Parse query parameters from a URL string.
+/// Returns a JSON array of {key, value} objects.
+#[wasm_bindgen]
+pub fn parse_query_params(url: &str) -> String {
+    let query = match url.find('?') {
+        Some(pos) => &url[pos + 1..],
+        None => return "[]".to_string(),
+    };
+
+    if query.is_empty() {
+        return "[]".to_string();
+    }
+
+    let pairs: Vec<Value> = query
+        .split('&')
+        .filter(|s| !s.is_empty())
+        .map(|pair| {
+            let (key, value) = match pair.find('=') {
+                Some(pos) => (&pair[..pos], &pair[pos + 1..]),
+                None => (pair, ""),
+            };
+            serde_json::json!({
+                "key": percent_decode(key),
+                "value": percent_decode(value),
+            })
+        })
+        .collect();
+
+    serde_json::to_string(&pairs).unwrap_or_else(|_| "[]".to_string())
+}
+
+/// Build a URL with percent-encoded query parameters.
+/// params_json: JSON array of {key, value, enabled} objects.
+/// Returns the full URL string.
+#[wasm_bindgen]
+pub fn build_url_with_params(base_url: &str, params_json: &str) -> String {
+    #[derive(Deserialize)]
+    struct Param {
+        key: String,
+        value: String,
+        enabled: bool,
+    }
+
+    let params: Vec<Param> = match serde_json::from_str(params_json) {
+        Ok(p) => p,
+        Err(_) => return base_url.to_string(),
+    };
+
+    let enabled: Vec<&Param> = params
+        .iter()
+        .filter(|p| p.enabled && !p.key.trim().is_empty())
+        .collect();
+
+    if enabled.is_empty() {
+        return base_url.to_string();
+    }
+
+    // Strip existing query string
+    let base = match base_url.find('?') {
+        Some(pos) => &base_url[..pos],
+        None => base_url,
+    };
+
+    let query: Vec<String> = enabled
+        .iter()
+        .map(|p| format!("{}={}", percent_encode(p.key.trim()), percent_encode(&p.value)))
+        .collect();
+
+    format!("{}?{}", base, query.join("&"))
+}
+
+/// Encode form data pairs as application/x-www-form-urlencoded.
+/// pairs_json: JSON array of {key, value, enabled} objects.
+#[wasm_bindgen]
+pub fn encode_form_data(pairs_json: &str) -> String {
+    #[derive(Deserialize)]
+    struct Pair {
+        key: String,
+        value: String,
+        enabled: bool,
+    }
+
+    let pairs: Vec<Pair> = match serde_json::from_str(pairs_json) {
+        Ok(p) => p,
+        Err(_) => return String::new(),
+    };
+
+    pairs
+        .iter()
+        .filter(|p| p.enabled && !p.key.trim().is_empty())
+        .map(|p| format!("{}={}", percent_encode(p.key.trim()), percent_encode(&p.value)))
+        .collect::<Vec<_>>()
+        .join("&")
+}
+
+/// Build a Basic Auth header value from username and password.
+/// Returns the full "Basic <base64>" string ready to use as a header value.
+#[wasm_bindgen]
+pub fn build_basic_auth(username: &str, password: &str) -> String {
+    let credentials = format!("{}:{}", username, password);
+    format!("Basic {}", base64_encode(credentials.as_bytes()))
+}
+
+/// Parse Set-Cookie response headers into structured cookie objects.
+/// headers_json: JSON object of response headers (key → value).
+/// Returns JSON array of {name, value, path?, domain?, expires?, maxAge?, secure?, httpOnly?, sameSite?}.
+#[wasm_bindgen]
+pub fn parse_cookies(headers_json: &str) -> String {
+    let headers: HashMap<String, String> = match serde_json::from_str(headers_json) {
+        Ok(h) => h,
+        Err(_) => return "[]".to_string(),
+    };
+
+    let cookies: Vec<Value> = headers
+        .iter()
+        .filter(|(k, _)| k.to_lowercase() == "set-cookie")
+        .filter_map(|(_, v)| parse_single_cookie(v))
+        .collect();
+
+    serde_json::to_string(&cookies).unwrap_or_else(|_| "[]".to_string())
+}
+
+// ============================================================================
+// Private helpers
+// ============================================================================
+
+fn percent_encode(s: &str) -> String {
+    let mut out = String::with_capacity(s.len() * 3);
+    for byte in s.bytes() {
+        match byte {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9'
+            | b'-' | b'_' | b'.' | b'~' => out.push(byte as char),
+            b' ' => out.push('+'),
+            b => out.push_str(&format!("%{:02X}", b)),
+        }
+    }
+    out
+}
+
+fn percent_decode(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    let bytes = s.as_bytes();
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'%' && i + 2 < bytes.len() {
+            if let Ok(hex_str) = std::str::from_utf8(&bytes[i + 1..i + 3]) {
+                if let Ok(byte) = u8::from_str_radix(hex_str, 16) {
+                    out.push(byte as char);
+                    i += 3;
+                    continue;
+                }
+            }
+        } else if bytes[i] == b'+' {
+            out.push(' ');
+            i += 1;
+            continue;
+        }
+        out.push(bytes[i] as char);
+        i += 1;
+    }
+    out
+}
+
+fn base64_encode(input: &[u8]) -> String {
+    const CHARS: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut out = String::with_capacity((input.len() + 2) / 3 * 4);
+    for chunk in input.chunks(3) {
+        let b0 = chunk[0] as u32;
+        let b1 = if chunk.len() > 1 { chunk[1] as u32 } else { 0 };
+        let b2 = if chunk.len() > 2 { chunk[2] as u32 } else { 0 };
+        let n = (b0 << 16) | (b1 << 8) | b2;
+        out.push(CHARS[(n >> 18) as usize] as char);
+        out.push(CHARS[((n >> 12) & 0x3F) as usize] as char);
+        out.push(if chunk.len() > 1 { CHARS[((n >> 6) & 0x3F) as usize] as char } else { '=' });
+        out.push(if chunk.len() > 2 { CHARS[(n & 0x3F) as usize] as char } else { '=' });
+    }
+    out
+}
+
+fn parse_single_cookie(set_cookie: &str) -> Option<Value> {
+    let mut segments = set_cookie.splitn(2, ';');
+    let name_value = segments.next()?.trim();
+    let rest = segments.next().unwrap_or("");
+
+    let eq = name_value.find('=')?;
+    let name = name_value[..eq].trim().to_string();
+    let value = name_value[eq + 1..].trim().to_string();
+
+    let mut cookie = serde_json::json!({ "name": name, "value": value });
+
+    for attr in rest.split(';') {
+        let attr = attr.trim();
+        if attr.is_empty() {
+            continue;
+        }
+        if let Some(pos) = attr.find('=') {
+            let attr_name = attr[..pos].trim().to_lowercase();
+            let attr_val = attr[pos + 1..].trim().to_string();
+            match attr_name.as_str() {
+                "expires"  => cookie["expires"]  = Value::String(attr_val),
+                "max-age"  => cookie["maxAge"]   = Value::String(attr_val),
+                "domain"   => cookie["domain"]   = Value::String(attr_val),
+                "path"     => cookie["path"]     = Value::String(attr_val),
+                "samesite" => cookie["sameSite"] = Value::String(attr_val),
+                _ => {}
+            }
+        } else {
+            match attr.to_lowercase().as_str() {
+                "secure"   => cookie["secure"]   = Value::Bool(true),
+                "httponly" => cookie["httpOnly"] = Value::Bool(true),
+                _ => {}
+            }
+        }
+    }
+
+    Some(cookie)
+}
+
+// ============================================================================
 // Tests
 // ============================================================================
 
@@ -717,5 +939,58 @@ mod tests {
     fn test_has_variables() {
         assert!(has_variables("{{test}}"));
         assert!(!has_variables("no variables"));
+    }
+
+    #[test]
+    fn test_parse_query_params() {
+        let result = parse_query_params("https://api.example.com/users?name=John&age=30");
+        let parsed: Vec<serde_json::Value> = serde_json::from_str(&result).unwrap();
+        assert_eq!(parsed.len(), 2);
+        assert_eq!(parsed[0]["key"], "name");
+        assert_eq!(parsed[0]["value"], "John");
+    }
+
+    #[test]
+    fn test_parse_query_params_empty() {
+        assert_eq!(parse_query_params("https://api.example.com/users"), "[]");
+    }
+
+    #[test]
+    fn test_build_url_with_params() {
+        let params = r#"[{"key":"page","value":"1","enabled":true},{"key":"limit","value":"10","enabled":true}]"#;
+        let result = build_url_with_params("https://api.example.com/users", params);
+        assert!(result.contains("page=1"));
+        assert!(result.contains("limit=10"));
+    }
+
+    #[test]
+    fn test_encode_form_data() {
+        let pairs = r#"[{"key":"name","value":"John Doe","enabled":true},{"key":"age","value":"30","enabled":true}]"#;
+        let result = encode_form_data(pairs);
+        assert_eq!(result, "name=John+Doe&age=30");
+    }
+
+    #[test]
+    fn test_build_basic_auth() {
+        let result = build_basic_auth("user", "pass");
+        assert_eq!(result, "Basic dXNlcjpwYXNz");
+    }
+
+    #[test]
+    fn test_base64_encode() {
+        assert_eq!(base64_encode(b"user:pass"), "dXNlcjpwYXNz");
+        assert_eq!(base64_encode(b"hello"), "aGVsbG8=");
+    }
+
+    #[test]
+    fn test_percent_encode() {
+        assert_eq!(percent_encode("hello world"), "hello+world");
+        assert_eq!(percent_encode("a=b&c=d"), "a%3Db%26c%3Dd");
+    }
+
+    #[test]
+    fn test_percent_decode() {
+        assert_eq!(percent_decode("hello+world"), "hello world");
+        assert_eq!(percent_decode("a%3Db"), "a=b");
     }
 }

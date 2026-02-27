@@ -1,6 +1,9 @@
 /* tslint:disable */
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
+export const build_basic_auth: (a: number, b: number, c: number, d: number) => [number, number];
+export const build_url_with_params: (a: number, b: number, c: number, d: number) => [number, number];
+export const encode_form_data: (a: number, b: number) => [number, number];
 export const find_variables: (a: number, b: number) => [number, number];
 export const has_variables: (a: number, b: number) => number;
 export const init: () => void;
@@ -10,6 +13,8 @@ export const json_format: (a: number, b: number) => [number, number];
 export const json_info: (a: number, b: number) => [number, number];
 export const json_minify: (a: number, b: number) => [number, number];
 export const json_validate: (a: number, b: number) => number;
+export const parse_cookies: (a: number, b: number) => [number, number];
+export const parse_query_params: (a: number, b: number) => [number, number];
 export const run_assertions: (a: number, b: number, c: number, d: number) => [number, number];
 export const substitute_variables: (a: number, b: number, c: number, d: number) => [number, number];
 export const substitute_variables_batch: (a: number, b: number, c: number, d: number) => [number, number];

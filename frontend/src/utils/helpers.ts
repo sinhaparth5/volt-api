@@ -1,3 +1,11 @@
+import {
+  isWasmLoaded,
+  wasmParseQueryParamsSync,
+  wasmBuildUrlWithParamsSync,
+  wasmEncodeFormDataSync,
+  wasmBuildBasicAuthSync,
+} from './wasm';
+
 export const METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH"] as const;
 
 export type HTTPMethod = (typeof METHODS)[number];
@@ -41,16 +49,20 @@ export const createEmptyPair = (): KeyValuePair => ({
 
 // Parse query params from URL
 export const parseQueryParams = (url: string): KeyValuePair[] => {
+  if (isWasmLoaded()) {
+    const pairs = wasmParseQueryParamsSync(url).map((p) => ({
+      id: generateId(),
+      key: p.key,
+      value: p.value,
+      enabled: true,
+    }));
+    return pairs.length > 0 ? pairs : [createEmptyPair()];
+  }
   try {
     const urlObj = new URL(url);
     const pairs: KeyValuePair[] = [];
     urlObj.searchParams.forEach((value, key) => {
-      pairs.push({
-        id: generateId(),
-        key,
-        value,
-        enabled: true,
-      });
+      pairs.push({ id: generateId(), key, value, enabled: true });
     });
     return pairs.length > 0 ? pairs : [createEmptyPair()];
   } catch {
@@ -72,18 +84,17 @@ export const getBaseUrl = (url: string): string => {
 
 // Build URL with query params
 export const buildUrlWithParams = (baseUrl: string, params: KeyValuePair[]): string => {
+  if (isWasmLoaded()) {
+    return wasmBuildUrlWithParamsSync(baseUrl, params);
+  }
   const enabledParams = params.filter((p) => p.enabled && p.key.trim());
   if (enabledParams.length === 0) return baseUrl;
-
   try {
     const urlObj = new URL(baseUrl);
     urlObj.search = "";
-    enabledParams.forEach((p) => {
-      urlObj.searchParams.append(p.key, p.value);
-    });
+    enabledParams.forEach((p) => urlObj.searchParams.append(p.key, p.value));
     return urlObj.toString();
   } catch {
-    // Build query string manually if URL is invalid
     const queryString = enabledParams
       .map((p) => `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`)
       .join("&");
@@ -96,8 +107,7 @@ export const authToHeaders = (auth: AuthSettings): Record<string, string> => {
   switch (auth.type) {
     case "basic":
       if (auth.username && auth.password) {
-        const credentials = btoa(`${auth.username}:${auth.password}`);
-        return { Authorization: `Basic ${credentials}` };
+        return { Authorization: wasmBuildBasicAuthSync(auth.username, auth.password) };
       }
       break;
     case "bearer":
@@ -181,6 +191,9 @@ export const getMethodBg = (method: string): string => {
 
 // Convert form data key-value pairs to URL encoded string
 export const formDataToUrlEncoded = (pairs: KeyValuePair[]): string => {
+  if (isWasmLoaded()) {
+    return wasmEncodeFormDataSync(pairs);
+  }
   return pairs
     .filter((p) => p.enabled && p.key.trim())
     .map((p) => `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`)

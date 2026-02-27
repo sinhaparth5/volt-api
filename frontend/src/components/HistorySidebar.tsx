@@ -100,13 +100,13 @@ export const HistorySidebar = forwardRef<HistorySidebarRef, Props>(
       return "text-ctp-red";
     };
 
-    const getUrlPath = (url: string): string => {
+    const getUrlDisplay = (url: string): string => {
       try {
         const parsed = new URL(url);
-        const path = parsed.pathname + parsed.search;
-        return path.length > 26 ? path.substring(0, 26) + "..." : path;
+        const display = parsed.hostname + parsed.pathname + parsed.search;
+        return display.length > 35 ? display.substring(0, 35) + "..." : display;
       } catch {
-        return url.length > 26 ? url.substring(0, 26) + "..." : url;
+        return url.length > 35 ? url.substring(0, 35) + "..." : url;
       }
     };
 
@@ -153,7 +153,7 @@ export const HistorySidebar = forwardRef<HistorySidebarRef, Props>(
                   {item.method}
                 </span>
                 <span className="text-xs text-ctp-text truncate flex-1">
-                  {getUrlPath(item.url)}
+                  {getUrlDisplay(item.url)}
                 </span>
                 <button
                   onClick={(e) => handleDelete(item.id, e)}

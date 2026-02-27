@@ -1,6 +1,76 @@
 /* @ts-self-types="./volt_wasm.d.ts" */
 
 /**
+ * Build a Basic Auth header value from username and password.
+ * Returns the full "Basic <base64>" string ready to use as a header value.
+ * @param {string} username
+ * @param {string} password
+ * @returns {string}
+ */
+export function build_basic_auth(username, password) {
+    let deferred3_0;
+    let deferred3_1;
+    try {
+        const ptr0 = passStringToWasm0(username, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ptr1 = passStringToWasm0(password, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len1 = WASM_VECTOR_LEN;
+        const ret = wasm.build_basic_auth(ptr0, len0, ptr1, len1);
+        deferred3_0 = ret[0];
+        deferred3_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
+    }
+}
+
+/**
+ * Build a URL with percent-encoded query parameters.
+ * params_json: JSON array of {key, value, enabled} objects.
+ * Returns the full URL string.
+ * @param {string} base_url
+ * @param {string} params_json
+ * @returns {string}
+ */
+export function build_url_with_params(base_url, params_json) {
+    let deferred3_0;
+    let deferred3_1;
+    try {
+        const ptr0 = passStringToWasm0(base_url, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ptr1 = passStringToWasm0(params_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len1 = WASM_VECTOR_LEN;
+        const ret = wasm.build_url_with_params(ptr0, len0, ptr1, len1);
+        deferred3_0 = ret[0];
+        deferred3_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
+    }
+}
+
+/**
+ * Encode form data pairs as application/x-www-form-urlencoded.
+ * pairs_json: JSON array of {key, value, enabled} objects.
+ * @param {string} pairs_json
+ * @returns {string}
+ */
+export function encode_form_data(pairs_json) {
+    let deferred2_0;
+    let deferred2_1;
+    try {
+        const ptr0 = passStringToWasm0(pairs_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.encode_form_data(ptr0, len0);
+        deferred2_0 = ret[0];
+        deferred2_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
+    }
+}
+
+/**
  * Find all variable names used in a string.
  * Returns JSON array of variable names.
  * @param {string} text
@@ -156,6 +226,49 @@ export function json_validate(json_str) {
     const len0 = WASM_VECTOR_LEN;
     const ret = wasm.json_validate(ptr0, len0);
     return ret !== 0;
+}
+
+/**
+ * Parse Set-Cookie response headers into structured cookie objects.
+ * headers_json: JSON object of response headers (key → value).
+ * Returns JSON array of {name, value, path?, domain?, expires?, maxAge?, secure?, httpOnly?, sameSite?}.
+ * @param {string} headers_json
+ * @returns {string}
+ */
+export function parse_cookies(headers_json) {
+    let deferred2_0;
+    let deferred2_1;
+    try {
+        const ptr0 = passStringToWasm0(headers_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.parse_cookies(ptr0, len0);
+        deferred2_0 = ret[0];
+        deferred2_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
+    }
+}
+
+/**
+ * Parse query parameters from a URL string.
+ * Returns a JSON array of {key, value} objects.
+ * @param {string} url
+ * @returns {string}
+ */
+export function parse_query_params(url) {
+    let deferred2_0;
+    let deferred2_1;
+    try {
+        const ptr0 = passStringToWasm0(url, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.parse_query_params(ptr0, len0);
+        deferred2_0 = ret[0];
+        deferred2_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
+    }
 }
 
 /**
