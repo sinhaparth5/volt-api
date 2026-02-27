@@ -72,7 +72,7 @@ A high-performance, cross-platform API client built with Go, React, and Rust/WAS
 
 ## Download
 
-Go to the [Releases](../../releases) page and download the binary for your platform:
+Go to the [Releases](https://github.com/sinhaparth5/volt-api/releases) page and download the binary for your platform:
 
 | Platform | File |
 |----------|------|
@@ -82,6 +82,8 @@ Go to the [Releases](../../releases) page and download the binary for your platf
 | macOS (Apple Silicon) | `volt-api-darwin-arm64.dmg` |
 | Linux (64-bit) | `volt-api-linux-amd64` |
 | Linux (ARM) | `volt-api-linux-arm64` |
+
+> **Note:** Windows builds may show a SmartScreen warning as the executable is currently unsigned. Click "More info → Run anyway" to proceed. macOS users may need to right-click → Open to bypass Gatekeeper on the first launch.
 
 ---
 
@@ -111,7 +113,7 @@ curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
 ```bash
 # Clone the repo
-git clone https://github.com/your-username/volt-api.git
+git clone https://github.com/sinhaparth5/volt-api.git
 cd volt-api
 
 # Build WASM core + app in one command
@@ -141,11 +143,11 @@ wails dev
 | UI | React + TypeScript + Tailwind | Interface, state management |
 | Bridge | Wails v2 | Native window, Go ↔ JS bindings |
 | Backend | Go | HTTP client, security, business logic |
-| Performance | Rust → WASM | Variable substitution, JSON formatting, assertions |
+| Performance | Rust → WASM | Variable substitution, JSON formatting, URL encoding, assertions |
 | Storage | SQLite | Request history, collections, environments |
 | Theme | Catppuccin | Colour palette (Macchiato / Latte) |
 
-The WASM core handles all regex-heavy and JSON operations in the browser thread, keeping the UI fast even on large (50MB) responses.
+The WASM core handles all regex-heavy, JSON, and URL encoding operations in the browser thread, keeping the UI fast even on large (50MB) responses.
 
 ---
 
@@ -180,6 +182,39 @@ volt-api/
 
 ---
 
+## Code Signing Policy
+
+Free code signing provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org).
+
+### Team Roles
+
+| Role | Members |
+|------|---------|
+| Committer & Reviewer | [sinhaparth5](https://github.com/sinhaparth5) |
+| Approver | [sinhaparth5](https://github.com/sinhaparth5) |
+
+### Signing Policy
+
+- Only binaries built directly from the source code in this repository are signed.
+- Every release requires manual approval before signing is performed.
+- All signed builds are produced by an automated CI pipeline from the tagged source.
+- No third-party or modified upstream binaries are signed under this project's certificate.
+
+---
+
+## Privacy Policy
+
+Volt API does not collect, transmit, or store any user data on external servers.
+
+- **No telemetry** — no usage analytics or crash reports are sent anywhere.
+- **Local storage only** — all request history, collections, and environments are stored in a local SQLite database on your machine.
+- **Network requests** — the application makes HTTP requests only to URLs explicitly entered by the user.
+- **No bundled tracking** — no third-party tracking libraries are included.
+
+This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it.
+
+---
+
 ## License
 
-MIT © 2025 Volt API
+MIT © 2026 Parth Sinha — see [LICENSE](LICENSE) for details.
