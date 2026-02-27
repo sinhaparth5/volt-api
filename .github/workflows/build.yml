@@ -39,7 +39,7 @@ jobs:
         run: wails build -clean -platform windows/amd64 -ldflags="-s -w" -o volt-api-windows-amd64.exe
 
       - name: Build Windows arm64
-        run: wails build -clean -platform windows/arm64 -ldflags="-s -w" -o volt-api-windows-arm64.exe
+        run: wails build -platform windows/arm64 -ldflags="-s -w" -o volt-api-windows-arm64.exe
 
       - name: Generate Checksums
         shell: pwsh
