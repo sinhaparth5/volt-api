@@ -1,4 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import design1 from "./assets/images/designs/design-1.webp";
+import design2 from "./assets/images/designs/design-2.webp";
+import design3 from "./assets/images/designs/design-3.webp";
+import design4 from "./assets/images/designs/design-4.webp";
 import { SendRequest, LoadHistoryItem, LoadSavedRequest, GetActiveVariables } from "../wailsjs/go/app/App";
 import { EventsOn, EventsOff } from "../wailsjs/runtime/runtime";
 import { app } from "../wailsjs/go/models";
@@ -438,7 +442,15 @@ function App() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-ctp-base text-ctp-text font-mono text-sm">
+    <div className="relative flex flex-col h-screen bg-ctp-base text-ctp-text font-mono text-sm overflow-hidden">
+      {/* Mehendi overlay decorations — above content, screen blend makes black invisible */}
+      <img src={design1} alt="" aria-hidden="true" className="pointer-events-none select-none absolute -top-16 -right-16 w-80 h-80 opacity-[0.12] mix-blend-screen rotate-12 z-40" />
+      <img src={design2} alt="" aria-hidden="true" className="pointer-events-none select-none absolute -bottom-20 -left-20 w-96 h-96 opacity-[0.12] mix-blend-screen -rotate-12 z-40" />
+      <img src={design3} alt="" aria-hidden="true" className="pointer-events-none select-none absolute -bottom-10 -right-10 w-72 h-72 opacity-[0.08] mix-blend-screen rotate-6 z-40" />
+      <img src={design4} alt="" aria-hidden="true" className="pointer-events-none select-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] opacity-[0.05] mix-blend-screen z-40" />
+
+      {/* Content layer */}
+      <div className="relative z-10 flex flex-col flex-1 overflow-hidden">
       {/* Custom Title Bar - spans full width at top */}
       <TitleBar
         tabs={tabs}
@@ -538,6 +550,7 @@ function App() {
           />
         </ErrorBoundary>
         </main>
+      </div>
       </div>
 
       <SaveRequestModal
