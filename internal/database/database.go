@@ -19,46 +19,41 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-// Compression prefix for identifying compressed bodies
 const compressedPrefix = "gzip:"
 
-// Minimum size to compress (smaller bodies don't benefit from compression)
 const minCompressSize = 1024
 
-// compressBody compresses a string using gzip and returns base64-encoded result with prefix
 func compressBody(body string) string {
 	if len(body) < minCompressSize {
-		return body // Don't compress small bodies
+		return body
 	}
 
 	var buf bytes.Buffer
 	gz := gzip.NewWriter(&buf)
 	if _, err := gz.Write([]byte(body)); err != nil {
-		return body // Return original on error
+		return body
 	}
 	if err := gz.Close(); err != nil {
 		return body
 	}
 
-	// Only use compression if it actually saves space
 	compressed := compressedPrefix + base64.StdEncoding.EncodeToString(buf.Bytes())
 	if len(compressed) >= len(body) {
-		return body // Compression didn't help
+		return body
 	}
 
 	return compressed
 }
 
-// decompressBody decompresses a gzip+base64 encoded string, or returns original if not compressed
 func decompressBody(body string) string {
 	if !strings.HasPrefix(body, compressedPrefix) {
-		return body // Not compressed, return as-is (backward compatible)
+		return body
 	}
 
 	encoded := strings.TrimPrefix(body, compressedPrefix)
 	compressed, err := base64.StdEncoding.DecodeString(encoded)
 	if err != nil {
-		return body // Return as-is on decode error
+		return body
 	}
 
 	gz, err := gzip.NewReader(bytes.NewReader(compressed))
@@ -75,7 +70,6 @@ func decompressBody(body string) string {
 	return string(decompressed)
 }
 
-// HistoryItem represents a saved request in history
 type HistoryItem struct {
 	ID         string            `json:"id"`
 	Method     string            `json:"method"`
@@ -87,7 +81,6 @@ type HistoryItem struct {
 	CreatedAt  int64             `json:"createdAt"`
 }
 
-// Collection represents a folder for organizing saved requests
 type Collection struct {
 	ID        string `json:"id"`
 	Name      string `json:"name"`
@@ -95,7 +88,6 @@ type Collection struct {
 	UpdatedAt int64  `json:"updatedAt"`
 }
 
-// SavedRequest represents a request saved to a collection
 type SavedRequest struct {
 	ID           string            `json:"id"`
 	CollectionID string            `json:"collectionId"`
@@ -108,13 +100,11 @@ type SavedRequest struct {
 	UpdatedAt    int64             `json:"updatedAt"`
 }
 
-// CollectionExport represents a collection with its requests for export/import
 type CollectionExport struct {
 	Name     string         `json:"name"`
 	Requests []SavedRequest `json:"requests"`
 }
 
-// Environment represents a named environment (e.g., Dev, Staging, Prod)
 type Environment struct {
 	ID        string `json:"id"`
 	Name      string `json:"name"`
@@ -123,7 +113,6 @@ type Environment struct {
 	UpdatedAt int64  `json:"updatedAt"`
 }
 
-// EnvironmentVariable represents a variable within an environment
 type EnvironmentVariable struct {
 	ID            string `json:"id"`
 	EnvironmentID string `json:"environmentId"`
@@ -134,18 +123,15 @@ type EnvironmentVariable struct {
 	UpdatedAt     int64  `json:"updatedAt"`
 }
 
-// EnvironmentExport represents an environment with its variables for export/import
 type EnvironmentExport struct {
 	Name      string                `json:"name"`
 	Variables []EnvironmentVariable `json:"variables"`
 }
 
-// Database handles SQLite operations for request history
 type Database struct {
 	db *sql.DB
-	mu sync.RWMutex // Protect concurrent access
+	mu sync.RWMutex
 
-	// Prepared statements for better performance
 	stmtInsert    *sql.Stmt
 	stmtGetAll    *sql.Stmt
 	stmtGetByID   *sql.Stmt
@@ -153,7 +139,6 @@ type Database struct {
 	stmtDeleteAll *sql.Stmt
 }
 
-// getDataDir returns the appropriate data directory for the current OS
 func getDataDir() (string, error) {
 	var baseDir string
 
@@ -169,7 +154,7 @@ func getDataDir() (string, error) {
 			return "", err
 		}
 		baseDir = filepath.Join(homeDir, "Library", "Application Support")
-	default: // Linux and others
+	default:
 		baseDir = os.Getenv("XDG_DATA_HOME")
 		if baseDir == "" {
 			homeDir, err := os.UserHomeDir()
@@ -189,7 +174,6 @@ func getDataDir() (string, error) {
 	return dataDir, nil
 }
 
-// New creates and initializes the SQLite database with optimizations
 func New() (*Database, error) {
 	dataDir, err := getDataDir()
 	if err != nil {
@@ -198,18 +182,15 @@ func New() (*Database, error) {
 
 	dbPath := filepath.Join(dataDir, "history.db")
 
-	// Open with optimized settings
 	db, err := sql.Open("sqlite", dbPath+"?_journal_mode=WAL&_synchronous=NORMAL&_cache_size=10000")
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
-	// Connection pool settings for better performance
-	db.SetMaxOpenConns(1) // SQLite works best with single connection
+	db.SetMaxOpenConns(1)
 	db.SetMaxIdleConns(1)
 	db.SetConnMaxLifetime(time.Hour)
 
-	// Create tables
 	if err := createTables(db); err != nil {
 		db.Close()
 		return nil, err
@@ -217,7 +198,6 @@ func New() (*Database, error) {
 
 	d := &Database{db: db}
 
-	// Prepare statements for better performance
 	if err := d.prepareStatements(); err != nil {
 		db.Close()
 		return nil, err
@@ -288,7 +268,6 @@ func createTables(db *sql.DB) error {
 		CREATE INDEX IF NOT EXISTS idx_env_vars_environment ON environment_variables(environment_id);
 	`
 
-	// Enable foreign keys
 	_, err := db.Exec("PRAGMA foreign_keys = ON")
 	if err != nil {
 		return fmt.Errorf("failed to enable foreign keys: %w", err)
@@ -345,7 +324,6 @@ func (d *Database) prepareStatements() error {
 	return nil
 }
 
-// Close closes the database connection
 func (d *Database) Close() error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -372,7 +350,6 @@ func (d *Database) Close() error {
 	return nil
 }
 
-// sensitiveHeaders lists headers that should not be stored in history
 var sensitiveHeaders = map[string]bool{
 	"authorization":       true,
 	"cookie":              true,
@@ -385,14 +362,12 @@ var sensitiveHeaders = map[string]bool{
 	"proxy-authorization": true,
 }
 
-// filterSensitiveHeaders removes sensitive headers before storing
 func filterSensitiveHeaders(headers map[string]string) map[string]string {
 	if headers == nil {
 		return nil
 	}
 	filtered := make(map[string]string, len(headers))
 	for k, v := range headers {
-		// Check lowercase version of header name
 		if !sensitiveHeaders[strings.ToLower(k)] {
 			filtered[k] = v
 		}
@@ -400,7 +375,14 @@ func filterSensitiveHeaders(headers map[string]string) map[string]string {
 	return filtered
 }
 
-// SaveRequest saves a request and response to history
+func unmarshalHeaders(headersJSON string) map[string]string {
+	headers := make(map[string]string)
+	if headersJSON != "" {
+		_ = json.Unmarshal([]byte(headersJSON), &headers)
+	}
+	return headers
+}
+
 func (d *Database) SaveRequest(method, url string, headers map[string]string, body string, statusCode int, timingMs int64) (string, error) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -408,14 +390,12 @@ func (d *Database) SaveRequest(method, url string, headers map[string]string, bo
 	id := uuid.New().String()
 	createdAt := time.Now().Unix()
 
-	// Filter out sensitive headers before saving
 	safeHeaders := filterSensitiveHeaders(headers)
 	headersJSON, err := json.Marshal(safeHeaders)
 	if err != nil {
 		headersJSON = []byte("{}")
 	}
 
-	// Compress body to save storage space
 	compressedBody := compressBody(body)
 
 	_, err = d.stmtInsert.Exec(id, method, url, string(headersJSON), compressedBody, statusCode, timingMs, createdAt)
@@ -426,7 +406,6 @@ func (d *Database) SaveRequest(method, url string, headers map[string]string, bo
 	return id, nil
 }
 
-// GetHistory retrieves request history with optional search filter
 func (d *Database) GetHistory(limit int, search string) ([]HistoryItem, error) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
@@ -435,7 +414,6 @@ func (d *Database) GetHistory(limit int, search string) ([]HistoryItem, error) {
 	var err error
 
 	if search != "" {
-		// Use dynamic query for search
 		query := `
 			SELECT id, method, url, headers, body, status_code, timing_ms, created_at
 			FROM history
@@ -465,15 +443,8 @@ func (d *Database) GetHistory(limit int, search string) ([]HistoryItem, error) {
 			continue
 		}
 
-		// Decompress body (backward compatible with uncompressed entries)
 		item.Body = decompressBody(compressedBody)
-
-		if headersJSON != "" {
-			json.Unmarshal([]byte(headersJSON), &item.Headers)
-		}
-		if item.Headers == nil {
-			item.Headers = make(map[string]string)
-		}
+		item.Headers = unmarshalHeaders(headersJSON)
 
 		items = append(items, item)
 	}
@@ -481,7 +452,6 @@ func (d *Database) GetHistory(limit int, search string) ([]HistoryItem, error) {
 	return items, nil
 }
 
-// GetHistoryItem retrieves a single history item by ID
 func (d *Database) GetHistoryItem(id string) (*HistoryItem, error) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
@@ -495,20 +465,12 @@ func (d *Database) GetHistoryItem(id string) (*HistoryItem, error) {
 		return nil, fmt.Errorf("failed to get history item: %w", err)
 	}
 
-	// Decompress body (backward compatible with uncompressed entries)
 	item.Body = decompressBody(compressedBody)
-
-	if headersJSON != "" {
-		json.Unmarshal([]byte(headersJSON), &item.Headers)
-	}
-	if item.Headers == nil {
-		item.Headers = make(map[string]string)
-	}
+	item.Headers = unmarshalHeaders(headersJSON)
 
 	return &item, nil
 }
 
-// DeleteHistoryItem removes a single history entry
 func (d *Database) DeleteHistoryItem(id string) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -520,7 +482,6 @@ func (d *Database) DeleteHistoryItem(id string) error {
 	return nil
 }
 
-// ClearHistory removes all history entries
 func (d *Database) ClearHistory() error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -532,11 +493,6 @@ func (d *Database) ClearHistory() error {
 	return nil
 }
 
-// ============================================================================
-// Collections Methods
-// ============================================================================
-
-// CreateCollection creates a new collection and returns its ID
 func (d *Database) CreateCollection(name string) (string, error) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -555,7 +511,6 @@ func (d *Database) CreateCollection(name string) (string, error) {
 	return id, nil
 }
 
-// GetCollections returns all collections
 func (d *Database) GetCollections() ([]Collection, error) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
@@ -578,7 +533,6 @@ func (d *Database) GetCollections() ([]Collection, error) {
 	return collections, nil
 }
 
-// GetCollection returns a single collection by ID
 func (d *Database) GetCollection(id string) (*Collection, error) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
@@ -593,7 +547,6 @@ func (d *Database) GetCollection(id string) (*Collection, error) {
 	return &c, nil
 }
 
-// RenameCollection updates a collection's name
 func (d *Database) RenameCollection(id, name string) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -606,7 +559,6 @@ func (d *Database) RenameCollection(id, name string) error {
 	return nil
 }
 
-// DeleteCollection removes a collection and all its saved requests (via CASCADE)
 func (d *Database) DeleteCollection(id string) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -618,11 +570,6 @@ func (d *Database) DeleteCollection(id string) error {
 	return nil
 }
 
-// ============================================================================
-// Saved Requests Methods
-// ============================================================================
-
-// SaveRequestToCollection saves a request to a collection
 func (d *Database) SaveRequestToCollection(collectionID, name, method, url string, headers map[string]string, body string) (string, error) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -646,7 +593,6 @@ func (d *Database) SaveRequestToCollection(collectionID, name, method, url strin
 	return id, nil
 }
 
-// GetCollectionRequests returns all requests in a collection
 func (d *Database) GetCollectionRequests(collectionID string) ([]SavedRequest, error) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
@@ -667,19 +613,13 @@ func (d *Database) GetCollectionRequests(collectionID string) ([]SavedRequest, e
 		if err := rows.Scan(&r.ID, &r.CollectionID, &r.Name, &r.Method, &r.URL, &headersJSON, &r.Body, &r.CreatedAt, &r.UpdatedAt); err != nil {
 			continue
 		}
-		if headersJSON != "" {
-			json.Unmarshal([]byte(headersJSON), &r.Headers)
-		}
-		if r.Headers == nil {
-			r.Headers = make(map[string]string)
-		}
+		r.Headers = unmarshalHeaders(headersJSON)
 		requests = append(requests, r)
 	}
 
 	return requests, nil
 }
 
-// GetSavedRequest returns a single saved request by ID
 func (d *Database) GetSavedRequest(id string) (*SavedRequest, error) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
@@ -694,17 +634,11 @@ func (d *Database) GetSavedRequest(id string) (*SavedRequest, error) {
 		return nil, fmt.Errorf("failed to get saved request: %w", err)
 	}
 
-	if headersJSON != "" {
-		json.Unmarshal([]byte(headersJSON), &r.Headers)
-	}
-	if r.Headers == nil {
-		r.Headers = make(map[string]string)
-	}
+	r.Headers = unmarshalHeaders(headersJSON)
 
 	return &r, nil
 }
 
-// UpdateSavedRequest updates a saved request
 func (d *Database) UpdateSavedRequest(id, name, method, url string, headers map[string]string, body string) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -725,7 +659,6 @@ func (d *Database) UpdateSavedRequest(id, name, method, url string, headers map[
 	return nil
 }
 
-// MoveSavedRequest moves a saved request to a different collection
 func (d *Database) MoveSavedRequest(id, newCollectionID string) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -738,7 +671,6 @@ func (d *Database) MoveSavedRequest(id, newCollectionID string) error {
 	return nil
 }
 
-// DeleteSavedRequest removes a saved request
 func (d *Database) DeleteSavedRequest(id string) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -750,11 +682,6 @@ func (d *Database) DeleteSavedRequest(id string) error {
 	return nil
 }
 
-// ============================================================================
-// Export/Import Methods
-// ============================================================================
-
-// ExportCollection exports a collection with all its requests
 func (d *Database) ExportCollection(id string) (*CollectionExport, error) {
 	collection, err := d.GetCollection(id)
 	if err != nil {
@@ -772,19 +699,15 @@ func (d *Database) ExportCollection(id string) (*CollectionExport, error) {
 	}, nil
 }
 
-// ImportCollection imports a collection from export data
 func (d *Database) ImportCollection(data *CollectionExport) (string, error) {
-	// Create the collection
 	collectionID, err := d.CreateCollection(data.Name)
 	if err != nil {
 		return "", err
 	}
 
-	// Import all requests
 	for _, req := range data.Requests {
 		_, err := d.SaveRequestToCollection(collectionID, req.Name, req.Method, req.URL, req.Headers, req.Body)
 		if err != nil {
-			// Continue even if one request fails
 			continue
 		}
 	}
@@ -792,11 +715,6 @@ func (d *Database) ImportCollection(data *CollectionExport) (string, error) {
 	return collectionID, nil
 }
 
-// ============================================================================
-// Environment Methods
-// ============================================================================
-
-// CreateEnvironment creates a new environment
 func (d *Database) CreateEnvironment(name string) (string, error) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -815,7 +733,6 @@ func (d *Database) CreateEnvironment(name string) (string, error) {
 	return id, nil
 }
 
-// GetEnvironments returns all environments
 func (d *Database) GetEnvironments() ([]Environment, error) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
@@ -840,7 +757,6 @@ func (d *Database) GetEnvironments() ([]Environment, error) {
 	return envs, nil
 }
 
-// GetEnvironment returns a single environment by ID
 func (d *Database) GetEnvironment(id string) (*Environment, error) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
@@ -857,7 +773,6 @@ func (d *Database) GetEnvironment(id string) (*Environment, error) {
 	return &e, nil
 }
 
-// GetActiveEnvironment returns the currently active environment
 func (d *Database) GetActiveEnvironment() (*Environment, error) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
@@ -868,7 +783,7 @@ func (d *Database) GetActiveEnvironment() (*Environment, error) {
 		Scan(&e.ID, &e.Name, &isActive, &e.CreatedAt, &e.UpdatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, nil // No active environment
+			return nil, nil
 		}
 		return nil, fmt.Errorf("failed to get active environment: %w", err)
 	}
@@ -877,18 +792,15 @@ func (d *Database) GetActiveEnvironment() (*Environment, error) {
 	return &e, nil
 }
 
-// SetActiveEnvironment sets an environment as active (only one can be active at a time)
 func (d *Database) SetActiveEnvironment(id string) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	// Deactivate all environments first
 	_, err := d.db.Exec("UPDATE environments SET is_active = 0")
 	if err != nil {
 		return fmt.Errorf("failed to deactivate environments: %w", err)
 	}
 
-	// Activate the selected environment (if id is not empty)
 	if id != "" {
 		now := time.Now().Unix()
 		_, err = d.db.Exec("UPDATE environments SET is_active = 1, updated_at = ? WHERE id = ?", now, id)
@@ -900,7 +812,6 @@ func (d *Database) SetActiveEnvironment(id string) error {
 	return nil
 }
 
-// RenameEnvironment updates an environment's name
 func (d *Database) RenameEnvironment(id, name string) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -913,7 +824,6 @@ func (d *Database) RenameEnvironment(id, name string) error {
 	return nil
 }
 
-// DeleteEnvironment removes an environment and all its variables (via CASCADE)
 func (d *Database) DeleteEnvironment(id string) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -925,11 +835,6 @@ func (d *Database) DeleteEnvironment(id string) error {
 	return nil
 }
 
-// ============================================================================
-// Environment Variables Methods
-// ============================================================================
-
-// SetEnvironmentVariable creates or updates a variable in an environment
 func (d *Database) SetEnvironmentVariable(environmentID, key, value string, enabled bool) (string, error) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -940,7 +845,6 @@ func (d *Database) SetEnvironmentVariable(environmentID, key, value string, enab
 		enabledInt = 1
 	}
 
-	// Try to update first
 	result, err := d.db.Exec(
 		"UPDATE environment_variables SET value = ?, enabled = ?, updated_at = ? WHERE environment_id = ? AND key = ?",
 		value, enabledInt, now, environmentID, key,
@@ -951,7 +855,6 @@ func (d *Database) SetEnvironmentVariable(environmentID, key, value string, enab
 
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected > 0 {
-		// Variable was updated, get its ID
 		var id string
 		err := d.db.QueryRow("SELECT id FROM environment_variables WHERE environment_id = ? AND key = ?", environmentID, key).Scan(&id)
 		if err != nil {
@@ -960,7 +863,6 @@ func (d *Database) SetEnvironmentVariable(environmentID, key, value string, enab
 		return id, nil
 	}
 
-	// Insert new variable
 	id := uuid.New().String()
 	_, err = d.db.Exec(
 		"INSERT INTO environment_variables (id, environment_id, key, value, enabled, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
@@ -973,7 +875,6 @@ func (d *Database) SetEnvironmentVariable(environmentID, key, value string, enab
 	return id, nil
 }
 
-// GetEnvironmentVariables returns all variables for an environment
 func (d *Database) GetEnvironmentVariables(environmentID string) ([]EnvironmentVariable, error) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
@@ -1001,7 +902,6 @@ func (d *Database) GetEnvironmentVariables(environmentID string) ([]EnvironmentV
 	return vars, nil
 }
 
-// GetActiveEnvironmentVariables returns all enabled variables for the active environment as a map
 func (d *Database) GetActiveEnvironmentVariables() (map[string]string, error) {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
@@ -1029,7 +929,6 @@ func (d *Database) GetActiveEnvironmentVariables() (map[string]string, error) {
 	return vars, nil
 }
 
-// DeleteEnvironmentVariable removes a variable
 func (d *Database) DeleteEnvironmentVariable(id string) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -1041,11 +940,6 @@ func (d *Database) DeleteEnvironmentVariable(id string) error {
 	return nil
 }
 
-// ============================================================================
-// Environment Export/Import Methods
-// ============================================================================
-
-// ExportEnvironment exports an environment with all its variables
 func (d *Database) ExportEnvironment(id string) (*EnvironmentExport, error) {
 	env, err := d.GetEnvironment(id)
 	if err != nil {
@@ -1063,19 +957,15 @@ func (d *Database) ExportEnvironment(id string) (*EnvironmentExport, error) {
 	}, nil
 }
 
-// ImportEnvironment imports an environment from export data
 func (d *Database) ImportEnvironment(data *EnvironmentExport) (string, error) {
-	// Create the environment
 	envID, err := d.CreateEnvironment(data.Name)
 	if err != nil {
 		return "", err
 	}
 
-	// Import all variables
 	for _, v := range data.Variables {
 		_, err := d.SetEnvironmentVariable(envID, v.Key, v.Value, v.Enabled)
 		if err != nil {
-			// Continue even if one variable fails
 			continue
 		}
 	}

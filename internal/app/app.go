@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -20,36 +21,32 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-// Build-time variables (set via ldflags)
 var (
-	Version   = "dev"
-	BuildTime = "unknown"
+	Version                   = "dev"
+	BuildTime                 = "unknown"
+	errDatabaseNotInitialized = errors.New("database not initialized")
 )
 
-// Security limits
 const (
 	MaxRequestBodySize  = 10 * 1024 * 1024 // 10MB max request body
 	MaxResponseBodySize = 50 * 1024 * 1024 // 50MB max response body
 	DefaultTimeout      = 30 * time.Second
 	MaxTimeout          = 5 * time.Minute
-	StreamingThreshold  = 1 * 1024 * 1024  // 1MB: emit progress events above this size
+	StreamingThreshold  = 1 * 1024 * 1024 // 1MB: emit progress events above this size
 )
 
-// App is the main application struct
 type App struct {
 	ctx        context.Context
 	httpClient *http.Client
 	db         *database.Database
 }
 
-// New creates a new App instance
 func New() *App {
 	return &App{
 		httpClient: createSecureHTTPClient(),
 	}
 }
 
-// createSecureHTTPClient creates an HTTP client with security best practices
 func createSecureHTTPClient() *http.Client {
 	return &http.Client{
 		Timeout: DefaultTimeout,
@@ -86,19 +83,15 @@ func createSecureHTTPClient() *http.Client {
 	}
 }
 
-// createCustomHTTPClient creates an HTTP client with request-specific settings (proxy, SSL, etc.)
 func (a *App) createCustomHTTPClient(request HTTPRequest, timeout time.Duration) *http.Client {
-	// Start with TLS config
 	tlsConfig := &tls.Config{
 		MinVersion: tls.VersionTLS12,
 	}
 
-	// Handle SSL verification skip
 	if request.SkipSSLVerify {
 		tlsConfig.InsecureSkipVerify = true
 	}
 
-	// Handle client certificates
 	if request.ClientCertPath != "" && request.ClientKeyPath != "" {
 		cert, err := tls.LoadX509KeyPair(request.ClientCertPath, request.ClientKeyPath)
 		if err == nil {
@@ -106,7 +99,6 @@ func (a *App) createCustomHTTPClient(request HTTPRequest, timeout time.Duration)
 		}
 	}
 
-	// Create transport
 	transport := &http.Transport{
 		TLSClientConfig: tlsConfig,
 		DialContext: (&net.Dialer{
@@ -122,7 +114,6 @@ func (a *App) createCustomHTTPClient(request HTTPRequest, timeout time.Duration)
 		DisableCompression:    false,
 	}
 
-	// Handle proxy
 	if request.ProxyURL != "" {
 		proxyURL, err := url.Parse(request.ProxyURL)
 		if err == nil {
@@ -130,19 +121,16 @@ func (a *App) createCustomHTTPClient(request HTTPRequest, timeout time.Duration)
 		}
 	}
 
-	// Determine max redirects
 	maxRedirects := 10
 	if request.MaxRedirects > 0 {
 		maxRedirects = request.MaxRedirects
 	}
 
-	// Create client with redirect handling
 	client := &http.Client{
 		Timeout:   timeout,
 		Transport: transport,
 	}
 
-	// Handle redirect settings
 	if !request.FollowRedirects {
 		client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
@@ -159,11 +147,9 @@ func (a *App) createCustomHTTPClient(request HTTPRequest, timeout time.Duration)
 	return client
 }
 
-// isBinaryContentType checks if the content type indicates binary data
 func isBinaryContentType(contentType string) bool {
 	ct := strings.ToLower(contentType)
 
-	// Text types that should not be base64 encoded
 	textTypes := []string{
 		"text/",
 		"application/json",
@@ -178,7 +164,6 @@ func isBinaryContentType(contentType string) bool {
 		}
 	}
 
-	// Binary types that should be base64 encoded
 	binaryTypes := []string{
 		"image/",
 		"audio/",
@@ -195,15 +180,12 @@ func isBinaryContentType(contentType string) bool {
 		}
 	}
 
-	// If content type is empty or unknown, check if it's printable
 	return false
 }
 
-// Startup is called when the app starts
 func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
 
-	// Initialize database
 	db, err := database.New()
 	if err != nil {
 		fmt.Printf("Warning: Could not initialize database: %v\n", err)
@@ -212,14 +194,12 @@ func (a *App) Startup(ctx context.Context) {
 	a.db = db
 }
 
-// Shutdown is called when the app closes
 func (a *App) Shutdown(ctx context.Context) {
 	if a.db != nil {
 		a.db.Close()
 	}
 }
 
-// GetAppInfo returns application version and build info
 func (a *App) GetAppInfo() AppInfo {
 	return AppInfo{
 		Version:   Version,
@@ -227,7 +207,6 @@ func (a *App) GetAppInfo() AppInfo {
 	}
 }
 
-// GetHistory returns recent request history
 func (a *App) GetHistory(limit int, search string) []HistoryItem {
 	if a.db == nil {
 		return []HistoryItem{}
@@ -241,7 +220,6 @@ func (a *App) GetHistory(limit int, search string) []HistoryItem {
 		return []HistoryItem{}
 	}
 
-	// Convert database.HistoryItem to app.HistoryItem
 	result := make([]HistoryItem, len(items))
 	for i, item := range items {
 		result[i] = HistoryItem{
@@ -258,7 +236,6 @@ func (a *App) GetHistory(limit int, search string) []HistoryItem {
 	return result
 }
 
-// LoadHistoryItem retrieves full details of a history item
 func (a *App) LoadHistoryItem(id string) *HistoryItem {
 	if a.db == nil {
 		return nil
@@ -281,43 +258,36 @@ func (a *App) LoadHistoryItem(id string) *HistoryItem {
 	}
 }
 
-// DeleteHistoryItem removes a single history entry
 func (a *App) DeleteHistoryItem(id string) error {
 	if a.db == nil {
-		return fmt.Errorf("database not initialized")
+		return errDatabaseNotInitialized
 	}
 	return a.db.DeleteHistoryItem(id)
 }
 
-// ClearHistory removes all history entries
 func (a *App) ClearHistory() error {
 	if a.db == nil {
-		return fmt.Errorf("database not initialized")
+		return errDatabaseNotInitialized
 	}
 	return a.db.ClearHistory()
 }
 
-// SendRequest makes an HTTP request and returns the response
 func (a *App) SendRequest(request HTTPRequest) HTTPResponse {
 	startTime := time.Now()
 
-	// Validate URL
 	if request.URL == "" {
 		return HTTPResponse{Error: "URL is required"}
 	}
 
-	// Parse and validate URL
 	parsedURL, err := url.Parse(request.URL)
 	if err != nil {
 		return HTTPResponse{Error: fmt.Sprintf("Invalid URL: %v", err)}
 	}
 
-	// Ensure scheme is http or https
 	if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
 		return HTTPResponse{Error: "URL must start with http:// or https://"}
 	}
 
-	// Validate method
 	validMethods := map[string]bool{
 		"GET": true, "POST": true, "PUT": true,
 		"DELETE": true, "PATCH": true, "HEAD": true, "OPTIONS": true,
@@ -330,18 +300,15 @@ func (a *App) SendRequest(request HTTPRequest) HTTPResponse {
 		return HTTPResponse{Error: "Invalid HTTP method"}
 	}
 
-	// Validate request body size
 	if len(request.Body) > MaxRequestBodySize {
 		return HTTPResponse{Error: fmt.Sprintf("Request body too large (max %d MB)", MaxRequestBodySize/1024/1024)}
 	}
 
-	// Create request body reader
 	var bodyReader io.Reader
 	if request.Body != "" {
 		bodyReader = strings.NewReader(request.Body)
 	}
 
-	// Determine timeout
 	timeout := DefaultTimeout
 	if request.Timeout > 0 {
 		timeout = time.Duration(request.Timeout) * time.Second
@@ -350,20 +317,16 @@ func (a *App) SendRequest(request HTTPRequest) HTTPResponse {
 		}
 	}
 
-	// Create custom HTTP client with request-specific settings
 	httpClient := a.createCustomHTTPClient(request, timeout)
 
-	// Create context with timeout
 	ctx, cancel := context.WithTimeout(a.ctx, timeout)
 	defer cancel()
 
-	// Create HTTP request
 	req, err := http.NewRequestWithContext(ctx, method, request.URL, bodyReader)
 	if err != nil {
 		return HTTPResponse{Error: fmt.Sprintf("Failed to create request: %v", err)}
 	}
 
-	// Add headers
 	for key, value := range request.Headers {
 		lowerKey := strings.ToLower(key)
 		if lowerKey == "host" {
@@ -372,12 +335,10 @@ func (a *App) SendRequest(request HTTPRequest) HTTPResponse {
 		req.Header.Set(key, value)
 	}
 
-	// Set default User-Agent if not provided
 	if req.Header.Get("User-Agent") == "" {
 		req.Header.Set("User-Agent", fmt.Sprintf("Volt-API/%s", Version))
 	}
 
-	// Send request
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		return HTTPResponse{
@@ -387,7 +348,6 @@ func (a *App) SendRequest(request HTTPRequest) HTTPResponse {
 	}
 	defer resp.Body.Close()
 
-	// Read response body, streaming progress events for large payloads
 	bodyBytes, err := a.readResponseBody(resp)
 	if err != nil {
 		return HTTPResponse{
@@ -398,13 +358,11 @@ func (a *App) SendRequest(request HTTPRequest) HTTPResponse {
 		}
 	}
 
-	// Convert response headers to map
 	responseHeaders := make(map[string]string)
 	for key, values := range resp.Header {
 		responseHeaders[key] = strings.Join(values, ", ")
 	}
 
-	// Determine if response is binary and needs base64 encoding
 	contentType := resp.Header.Get("Content-Type")
 	var bodyStr string
 	if isBinaryContentType(contentType) {
@@ -422,7 +380,6 @@ func (a *App) SendRequest(request HTTPRequest) HTTPResponse {
 		ContentLength: resp.ContentLength,
 	}
 
-	// Save to history asynchronously
 	if a.db != nil {
 		go a.db.SaveRequest(method, request.URL, request.Headers, request.Body, resp.StatusCode, response.TimingMs)
 	}
@@ -430,13 +387,11 @@ func (a *App) SendRequest(request HTTPRequest) HTTPResponse {
 	return response
 }
 
-// readResponseBody reads the response body in chunks, emitting response:progress
-// events via the Wails runtime for payloads that exceed StreamingThreshold.
 func (a *App) readResponseBody(resp *http.Response) ([]byte, error) {
-	contentLength := resp.ContentLength // -1 when unknown (chunked transfer, etc.)
-	isLarge := contentLength == -1 || contentLength > StreamingThreshold
+	contentLength := resp.ContentLength
+	isLarge := contentLength > StreamingThreshold
 
-	const chunkSize = 32 * 1024 // 32KB read buffer
+	const chunkSize = 32 * 1024
 	buf := make([]byte, chunkSize)
 	var body bytes.Buffer
 	var totalRead int64
@@ -447,7 +402,6 @@ func (a *App) readResponseBody(resp *http.Response) ([]byte, error) {
 			body.Write(buf[:n])
 			totalRead += int64(n)
 
-			// Promote to streaming once we cross the threshold mid-stream
 			if !isLarge && totalRead > StreamingThreshold {
 				isLarge = true
 			}
@@ -473,11 +427,6 @@ func (a *App) readResponseBody(resp *http.Response) ([]byte, error) {
 	return body.Bytes(), nil
 }
 
-// ============================================================================
-// Collections Methods
-// ============================================================================
-
-// CreateCollection creates a new collection
 func (a *App) CreateCollection(name string) *Collection {
 	if a.db == nil {
 		return nil
@@ -497,7 +446,6 @@ func (a *App) CreateCollection(name string) *Collection {
 	}
 }
 
-// GetCollections returns all collections
 func (a *App) GetCollections() []Collection {
 	if a.db == nil {
 		return []Collection{}
@@ -520,27 +468,20 @@ func (a *App) GetCollections() []Collection {
 	return result
 }
 
-// RenameCollection updates a collection's name
 func (a *App) RenameCollection(id, name string) error {
 	if a.db == nil {
-		return fmt.Errorf("database not initialized")
+		return errDatabaseNotInitialized
 	}
 	return a.db.RenameCollection(id, name)
 }
 
-// DeleteCollection removes a collection and all its saved requests
 func (a *App) DeleteCollection(id string) error {
 	if a.db == nil {
-		return fmt.Errorf("database not initialized")
+		return errDatabaseNotInitialized
 	}
 	return a.db.DeleteCollection(id)
 }
 
-// ============================================================================
-// Saved Requests Methods
-// ============================================================================
-
-// SaveRequestToCollection saves a request to a collection
 func (a *App) SaveRequestToCollection(collectionID string, input SaveRequestInput) *SavedRequest {
 	if a.db == nil {
 		return nil
@@ -565,7 +506,6 @@ func (a *App) SaveRequestToCollection(collectionID string, input SaveRequestInpu
 	}
 }
 
-// GetCollectionRequests returns all requests in a collection
 func (a *App) GetCollectionRequests(collectionID string) []SavedRequest {
 	if a.db == nil {
 		return []SavedRequest{}
@@ -593,7 +533,6 @@ func (a *App) GetCollectionRequests(collectionID string) []SavedRequest {
 	return result
 }
 
-// LoadSavedRequest retrieves full details of a saved request
 func (a *App) LoadSavedRequest(id string) *SavedRequest {
 	if a.db == nil {
 		return nil
@@ -617,54 +556,36 @@ func (a *App) LoadSavedRequest(id string) *SavedRequest {
 	}
 }
 
-// UpdateSavedRequest updates a saved request
 func (a *App) UpdateSavedRequest(id string, input SaveRequestInput) error {
 	if a.db == nil {
-		return fmt.Errorf("database not initialized")
+		return errDatabaseNotInitialized
 	}
 	return a.db.UpdateSavedRequest(id, input.Name, input.Method, input.URL, input.Headers, input.Body)
 }
 
-// MoveSavedRequest moves a saved request to a different collection
 func (a *App) MoveSavedRequest(id, newCollectionID string) error {
 	if a.db == nil {
-		return fmt.Errorf("database not initialized")
+		return errDatabaseNotInitialized
 	}
 	return a.db.MoveSavedRequest(id, newCollectionID)
 }
 
-// DeleteSavedRequest removes a saved request
 func (a *App) DeleteSavedRequest(id string) error {
 	if a.db == nil {
-		return fmt.Errorf("database not initialized")
+		return errDatabaseNotInitialized
 	}
 	return a.db.DeleteSavedRequest(id)
 }
 
-// ============================================================================
-// Export/Import Methods
-// ============================================================================
-
-// ExportCollection exports a collection using native file dialog
-func (a *App) ExportCollection(id string) error {
-	if a.db == nil {
-		return fmt.Errorf("database not initialized")
-	}
-
-	export, err := a.db.ExportCollection(id)
+func (a *App) exportJSONFile(title, defaultFilename string, payload any) error {
+	data, err := json.MarshalIndent(payload, "", "  ")
 	if err != nil {
 		return err
 	}
 
-	data, err := json.MarshalIndent(export, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	// Open native save dialog
-	filepath, err := runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
-		Title:           "Export Collection",
-		DefaultFilename: export.Name + ".collection.json",
+	path, err := runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
+		Title:           title,
+		DefaultFilename: defaultFilename,
 		Filters: []runtime.FileFilter{
 			{DisplayName: "JSON Files", Pattern: "*.json"},
 		},
@@ -672,17 +593,26 @@ func (a *App) ExportCollection(id string) error {
 	if err != nil {
 		return err
 	}
-
-	// User cancelled
-	if filepath == "" {
+	if path == "" {
 		return nil
 	}
 
-	// Write file
-	return os.WriteFile(filepath, data, 0644)
+	return os.WriteFile(path, data, 0644)
 }
 
-// ImportCollection imports a collection from JSON string
+func (a *App) ExportCollection(id string) error {
+	if a.db == nil {
+		return errDatabaseNotInitialized
+	}
+
+	export, err := a.db.ExportCollection(id)
+	if err != nil {
+		return err
+	}
+
+	return a.exportJSONFile("Export Collection", export.Name+".collection.json", export)
+}
+
 func (a *App) ImportCollection(jsonData string) *Collection {
 	if a.db == nil {
 		return nil
@@ -707,11 +637,6 @@ func (a *App) ImportCollection(jsonData string) *Collection {
 	}
 }
 
-// ============================================================================
-// Environment Methods
-// ============================================================================
-
-// CreateEnvironment creates a new environment
 func (a *App) CreateEnvironment(name string) *Environment {
 	if a.db == nil {
 		return nil
@@ -732,7 +657,6 @@ func (a *App) CreateEnvironment(name string) *Environment {
 	}
 }
 
-// GetEnvironments returns all environments
 func (a *App) GetEnvironments() []Environment {
 	if a.db == nil {
 		return []Environment{}
@@ -756,7 +680,6 @@ func (a *App) GetEnvironments() []Environment {
 	return result
 }
 
-// GetActiveEnvironment returns the currently active environment
 func (a *App) GetActiveEnvironment() *Environment {
 	if a.db == nil {
 		return nil
@@ -776,35 +699,27 @@ func (a *App) GetActiveEnvironment() *Environment {
 	}
 }
 
-// SetActiveEnvironment sets an environment as active
 func (a *App) SetActiveEnvironment(id string) error {
 	if a.db == nil {
-		return fmt.Errorf("database not initialized")
+		return errDatabaseNotInitialized
 	}
 	return a.db.SetActiveEnvironment(id)
 }
 
-// RenameEnvironment updates an environment's name
 func (a *App) RenameEnvironment(id, name string) error {
 	if a.db == nil {
-		return fmt.Errorf("database not initialized")
+		return errDatabaseNotInitialized
 	}
 	return a.db.RenameEnvironment(id, name)
 }
 
-// DeleteEnvironment removes an environment and all its variables
 func (a *App) DeleteEnvironment(id string) error {
 	if a.db == nil {
-		return fmt.Errorf("database not initialized")
+		return errDatabaseNotInitialized
 	}
 	return a.db.DeleteEnvironment(id)
 }
 
-// ============================================================================
-// Environment Variables Methods
-// ============================================================================
-
-// SetEnvironmentVariable creates or updates a variable
 func (a *App) SetEnvironmentVariable(environmentID, key, value string, enabled bool) string {
 	if a.db == nil {
 		return ""
@@ -817,7 +732,6 @@ func (a *App) SetEnvironmentVariable(environmentID, key, value string, enabled b
 	return id
 }
 
-// GetEnvironmentVariables returns all variables for an environment
 func (a *App) GetEnvironmentVariables(environmentID string) []EnvironmentVariable {
 	if a.db == nil {
 		return []EnvironmentVariable{}
@@ -843,7 +757,6 @@ func (a *App) GetEnvironmentVariables(environmentID string) []EnvironmentVariabl
 	return result
 }
 
-// GetActiveVariables returns all enabled variables for the active environment
 func (a *App) GetActiveVariables() map[string]string {
 	if a.db == nil {
 		return map[string]string{}
@@ -856,22 +769,16 @@ func (a *App) GetActiveVariables() map[string]string {
 	return vars
 }
 
-// DeleteEnvironmentVariable removes a variable
 func (a *App) DeleteEnvironmentVariable(id string) error {
 	if a.db == nil {
-		return fmt.Errorf("database not initialized")
+		return errDatabaseNotInitialized
 	}
 	return a.db.DeleteEnvironmentVariable(id)
 }
 
-// ============================================================================
-// Environment Export/Import Methods
-// ============================================================================
-
-// ExportEnvironment exports an environment using native file dialog
 func (a *App) ExportEnvironment(id string) error {
 	if a.db == nil {
-		return fmt.Errorf("database not initialized")
+		return errDatabaseNotInitialized
 	}
 
 	export, err := a.db.ExportEnvironment(id)
@@ -879,33 +786,9 @@ func (a *App) ExportEnvironment(id string) error {
 		return err
 	}
 
-	data, err := json.MarshalIndent(export, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	// Open native save dialog
-	filepath, err := runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
-		Title:           "Export Environment",
-		DefaultFilename: export.Name + ".env.json",
-		Filters: []runtime.FileFilter{
-			{DisplayName: "JSON Files", Pattern: "*.json"},
-		},
-	})
-	if err != nil {
-		return err
-	}
-
-	// User cancelled
-	if filepath == "" {
-		return nil
-	}
-
-	// Write file
-	return os.WriteFile(filepath, data, 0644)
+	return a.exportJSONFile("Export Environment", export.Name+".env.json", export)
 }
 
-// ImportEnvironment imports an environment from JSON string
 func (a *App) ImportEnvironment(jsonData string) *Environment {
 	if a.db == nil {
 		return nil
