@@ -4,6 +4,9 @@ import { Icons } from "./Icons";
 import { RequestTab, getTabDisplayName } from "../utils/tabs";
 import { getMethodColor } from "../utils/helpers";
 
+const DRAG_REGION_STYLE = { WebkitAppRegion: "drag" } as React.CSSProperties;
+const NO_DRAG_REGION_STYLE = { WebkitAppRegion: "no-drag" } as React.CSSProperties;
+
 interface TitleBarProps {
   tabs: RequestTab[];
   activeTabId: string;
@@ -24,26 +27,23 @@ export function TitleBar({
   return (
     <div
       className="h-9 flex items-center bg-ctp-crust border-b border-ctp-surface0 select-none"
-      style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
+      style={DRAG_REGION_STYLE}
     >
-      {/* Logo */}
       <button
         onClick={onLogoClick}
         className="flex items-center gap-2 px-3 h-full hover:bg-ctp-surface0/50"
-        style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
+        style={NO_DRAG_REGION_STYLE}
         title="About Volt-API"
       >
         <AppIcon size={14} className="text-ctp-mauve" />
         <span className="text-xs font-semibold text-ctp-text">Volt-API</span>
       </button>
 
-      {/* Divider */}
       <div className="w-px h-4 bg-ctp-surface1" />
 
-      {/* Tabs */}
       <div
         className="flex-1 flex items-center gap-0.5 px-1 overflow-x-auto h-full"
-        style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
+        style={NO_DRAG_REGION_STYLE}
       >
         {tabs.map((tab) => (
           <div
@@ -82,7 +82,6 @@ export function TitleBar({
           </div>
         ))}
 
-        {/* New Tab Button */}
         <button
           onClick={onNewTab}
           className="p-1.5 rounded hover:bg-ctp-surface0/50 text-ctp-overlay0 hover:text-ctp-text flex-shrink-0"
@@ -92,10 +91,9 @@ export function TitleBar({
         </button>
       </div>
 
-      {/* Window Controls */}
       <div
         className="flex items-center h-full"
-        style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
+        style={NO_DRAG_REGION_STYLE}
       >
         <button
           onClick={() => WindowMinimise()}

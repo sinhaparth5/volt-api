@@ -1,15 +1,11 @@
-// Chain variables are temporary variables extracted from responses
-// They work like environment variables but are session-scoped
-
 export interface ChainVariable {
   id: string;
   name: string;
   value: string;
-  source: string;  // Description of where this came from
+  source: string;
   createdAt: number;
 }
 
-// Extract a value from JSON using dot notation path
 export const extractJsonValue = (json: string, path: string): string | null => {
   if (!path.trim()) return null;
 
@@ -21,7 +17,6 @@ export const extractJsonValue = (json: string, path: string): string | null => {
     for (const part of parts) {
       if (current === null || current === undefined) return null;
 
-      // Handle array index like items[0]
       const arrayMatch = part.match(/^(.+)\[(\d+)\]$/);
       if (arrayMatch) {
         const [, key, index] = arrayMatch;
@@ -38,7 +33,6 @@ export const extractJsonValue = (json: string, path: string): string | null => {
 
     if (current === null || current === undefined) return null;
 
-    // Convert to string
     if (typeof current === "object") {
       return JSON.stringify(current);
     }
@@ -48,7 +42,6 @@ export const extractJsonValue = (json: string, path: string): string | null => {
   }
 };
 
-// Extract a header value (case-insensitive)
 export const extractHeaderValue = (headers: Record<string, string>, headerName: string): string | null => {
   const lowerName = headerName.toLowerCase();
   for (const [key, value] of Object.entries(headers)) {
@@ -59,13 +52,11 @@ export const extractHeaderValue = (headers: Record<string, string>, headerName: 
   return null;
 };
 
-// Extract value using regex (returns first capture group or full match)
 export const extractRegexValue = (text: string, pattern: string): string | null => {
   try {
     const regex = new RegExp(pattern);
     const match = text.match(regex);
     if (match) {
-      // Return first capture group if exists, otherwise full match
       return match[1] ?? match[0];
     }
     return null;
@@ -78,11 +69,10 @@ export type ExtractionType = "json" | "header" | "regex" | "status" | "body";
 
 export interface ExtractionConfig {
   type: ExtractionType;
-  path: string;  // JSON path, header name, or regex pattern
+  path: string;
   variableName: string;
 }
 
-// Extract a value from a response based on config
 export const extractValue = (
   config: ExtractionConfig,
   response: {
@@ -107,7 +97,6 @@ export const extractValue = (
   }
 };
 
-// Generate a unique ID
 export const generateChainId = (): string => {
   return Math.random().toString(36).substring(2, 11);
 };

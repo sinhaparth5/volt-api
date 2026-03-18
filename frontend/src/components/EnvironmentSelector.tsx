@@ -8,6 +8,7 @@ import {
 import { app } from "../../wailsjs/go/models";
 
 type Environment = app.Environment;
+const NO_ENVIRONMENT_LABEL = "No Environment";
 
 interface EnvironmentSelectorProps {
   onEnvironmentChange?: () => void;
@@ -40,7 +41,6 @@ export function EnvironmentSelector({
     loadEnvironments();
   }, []);
 
-  // Reload environments when dropdown opens to reflect any changes from the manager
   useEffect(() => {
     if (isOpen) {
       loadEnvironments();
@@ -92,7 +92,7 @@ export function EnvironmentSelector({
         }`}
       >
         <Icons.Globe size={12} />
-        <span>{activeEnv?.name || "No Environment"}</span>
+        <span>{activeEnv?.name || NO_ENVIRONMENT_LABEL}</span>
         <Icons.ChevronDown
           size={10}
           className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
@@ -101,7 +101,6 @@ export function EnvironmentSelector({
 
       {isOpen && (
         <div className="absolute top-full left-0 mt-1 w-48 bg-ctp-surface0 border border-ctp-surface1 rounded-md shadow-lg shadow-ctp-crust/30 overflow-hidden z-50">
-          {/* No Environment option */}
           <button
             onClick={handleClearEnvironment}
             className={`w-full px-3 py-2 text-left text-xs flex items-center gap-2 ${
@@ -111,15 +110,13 @@ export function EnvironmentSelector({
             }`}
           >
             <span className={`w-1.5 h-1.5 rounded-full ${!activeEnv ? "bg-ctp-green" : "bg-transparent"}`} />
-            No Environment
+            {NO_ENVIRONMENT_LABEL}
           </button>
 
-          {/* Divider */}
           {environments.length > 0 && (
             <div className="border-t border-ctp-surface1" />
           )}
 
-          {/* Environment list */}
           {environments.map((env) => (
             <button
               key={env.id}
@@ -135,10 +132,8 @@ export function EnvironmentSelector({
             </button>
           ))}
 
-          {/* Divider */}
           <div className="border-t border-ctp-surface1" />
 
-          {/* Manage button */}
           <button
             onClick={() => {
               setIsOpen(false);

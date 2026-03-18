@@ -21,7 +21,6 @@ export function ResizablePanel({
   onResize,
   storageKey,
 }: ResizablePanelProps) {
-  // Load from localStorage if available
   const getInitialSize = () => {
     if (storageKey) {
       const saved = localStorage.getItem(`panel-size-${storageKey}`);
@@ -57,13 +56,11 @@ export function ResizablePanel({
         newSize = e.clientY - rect.top;
       }
 
-      // Clamp to min/max
       newSize = Math.max(minSize, Math.min(maxSize, newSize));
 
       setSize(newSize);
       onResize?.(newSize);
 
-      // Save to localStorage
       if (storageKey) {
         localStorage.setItem(`panel-size-${storageKey}`, String(newSize));
       }
@@ -101,7 +98,6 @@ export function ResizablePanel({
     >
       {children}
 
-      {/* Resize Handle */}
       <div
         onMouseDown={handleMouseDown}
         className={`absolute z-10 ${

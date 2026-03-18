@@ -14,6 +14,11 @@ const AUTH_TYPES: { value: AuthType; label: string }[] = [
   { value: "apikey", label: "API Key" },
 ];
 
+const AUTH_PANEL_CLASS =
+  "space-y-3 p-3 bg-ctp-surface0/50 rounded-lg border border-ctp-surface1";
+const AUTH_INPUT_CLASS =
+  "w-full bg-ctp-surface0 border border-ctp-surface1 px-3 py-2 rounded text-sm outline-none focus:border-ctp-lavender placeholder:text-ctp-overlay0";
+
 export function AuthEditor({ auth, onChange }: AuthEditorProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showToken, setShowToken] = useState(false);
@@ -25,7 +30,6 @@ export function AuthEditor({ auth, onChange }: AuthEditorProps) {
 
   return (
     <div className="space-y-4">
-      {/* Auth Type Selector */}
       <div className="space-y-1.5">
         <label className="text-xs text-ctp-text font-medium">Type</label>
         <div className="relative">
@@ -47,9 +51,8 @@ export function AuthEditor({ auth, onChange }: AuthEditorProps) {
         </div>
       </div>
 
-      {/* Basic Auth Fields */}
       {auth.type === "basic" && (
-        <div className="space-y-3 p-3 bg-ctp-surface0/50 rounded-lg border border-ctp-surface1">
+        <div className={AUTH_PANEL_CLASS}>
           <div className="flex items-center gap-2 text-ctp-text">
             <Icons.Lock size={14} />
             <span className="text-xs font-medium">Basic Authentication</span>
@@ -60,7 +63,7 @@ export function AuthEditor({ auth, onChange }: AuthEditorProps) {
               value={auth.username || ""}
               onChange={(e) => updateAuth({ username: e.target.value })}
               placeholder="Username"
-              className="w-full bg-ctp-surface0 border border-ctp-surface1 px-3 py-2 rounded text-sm outline-none focus:border-ctp-lavender placeholder:text-ctp-overlay0"
+              className={AUTH_INPUT_CLASS}
             />
             <div className="relative">
               <input
@@ -68,7 +71,7 @@ export function AuthEditor({ auth, onChange }: AuthEditorProps) {
                 value={auth.password || ""}
                 onChange={(e) => updateAuth({ password: e.target.value })}
                 placeholder="Password"
-                className="w-full bg-ctp-surface0 border border-ctp-surface1 px-3 py-2 pr-10 rounded text-sm outline-none focus:border-ctp-lavender placeholder:text-ctp-overlay0"
+                className={`${AUTH_INPUT_CLASS} pr-10`}
               />
               <button
                 type="button"
@@ -82,9 +85,8 @@ export function AuthEditor({ auth, onChange }: AuthEditorProps) {
         </div>
       )}
 
-      {/* Bearer Token Fields */}
       {auth.type === "bearer" && (
-        <div className="space-y-3 p-3 bg-ctp-surface0/50 rounded-lg border border-ctp-surface1">
+        <div className={AUTH_PANEL_CLASS}>
           <div className="flex items-center gap-2 text-ctp-text">
             <Icons.Key size={14} />
             <span className="text-xs font-medium">Bearer Token</span>
@@ -95,7 +97,7 @@ export function AuthEditor({ auth, onChange }: AuthEditorProps) {
               value={auth.token || ""}
               onChange={(e) => updateAuth({ token: e.target.value })}
               placeholder="Token"
-              className="w-full bg-ctp-surface0 border border-ctp-surface1 px-3 py-2 pr-10 rounded text-sm outline-none focus:border-ctp-lavender placeholder:text-ctp-overlay0"
+              className={`${AUTH_INPUT_CLASS} pr-10`}
             />
             <button
               type="button"
@@ -108,9 +110,8 @@ export function AuthEditor({ auth, onChange }: AuthEditorProps) {
         </div>
       )}
 
-      {/* API Key Fields */}
       {auth.type === "apikey" && (
-        <div className="space-y-3 p-3 bg-ctp-surface0/50 rounded-lg border border-ctp-surface1">
+        <div className={AUTH_PANEL_CLASS}>
           <div className="flex items-center gap-2 text-ctp-text">
             <Icons.Key size={14} />
             <span className="text-xs font-medium">API Key</span>
@@ -121,7 +122,7 @@ export function AuthEditor({ auth, onChange }: AuthEditorProps) {
               value={auth.apiKeyName || ""}
               onChange={(e) => updateAuth({ apiKeyName: e.target.value })}
               placeholder="Key name (e.g., X-API-Key)"
-              className="w-full bg-ctp-surface0 border border-ctp-surface1 px-3 py-2 rounded text-sm outline-none focus:border-ctp-lavender placeholder:text-ctp-overlay0"
+              className={AUTH_INPUT_CLASS}
             />
             <div className="relative">
               <input
@@ -129,7 +130,7 @@ export function AuthEditor({ auth, onChange }: AuthEditorProps) {
                 value={auth.apiKeyValue || ""}
                 onChange={(e) => updateAuth({ apiKeyValue: e.target.value })}
                 placeholder="Key value"
-                className="w-full bg-ctp-surface0 border border-ctp-surface1 px-3 py-2 pr-10 rounded text-sm outline-none focus:border-ctp-lavender placeholder:text-ctp-overlay0"
+                className={`${AUTH_INPUT_CLASS} pr-10`}
               />
               <button
                 type="button"
@@ -165,7 +166,6 @@ export function AuthEditor({ auth, onChange }: AuthEditorProps) {
         </div>
       )}
 
-      {/* No Auth Message */}
       {auth.type === "none" && (
         <div className="p-4 text-center text-ctp-text text-sm">
           No authentication will be used for this request.

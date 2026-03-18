@@ -13,8 +13,10 @@ interface AppInfo {
   buildTime: string;
 }
 
+const DEFAULT_APP_INFO: AppInfo = { version: "dev", buildTime: "unknown" };
+
 export function AboutDialog({ isOpen, onClose }: AboutDialogProps) {
-  const [appInfo, setAppInfo] = useState<AppInfo>({ version: "dev", buildTime: "unknown" });
+  const [appInfo, setAppInfo] = useState<AppInfo>(DEFAULT_APP_INFO);
 
   useEffect(() => {
     if (isOpen) {
@@ -28,15 +30,12 @@ export function AboutDialog({ isOpen, onClose }: AboutDialogProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50"
         onClick={onClose}
       />
 
-      {/* Dialog */}
       <div className="relative bg-ctp-base border border-ctp-surface0 rounded-lg shadow-xl w-80 max-w-[90vw]">
-        {/* Close button */}
         <button
           onClick={onClose}
           className="absolute top-3 right-3 p-1 text-ctp-overlay0 hover:text-ctp-text rounded-md hover:bg-ctp-surface0"
@@ -44,20 +43,16 @@ export function AboutDialog({ isOpen, onClose }: AboutDialogProps) {
           <Icons.X size={16} />
         </button>
 
-        {/* Content */}
         <div className="p-6 text-center">
-          {/* Logo */}
           <div className="flex justify-center mb-4">
             <AppLogo size={64} />
           </div>
 
-          {/* App name */}
           <h1 className="text-xl font-bold text-ctp-text mb-1">Volt-API</h1>
           <p className="text-sm text-ctp-subtext0 mb-4">
             Fast, lightweight API client
           </p>
 
-          {/* Version info */}
           <div className="bg-ctp-surface0/50 rounded-md p-3 mb-4">
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="text-ctp-subtext0 text-right">Version:</div>
@@ -69,13 +64,11 @@ export function AboutDialog({ isOpen, onClose }: AboutDialogProps) {
             </div>
           </div>
 
-          {/* Features */}
           <div className="text-xs text-ctp-overlay0 space-y-1 mb-4">
             <p>Built with Go + React + Wails</p>
             <p>Catppuccin Theme</p>
           </div>
 
-          {/* Links */}
           <div className="flex justify-center gap-4 text-xs">
             <a
               href="https://github.com"
