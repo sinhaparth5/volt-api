@@ -12,6 +12,18 @@ type HTTPResponse = app.HTTPResponse;
 type RequestState = "idle" | "loading" | "success" | "error";
 type ResponseTab = "body" | "headers" | "cookies" | "tests" | "chain" | "request";
 type ParsedCookie = { name: string; value: string; attributes: string };
+type ResponseTabConfig = {
+  id: ResponseTab;
+  label: string;
+  count?: number;
+  status?: "pass" | "fail";
+};
+
+const PANEL_TITLE_CLASS = "text-xs text-ctp-text uppercase tracking-wider";
+const PANEL_CARD_CLASS = "p-3 bg-ctp-surface0/30 rounded-md border border-ctp-surface0";
+const DATA_ROW_CLASS =
+  "py-2 grid grid-cols-[180px_1fr] gap-4 text-sm border-b border-ctp-surface0/50 last:border-0";
+const BODY_VIEW_BUTTON_CLASS = "px-2 py-1 text-xs rounded";
 
 const getContentType = (headers: Record<string, string>): string => {
   for (const [key, value] of Object.entries(headers)) {
@@ -191,7 +203,7 @@ export function ResponseSection({
 
     const sentHeadersCount = sentRequest ? Object.keys(sentRequest.headers).length : 0;
 
-    const tabs: { id: ResponseTab; label: string; count?: number; status?: "pass" | "fail"; highlight?: boolean }[] = [
+    const tabs: ResponseTabConfig[] = [
       { id: "body", label: "Body" },
       { id: "headers", label: "Headers", count: headersCount },
       { id: "cookies", label: "Cookies", count: cookies.length },
@@ -270,7 +282,7 @@ export function ResponseSection({
                 <div className="flex bg-ctp-surface0 rounded-md p-0.5">
                   <button
                     onClick={() => setBodyView("pretty")}
-                    className={`px-2 py-1 text-xs rounded ${
+                    className={`${BODY_VIEW_BUTTON_CLASS} ${
                       bodyView === "pretty"
                         ? "bg-ctp-mauve text-ctp-base"
                         : "text-ctp-subtext0 hover:text-ctp-text"
@@ -280,7 +292,7 @@ export function ResponseSection({
                   </button>
                   <button
                     onClick={() => setBodyView("raw")}
-                    className={`px-2 py-1 text-xs rounded ${
+                    className={`${BODY_VIEW_BUTTON_CLASS} ${
                       bodyView === "raw"
                         ? "bg-ctp-mauve text-ctp-base"
                         : "text-ctp-subtext0 hover:text-ctp-text"
@@ -291,7 +303,7 @@ export function ResponseSection({
                   {isHtmlResponse(response.headers || {}) && (
                     <button
                       onClick={() => setBodyView("preview")}
-                      className={`px-2 py-1 text-xs rounded ${
+                      className={`${BODY_VIEW_BUTTON_CLASS} ${
                         bodyView === "preview"
                           ? "bg-ctp-mauve text-ctp-base"
                           : "text-ctp-subtext0 hover:text-ctp-text"
@@ -400,7 +412,7 @@ export function ResponseSection({
               {headersCount > 0 ? (
                 <div className="space-y-0">
                   {Object.entries(response.headers || {}).map(([key, value]) => (
-                    <div key={key} className="py-2 grid grid-cols-[180px_1fr] gap-4 text-sm border-b border-ctp-surface0/50 last:border-0">
+                    <div key={key} className={DATA_ROW_CLASS}>
                       <span className="text-ctp-mauve truncate">{key}</span>
                       <span className="text-ctp-text break-all">{value}</span>
                     </div>
@@ -463,8 +475,8 @@ export function ResponseSection({
               {sentRequest ? (
                 <>
                   <div className="space-y-2">
-                    <div className="text-xs text-ctp-text uppercase tracking-wider">Request</div>
-                    <div className="p-3 bg-ctp-surface0/30 rounded-md border border-ctp-surface0">
+                    <div className={PANEL_TITLE_CLASS}>Request</div>
+                    <div className={PANEL_CARD_CLASS}>
                       <div className="flex items-center gap-2">
                         <span className={`text-sm font-semibold ${
                           sentRequest.method === "GET" ? "text-ctp-green" :
@@ -482,20 +494,20 @@ export function ResponseSection({
                   </div>
 
                   <div className="space-y-2">
-                    <div className="text-xs text-ctp-text uppercase tracking-wider">
+                    <div className={PANEL_TITLE_CLASS}>
                       Headers Sent ({Object.keys(sentRequest.headers).length})
                     </div>
                     {Object.keys(sentRequest.headers).length > 0 ? (
-                      <div className="p-3 bg-ctp-surface0/30 rounded-md border border-ctp-surface0 space-y-0">
+                      <div className={`${PANEL_CARD_CLASS} space-y-0`}>
                         {Object.entries(sentRequest.headers).map(([key, value]) => (
-                          <div key={key} className="py-2 grid grid-cols-[180px_1fr] gap-4 text-sm border-b border-ctp-surface0/50 last:border-0">
+                          <div key={key} className={DATA_ROW_CLASS}>
                             <span className="text-ctp-mauve truncate">{key}</span>
                             <span className="text-ctp-text break-all font-mono text-xs">{value}</span>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="p-3 bg-ctp-surface0/30 rounded-md border border-ctp-surface0 text-ctp-text text-sm text-center">
+                      <div className={`${PANEL_CARD_CLASS} text-ctp-text text-sm text-center`}>
                         No headers sent
                       </div>
                     )}
@@ -503,8 +515,8 @@ export function ResponseSection({
 
                   {sentRequest.body && (
                     <div className="space-y-2">
-                      <div className="text-xs text-ctp-text uppercase tracking-wider">Body Sent</div>
-                      <pre className="p-3 bg-ctp-surface0/30 rounded-md border border-ctp-surface0 text-sm text-ctp-text whitespace-pre-wrap break-words max-h-48 overflow-auto">
+                      <div className={PANEL_TITLE_CLASS}>Body Sent</div>
+                      <pre className={`${PANEL_CARD_CLASS} text-sm text-ctp-text whitespace-pre-wrap break-words max-h-48 overflow-auto`}>
                         {formattedSentBody}
                       </pre>
                     </div>

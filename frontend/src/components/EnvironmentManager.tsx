@@ -16,6 +16,16 @@ import { app } from "../../wailsjs/go/models";
 type Environment = app.Environment;
 type EnvironmentVariable = app.EnvironmentVariable;
 const VARIABLE_USAGE = "{{variableName}}";
+const VARIABLE_GRID_CLASS = "grid grid-cols-[20px_1fr_1fr_28px] gap-2";
+const VARIABLE_INPUT_CLASS =
+  "bg-ctp-surface0 border border-ctp-surface1 px-2 py-1.5 rounded-md text-xs outline-none focus:border-ctp-lavender text-ctp-text";
+const ENVIRONMENT_NAME_INPUT_CLASS =
+  "flex-1 min-w-0 bg-ctp-surface0 border border-ctp-surface1 px-2 py-1.5 rounded-md text-xs outline-none focus:border-ctp-lavender text-ctp-text placeholder:text-ctp-overlay0";
+const ICON_BUTTON_CLASS =
+  "p-1 text-ctp-overlay0 rounded hover:bg-ctp-surface1";
+const VARIABLE_ACTION_BUTTON_CLASS =
+  "w-7 h-7 flex items-center justify-center rounded-md";
+const VARIABLE_INPUT_DISABLED_CLASS = "opacity-50";
 
 interface EnvironmentManagerProps {
   isOpen: boolean;
@@ -45,6 +55,13 @@ export function EnvironmentManager({
   const resetNewVariable = () => {
     setNewVarKey("");
     setNewVarValue("");
+  };
+
+  const getVariableInputClassName = (enabled: boolean) =>
+    `${VARIABLE_INPUT_CLASS} ${enabled ? "" : VARIABLE_INPUT_DISABLED_CLASS}`;
+
+  const notifyEnvironmentChange = () => {
+    onEnvironmentChange?.();
   };
 
   const loadEnvironments = async () => {
@@ -88,7 +105,7 @@ export function EnvironmentManager({
         setNewEnvName("");
         await loadEnvironments();
         setSelectedEnv(env);
-        onEnvironmentChange?.();
+        notifyEnvironmentChange();
       }
     } catch (err) {
       console.error("Failed to create environment:", err);
@@ -107,7 +124,7 @@ export function EnvironmentManager({
       if (selectedEnv?.id === id) {
         setSelectedEnv({ ...selectedEnv, name: editingEnvName.trim() });
       }
-      onEnvironmentChange?.();
+      notifyEnvironmentChange();
     } catch (err) {
       console.error("Failed to rename environment:", err);
     }
@@ -120,7 +137,7 @@ export function EnvironmentManager({
         setSelectedEnv(null);
       }
       await loadEnvironments();
-      onEnvironmentChange?.();
+      notifyEnvironmentChange();
     } catch (err) {
       console.error("Failed to delete environment:", err);
     }
@@ -132,7 +149,7 @@ export function EnvironmentManager({
       await SetEnvironmentVariable(selectedEnv.id, newVarKey.trim(), newVarValue, true);
       resetNewVariable();
       await loadVariables(selectedEnv.id);
-      onEnvironmentChange?.();
+      notifyEnvironmentChange();
     } catch (err) {
       console.error("Failed to add variable:", err);
     }
@@ -143,7 +160,7 @@ export function EnvironmentManager({
     try {
       await SetEnvironmentVariable(selectedEnv.id, key, value, enabled);
       await loadVariables(selectedEnv.id);
-      onEnvironmentChange?.();
+      notifyEnvironmentChange();
     } catch (err) {
       console.error("Failed to update variable:", err);
     }
@@ -155,7 +172,7 @@ export function EnvironmentManager({
       if (selectedEnv) {
         await loadVariables(selectedEnv.id);
       }
-      onEnvironmentChange?.();
+      notifyEnvironmentChange();
     } catch (err) {
       console.error("Failed to delete variable:", err);
     }
@@ -179,7 +196,7 @@ export function EnvironmentManager({
       if (env) {
         await loadEnvironments();
         setSelectedEnv(env);
-        onEnvironmentChange?.();
+        notifyEnvironmentChange();
       }
     } catch (err) {
       console.error("Failed to import environment:", err);
@@ -217,7 +234,7 @@ export function EnvironmentManager({
                   onChange={(e) => setNewEnvName(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleCreateEnvironment()}
                   placeholder="New environment..."
-                  className="flex-1 min-w-0 bg-ctp-surface0 border border-ctp-surface1 px-2 py-1.5 rounded-md text-xs outline-none focus:border-ctp-lavender text-ctp-text placeholder:text-ctp-overlay0"
+                  className={ENVIRONMENT_NAME_INPUT_CLASS}
                 />
                 <button
                   onClick={handleCreateEnvironment}
@@ -269,7 +286,7 @@ export function EnvironmentManager({
                             setEditingEnvId(env.id);
                             setEditingEnvName(env.name);
                           }}
-                          className="p-1 text-ctp-overlay0 hover:text-ctp-text rounded hover:bg-ctp-surface1"
+                          className={`${ICON_BUTTON_CLASS} hover:text-ctp-text`}
                           title="Rename"
                         >
                           <Icons.Edit size={10} />
@@ -279,7 +296,7 @@ export function EnvironmentManager({
                             e.stopPropagation();
                             handleDeleteEnvironment(env.id);
                           }}
-                          className="p-1 text-ctp-overlay0 hover:text-ctp-red rounded hover:bg-ctp-red/10"
+                          className={`${ICON_BUTTON_CLASS} hover:text-ctp-red hover:bg-ctp-red/10`}
                           title="Delete"
                         >
                           <Icons.Trash size={10} />
@@ -322,7 +339,7 @@ export function EnvironmentManager({
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4">
-                  <div className="grid grid-cols-[20px_1fr_1fr_28px] gap-2 text-xs text-ctp-text pb-2">
+                  <div className={`${VARIABLE_GRID_CLASS} text-xs text-ctp-text pb-2`}>
                     <div></div>
                     <div>Variable</div>
                     <div>Value</div>
@@ -330,7 +347,7 @@ export function EnvironmentManager({
                   </div>
 
                   {variables.map((v) => (
-                    <div key={v.id} className="grid grid-cols-[20px_1fr_1fr_28px] gap-2 items-center mb-1 group">
+                    <div key={v.id} className={`${VARIABLE_GRID_CLASS} items-center mb-1 group`}>
                       <button
                         onClick={() => handleUpdateVariable(v.id, v.key, v.value, !v.enabled)}
                         className={`w-4 h-4 rounded border flex items-center justify-center ${
@@ -345,24 +362,24 @@ export function EnvironmentManager({
                         type="text"
                         value={v.key}
                         onChange={(e) => handleUpdateVariable(v.id, e.target.value, v.value, v.enabled)}
-                        className={`bg-ctp-surface0 border border-ctp-surface1 px-2 py-1.5 rounded-md text-xs outline-none focus:border-ctp-lavender text-ctp-text ${!v.enabled ? "opacity-50" : ""}`}
+                        className={getVariableInputClassName(v.enabled)}
                       />
                       <input
                         type="text"
                         value={v.value}
                         onChange={(e) => handleUpdateVariable(v.id, v.key, e.target.value, v.enabled)}
-                        className={`bg-ctp-surface0 border border-ctp-surface1 px-2 py-1.5 rounded-md text-xs outline-none focus:border-ctp-lavender text-ctp-text ${!v.enabled ? "opacity-50" : ""}`}
+                        className={getVariableInputClassName(v.enabled)}
                       />
                       <button
                         onClick={() => handleDeleteVariable(v.id)}
-                        className="w-7 h-7 flex items-center justify-center text-ctp-overlay0 hover:text-ctp-red hover:bg-ctp-red/10 rounded-md opacity-0 group-hover:opacity-100"
+                        className={`${VARIABLE_ACTION_BUTTON_CLASS} text-ctp-overlay0 hover:text-ctp-red hover:bg-ctp-red/10 opacity-0 group-hover:opacity-100`}
                       >
                         <Icons.X size={14} />
                       </button>
                     </div>
                   ))}
 
-                  <div className="grid grid-cols-[20px_1fr_1fr_28px] gap-2 items-center mt-2 pt-2 border-t border-ctp-surface0">
+                  <div className={`${VARIABLE_GRID_CLASS} items-center mt-2 pt-2 border-t border-ctp-surface0`}>
                     <div></div>
                     <input
                       type="text"
@@ -370,7 +387,7 @@ export function EnvironmentManager({
                       onChange={(e) => setNewVarKey(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleAddVariable()}
                       placeholder="Variable name"
-                      className="bg-ctp-surface0 border border-ctp-surface1 px-2 py-1.5 rounded-md text-xs outline-none focus:border-ctp-lavender text-ctp-text placeholder:text-ctp-overlay0"
+                      className={`${VARIABLE_INPUT_CLASS} placeholder:text-ctp-overlay0`}
                     />
                     <input
                       type="text"
@@ -378,12 +395,12 @@ export function EnvironmentManager({
                       onChange={(e) => setNewVarValue(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleAddVariable()}
                       placeholder="Value"
-                      className="bg-ctp-surface0 border border-ctp-surface1 px-2 py-1.5 rounded-md text-xs outline-none focus:border-ctp-lavender text-ctp-text placeholder:text-ctp-overlay0"
+                      className={`${VARIABLE_INPUT_CLASS} placeholder:text-ctp-overlay0`}
                     />
                     <button
                       onClick={handleAddVariable}
                       disabled={!newVarKey.trim()}
-                      className="w-7 h-7 flex items-center justify-center text-ctp-mauve hover:bg-ctp-mauve/10 rounded-md disabled:opacity-50 disabled:pointer-events-none"
+                      className={`${VARIABLE_ACTION_BUTTON_CLASS} text-ctp-mauve hover:bg-ctp-mauve/10 disabled:opacity-50 disabled:pointer-events-none`}
                     >
                       <Icons.Plus size={14} />
                     </button>

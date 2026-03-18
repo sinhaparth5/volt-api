@@ -54,13 +54,20 @@ export const createEmptyAssertion = (): Assertion => ({
 
 export const getAssertionTypeName = (type: AssertionType): string => {
   switch (type) {
-    case "status": return "Status Code";
-    case "responseTime": return "Response Time";
-    case "bodyContains": return "Body Contains";
-    case "bodyJson": return "JSON Value";
-    case "headerExists": return "Header Exists";
-    case "headerEquals": return "Header Value";
-    default: return type;
+    case "status":
+      return "Status Code";
+    case "responseTime":
+      return "Response Time";
+    case "bodyContains":
+      return "Body Contains";
+    case "bodyJson":
+      return "JSON Value";
+    case "headerExists":
+      return "Header Exists";
+    case "headerEquals":
+      return "Header Value";
+    default:
+      return type;
   }
 };
 
@@ -85,16 +92,26 @@ export const getOperatorsForType = (type: AssertionType): AssertionOperator[] =>
 
 export const getOperatorName = (operator: AssertionOperator): string => {
   switch (operator) {
-    case "equals": return "equals";
-    case "notEquals": return "not equals";
-    case "contains": return "contains";
-    case "notContains": return "not contains";
-    case "lessThan": return "less than";
-    case "greaterThan": return "greater than";
-    case "exists": return "exists";
-    case "notExists": return "not exists";
-    case "matches": return "matches regex";
-    default: return operator;
+    case "equals":
+      return "equals";
+    case "notEquals":
+      return "not equals";
+    case "contains":
+      return "contains";
+    case "notContains":
+      return "not contains";
+    case "lessThan":
+      return "less than";
+    case "greaterThan":
+      return "greater than";
+    case "exists":
+      return "exists";
+    case "notExists":
+      return "not exists";
+    case "matches":
+      return "matches regex";
+    default:
+      return operator;
   }
 };
 
@@ -279,7 +296,7 @@ export const runAssertion = (assertion: Assertion, response: ResponseData): Asse
 
       case "headerExists": {
         const headerName = assertion.property.toLowerCase();
-        const headerKeys = Object.keys(response.headers).map(k => k.toLowerCase());
+        const headerKeys = Object.keys(response.headers).map((key) => key.toLowerCase());
         const exists = headerKeys.includes(headerName);
         result.actual = exists ? "exists" : "not found";
 
@@ -344,14 +361,12 @@ export const runAssertion = (assertion: Assertion, response: ResponseData): Asse
   return result;
 };
 
-// Run all assertions against response data
 export const runAssertions = (assertions: Assertion[], response: ResponseData): AssertionResult[] => {
-  return assertions.map(assertion => runAssertion(assertion, response));
+  return assertions.map((assertion) => runAssertion(assertion, response));
 };
 
-// Get summary of assertion results
 export const getAssertionsSummary = (results: AssertionResult[]): { passed: number; failed: number; total: number } => {
-  const passed = results.filter(r => r.passed).length;
+  const passed = results.filter((result) => result.passed).length;
   return {
     passed,
     failed: results.length - passed,

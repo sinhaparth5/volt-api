@@ -29,6 +29,30 @@ type ClientInfo = {
 };
 
 const DEFAULT_USER_AGENT_KEY: UserAgentKey = "Default (Volt-API)";
+const DEFAULT_USER_AGENT_VALUE = "Volt-API/dev";
+const TIMEOUT_MIN_SECONDS = 1;
+const TIMEOUT_MAX_SECONDS = 300;
+const REDIRECT_MIN = 0;
+const REDIRECT_MAX = 50;
+const SECTION_TITLE_CLASS = "flex items-center gap-2 text-xs text-ctp-text";
+const TEXT_INPUT_CLASS =
+  "w-full bg-ctp-surface0 border border-ctp-surface1 px-3 py-2 rounded-md text-xs outline-none focus:border-ctp-lavender text-ctp-text placeholder:text-ctp-overlay0";
+const INFO_ROW_CLASS = "flex items-center justify-between p-2 bg-ctp-surface0/30 rounded-md";
+const TOGGLE_LABEL_CLASS = "flex items-center gap-2 cursor-pointer";
+const TOGGLE_INPUT_CLASS =
+  "w-4 h-4 rounded border-ctp-surface1 bg-ctp-surface0 text-ctp-mauve focus:ring-ctp-mauve focus:ring-offset-0";
+const FIELD_LABEL_CLASS = "text-xs text-ctp-text";
+const INFO_TEXT_CLASS = "text-xs text-ctp-text";
+const CARD_CLASS = "p-3 rounded-md border";
+
+const getClientInfo = (): ClientInfo => ({
+  platform: navigator.platform || "Unknown",
+  language: navigator.language || "Unknown",
+  screenSize: `${window.screen.width}x${window.screen.height}`,
+});
+
+const isWithinRange = (value: number, min: number, max: number) => value >= min && value <= max;
+const getTimeoutValue = (value: string) => parseInt(value, 10);
 
 export interface ProxySettings {
   enabled: boolean;
@@ -97,11 +121,7 @@ export function ClientSettings({
   }, [userAgent]);
 
   useEffect(() => {
-    setClientInfo({
-      platform: navigator.platform || "Unknown",
-      language: navigator.language || "Unknown",
-      screenSize: `${window.screen.width}x${window.screen.height}`,
-    });
+    setClientInfo(getClientInfo());
   }, []);
 
   const handleSelectChange = (key: UserAgentKey) => {
@@ -118,14 +138,14 @@ export function ClientSettings({
 
   const getCurrentUserAgent = (): string => {
     if (isCustom) return customAgent;
-    if (selectedKey === DEFAULT_USER_AGENT_KEY) return "Volt-API/dev";
+    if (selectedKey === DEFAULT_USER_AGENT_KEY) return DEFAULT_USER_AGENT_VALUE;
     return USER_AGENTS[selectedKey];
   };
 
   return (
     <div className="space-y-6">
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-xs text-ctp-text">
+        <div className={SECTION_TITLE_CLASS}>
           <Icons.Globe size={12} />
           <span>User-Agent</span>
         </div>
@@ -133,7 +153,7 @@ export function ClientSettings({
         <select
           value={isCustom ? "" : selectedKey}
           onChange={(e) => handleSelectChange(e.target.value as UserAgentKey)}
-          className="w-full bg-ctp-surface0 border border-ctp-surface1 px-3 py-2 rounded-md text-xs outline-none focus:border-ctp-lavender text-ctp-text"
+          className={TEXT_INPUT_CLASS}
         >
           {Object.keys(USER_AGENTS).map((key) => (
             <option key={key} value={key}>
@@ -144,24 +164,24 @@ export function ClientSettings({
         </select>
 
         <div className="space-y-1">
-          <label className="text-xs text-ctp-text">Custom User-Agent:</label>
+          <label className={FIELD_LABEL_CLASS}>Custom User-Agent:</label>
           <input
             type="text"
             value={isCustom ? customAgent : ""}
             onChange={(e) => handleCustomChange(e.target.value)}
             placeholder="Enter custom User-Agent string..."
-            className="w-full bg-ctp-surface0 border border-ctp-surface1 px-3 py-2 rounded-md text-xs outline-none focus:border-ctp-lavender text-ctp-text placeholder:text-ctp-overlay0"
+            className={TEXT_INPUT_CLASS}
           />
         </div>
 
-        <div className="p-3 bg-ctp-surface0/50 rounded-md border border-ctp-surface0">
-          <div className="text-xs text-ctp-text mb-1">Will be sent as:</div>
+        <div className={`${CARD_CLASS} bg-ctp-surface0/50 border-ctp-surface0`}>
+          <div className={`${INFO_TEXT_CLASS} mb-1`}>Will be sent as:</div>
           <code className="text-xs text-ctp-green break-all">{getCurrentUserAgent()}</code>
         </div>
       </div>
 
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-xs text-ctp-text">
+        <div className={SECTION_TITLE_CLASS}>
           <Icons.History size={12} />
           <span>Request Timeout</span>
         </div>
@@ -169,10 +189,10 @@ export function ClientSettings({
         <div className="flex items-center gap-3">
           <input
             type="range"
-            min={1}
-            max={300}
+            min={TIMEOUT_MIN_SECONDS}
+            max={TIMEOUT_MAX_SECONDS}
             value={timeout}
-            onChange={(e) => onTimeoutChange(parseInt(e.target.value, 10))}
+            onChange={(e) => onTimeoutChange(getTimeoutValue(e.target.value))}
             className="flex-1 h-1.5 bg-ctp-surface0 rounded-lg appearance-none cursor-pointer accent-ctp-mauve"
           />
           <div className="flex items-center gap-1 bg-ctp-surface0 border border-ctp-surface1 rounded px-2 py-1">
@@ -180,13 +200,13 @@ export function ClientSettings({
               type="number"
               value={timeout}
               onChange={(e) => {
-                const val = parseInt(e.target.value, 10);
-                if (val >= 1 && val <= 300) {
+                const val = getTimeoutValue(e.target.value);
+                if (isWithinRange(val, TIMEOUT_MIN_SECONDS, TIMEOUT_MAX_SECONDS)) {
                   onTimeoutChange(val);
                 }
               }}
-              min={1}
-              max={300}
+              min={TIMEOUT_MIN_SECONDS}
+              max={TIMEOUT_MAX_SECONDS}
               className="w-10 bg-transparent text-xs text-ctp-text outline-none text-center"
             />
             <span className="text-xs text-ctp-overlay0">sec</span>
@@ -199,7 +219,7 @@ export function ClientSettings({
       </div>
 
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-xs text-ctp-text">
+        <div className={SECTION_TITLE_CLASS}>
           <Icons.Settings size={12} />
           <span>Client Information</span>
         </div>
@@ -207,17 +227,17 @@ export function ClientSettings({
         <div className="grid gap-2">
           {clientInfo && (
             <>
-              <div className="flex items-center justify-between p-2 bg-ctp-surface0/30 rounded-md">
-                <span className="text-xs text-ctp-text">Platform</span>
-                <span className="text-xs text-ctp-text">{clientInfo.platform}</span>
+              <div className={INFO_ROW_CLASS}>
+                <span className={INFO_TEXT_CLASS}>Platform</span>
+                <span className={INFO_TEXT_CLASS}>{clientInfo.platform}</span>
               </div>
-              <div className="flex items-center justify-between p-2 bg-ctp-surface0/30 rounded-md">
-                <span className="text-xs text-ctp-text">Language</span>
-                <span className="text-xs text-ctp-text">{clientInfo.language}</span>
+              <div className={INFO_ROW_CLASS}>
+                <span className={INFO_TEXT_CLASS}>Language</span>
+                <span className={INFO_TEXT_CLASS}>{clientInfo.language}</span>
               </div>
-              <div className="flex items-center justify-between p-2 bg-ctp-surface0/30 rounded-md">
-                <span className="text-xs text-ctp-text">Screen Size</span>
-                <span className="text-xs text-ctp-text">{clientInfo.screenSize}</span>
+              <div className={INFO_ROW_CLASS}>
+                <span className={INFO_TEXT_CLASS}>Screen Size</span>
+                <span className={INFO_TEXT_CLASS}>{clientInfo.screenSize}</span>
               </div>
             </>
           )}
@@ -225,19 +245,19 @@ export function ClientSettings({
       </div>
 
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-xs text-ctp-text">
+        <div className={SECTION_TITLE_CLASS}>
           <Icons.Globe size={12} />
           <span>Proxy</span>
         </div>
 
-        <label className="flex items-center gap-2 cursor-pointer">
+        <label className={TOGGLE_LABEL_CLASS}>
           <input
             type="checkbox"
             checked={proxy.enabled}
             onChange={(e) => onProxyChange({ ...proxy, enabled: e.target.checked })}
-            className="w-4 h-4 rounded border-ctp-surface1 bg-ctp-surface0 text-ctp-mauve focus:ring-ctp-mauve focus:ring-offset-0"
+            className={TOGGLE_INPUT_CLASS}
           />
-          <span className="text-xs text-ctp-text">Use Proxy</span>
+          <span className={FIELD_LABEL_CLASS}>Use Proxy</span>
         </label>
 
         {proxy.enabled && (
@@ -246,29 +266,29 @@ export function ClientSettings({
             value={proxy.url}
             onChange={(e) => onProxyChange({ ...proxy, url: e.target.value })}
             placeholder="http://localhost:8080"
-            className="w-full bg-ctp-surface0 border border-ctp-surface1 px-3 py-2 rounded-md text-xs outline-none focus:border-ctp-lavender text-ctp-text placeholder:text-ctp-overlay0"
+            className={TEXT_INPUT_CLASS}
           />
         )}
       </div>
 
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-xs text-ctp-text">
+        <div className={SECTION_TITLE_CLASS}>
           <Icons.Lock size={12} />
           <span>SSL / TLS</span>
         </div>
 
-        <label className="flex items-center gap-2 cursor-pointer">
+        <label className={TOGGLE_LABEL_CLASS}>
           <input
             type="checkbox"
             checked={ssl.skipVerify}
             onChange={(e) => onSSLChange({ ...ssl, skipVerify: e.target.checked })}
-            className="w-4 h-4 rounded border-ctp-surface1 bg-ctp-surface0 text-ctp-mauve focus:ring-ctp-mauve focus:ring-offset-0"
+            className={TOGGLE_INPUT_CLASS}
           />
-          <span className="text-xs text-ctp-text">Skip SSL Certificate Verification</span>
+          <span className={FIELD_LABEL_CLASS}>Skip SSL Certificate Verification</span>
         </label>
 
         {ssl.skipVerify && (
-          <div className="p-2 bg-ctp-peach/10 border border-ctp-peach/30 rounded-md">
+          <div className={`${CARD_CLASS} p-2 bg-ctp-peach/10 border-ctp-peach/30`}>
             <div className="flex items-start gap-2">
               <Icons.AlertTriangle size={12} className="text-ctp-peach mt-0.5 flex-shrink-0" />
               <span className="text-xs text-ctp-peach">
@@ -279,61 +299,61 @@ export function ClientSettings({
         )}
 
         <div className="space-y-2">
-          <label className="text-xs text-ctp-text">Client Certificate (optional):</label>
+          <label className={FIELD_LABEL_CLASS}>Client Certificate (optional):</label>
           <input
             type="text"
             value={ssl.clientCertPath}
             onChange={(e) => onSSLChange({ ...ssl, clientCertPath: e.target.value })}
             placeholder="/path/to/client.crt"
-            className="w-full bg-ctp-surface0 border border-ctp-surface1 px-3 py-2 rounded-md text-xs outline-none focus:border-ctp-lavender text-ctp-text placeholder:text-ctp-overlay0"
+            className={TEXT_INPUT_CLASS}
           />
           <input
             type="text"
             value={ssl.clientKeyPath}
             onChange={(e) => onSSLChange({ ...ssl, clientKeyPath: e.target.value })}
             placeholder="/path/to/client.key"
-            className="w-full bg-ctp-surface0 border border-ctp-surface1 px-3 py-2 rounded-md text-xs outline-none focus:border-ctp-lavender text-ctp-text placeholder:text-ctp-overlay0"
+            className={TEXT_INPUT_CLASS}
           />
         </div>
       </div>
 
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-xs text-ctp-text">
+        <div className={SECTION_TITLE_CLASS}>
           <Icons.ArrowRight size={12} />
           <span>Redirects</span>
         </div>
 
-        <label className="flex items-center gap-2 cursor-pointer">
+        <label className={TOGGLE_LABEL_CLASS}>
           <input
             type="checkbox"
             checked={redirects.follow}
             onChange={(e) => onRedirectsChange({ ...redirects, follow: e.target.checked })}
-            className="w-4 h-4 rounded border-ctp-surface1 bg-ctp-surface0 text-ctp-mauve focus:ring-ctp-mauve focus:ring-offset-0"
+            className={TOGGLE_INPUT_CLASS}
           />
-          <span className="text-xs text-ctp-text">Follow Redirects</span>
+          <span className={FIELD_LABEL_CLASS}>Follow Redirects</span>
         </label>
 
         {redirects.follow && (
           <div className="flex items-center gap-2">
-            <label className="text-xs text-ctp-text">Max Redirects:</label>
+            <label className={FIELD_LABEL_CLASS}>Max Redirects:</label>
             <input
               type="number"
               value={redirects.maxRedirects}
               onChange={(e) => {
-                const val = parseInt(e.target.value, 10);
-                if (val >= 0 && val <= 50) {
+                const val = getTimeoutValue(e.target.value);
+                if (isWithinRange(val, REDIRECT_MIN, REDIRECT_MAX)) {
                   onRedirectsChange({ ...redirects, maxRedirects: val });
                 }
               }}
-              min={0}
-              max={50}
+              min={REDIRECT_MIN}
+              max={REDIRECT_MAX}
               className="w-16 bg-ctp-surface0 border border-ctp-surface1 px-2 py-1 rounded-md text-xs outline-none focus:border-ctp-lavender text-ctp-text text-center"
             />
           </div>
         )}
       </div>
 
-      <div className="p-3 bg-ctp-blue/10 border border-ctp-blue/20 rounded-md">
+      <div className={`${CARD_CLASS} bg-ctp-blue/10 border-ctp-blue/20`}>
         <div className="flex items-start gap-2">
           <Icons.Bolt size={12} className="text-ctp-blue mt-0.5" />
           <div className="text-xs text-ctp-blue">

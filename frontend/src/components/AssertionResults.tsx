@@ -5,6 +5,14 @@ interface AssertionResultsProps {
   results: AssertionResult[];
 }
 
+const getSummaryMessage = (total: number, failed: number) => {
+  const assertionLabel = `assertion${total !== 1 ? "s" : ""}`;
+  if (failed === 0) {
+    return `All ${total} ${assertionLabel} passed`;
+  }
+  return `${failed} of ${total} ${assertionLabel} failed`;
+};
+
 export function AssertionResults({ results }: AssertionResultsProps) {
   if (results.length === 0) {
     return (
@@ -19,7 +27,6 @@ export function AssertionResults({ results }: AssertionResultsProps) {
 
   return (
     <div className="p-4 space-y-3">
-      {/* Summary */}
       <div
         className={`flex items-center gap-2 p-2 rounded-md ${
           allPassed
@@ -33,13 +40,10 @@ export function AssertionResults({ results }: AssertionResultsProps) {
           <Icons.X size={14} className="text-ctp-red" />
         )}
         <span className={`text-xs ${allPassed ? "text-ctp-green" : "text-ctp-red"}`}>
-          {allPassed
-            ? `All ${summary.total} assertion${summary.total !== 1 ? "s" : ""} passed`
-            : `${summary.failed} of ${summary.total} assertion${summary.total !== 1 ? "s" : ""} failed`}
+          {getSummaryMessage(summary.total, summary.failed)}
         </span>
       </div>
 
-      {/* Results List */}
       <div className="space-y-1">
         {results.map((result, index) => (
           <div
@@ -50,7 +54,6 @@ export function AssertionResults({ results }: AssertionResultsProps) {
                 : "bg-ctp-red/5 border border-ctp-red/20"
             }`}
           >
-            {/* Status Icon */}
             <div className="mt-0.5 flex-shrink-0">
               {result.passed ? (
                 <Icons.Check size={12} className="text-ctp-green" />
@@ -59,7 +62,6 @@ export function AssertionResults({ results }: AssertionResultsProps) {
               )}
             </div>
 
-            {/* Message */}
             <div className="flex-1 min-w-0">
               <div
                 className={`text-xs ${

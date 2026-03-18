@@ -44,6 +44,18 @@ import "./style.css";
 type HistoryItem = app.HistoryItem;
 type SavedRequest = app.SavedRequest;
 type SidebarTab = "history" | "collections";
+type ProgressData = { bytesRead: number; total: number };
+type StoredRequest = {
+  method?: string;
+  url?: string;
+  body?: string;
+  headers?: Record<string, string>;
+};
+
+const APP_BG_DECORATION_CLASS =
+  "pointer-events-none select-none absolute mix-blend-screen z-40";
+const TOOLBAR_BUTTON_CLASS =
+  "flex items-center gap-1 px-2 py-0.5 text-xs text-ctp-subtext0 hover:text-ctp-text hover:bg-ctp-surface0 rounded disabled:opacity-50 disabled:pointer-events-none";
 
 const detectBodyType = (body: string) => {
   if (!body) {
@@ -76,6 +88,16 @@ const mergeHeaders = (tab: RequestTab) => {
   };
 };
 
+const createErrorResponse = (error: unknown) => ({
+  statusCode: 0,
+  statusText: "",
+  headers: {},
+  body: "",
+  timingMs: 0,
+  contentLength: 0,
+  error: String(error),
+});
+
 function App() {
   const [tabs, setTabs] = useState<RequestTab[]>([createDefaultTab()]);
   const [activeTabId, setActiveTabId] = useState<string>(tabs[0].id);
@@ -86,7 +108,7 @@ function App() {
   const [showAbout, setShowAbout] = useState(false);
   const [activeVariables, setActiveVariables] = useState<Record<string, string>>({});
 
-  const [downloadProgress, setDownloadProgress] = useState<{ bytesRead: number; total: number } | null>(null);
+  const [downloadProgress, setDownloadProgress] = useState<ProgressData | null>(null);
 
   const sidebarRef = useRef<SidebarRef>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -118,7 +140,7 @@ function App() {
   }, [loadActiveVariables]);
 
   useEffect(() => {
-    const handleProgress = (data: { bytesRead: number; total: number }) => {
+    const handleProgress = (data: ProgressData) => {
       setDownloadProgress({ bytesRead: data.bytesRead, total: data.total });
     };
 
@@ -159,7 +181,7 @@ function App() {
     updateActiveTab("requestState", "idle");
   };
 
-  const loadStoredRequest = useCallback((request: { method?: string; url?: string; body?: string; headers?: Record<string, string> }) => {
+  const loadStoredRequest = useCallback((request: StoredRequest) => {
     const body = request.body || "";
 
     updateActiveTab("method", request.method || "GET");
@@ -291,15 +313,7 @@ function App() {
         return;
       }
 
-      updateActiveTab("response", {
-        statusCode: 0,
-        statusText: "",
-        headers: {},
-        body: "",
-        timingMs: 0,
-        contentLength: 0,
-        error: String(err),
-      });
+      updateActiveTab("response", createErrorResponse(err));
       updateActiveTab("requestState", "error");
     }
   }, [activeTab, activeVariables, updateActiveTab]);
@@ -335,12 +349,10 @@ function App() {
     sidebarRef.current?.refreshCollections();
   };
 
-  const getMergedHeaders = () => {
-    return {
-      ...keyValuePairsToHeaders(activeTab.headers),
-      ...authToHeaders(activeTab.auth),
-    };
-  };
+  const getMergedHeaders = () => ({
+    ...keyValuePairsToHeaders(activeTab.headers),
+    ...authToHeaders(activeTab.auth),
+  });
 
   const handleAddChainVariable = (variable: ChainVariable) => {
     updateActiveTab("chainVariables", (() => {
@@ -378,10 +390,10 @@ function App() {
 
   return (
     <div className="relative flex flex-col h-screen bg-ctp-base text-ctp-text font-mono text-sm overflow-hidden">
-      <img src={design1} alt="" aria-hidden="true" className="pointer-events-none select-none absolute -top-16 -right-16 w-80 h-80 opacity-[0.12] mix-blend-screen rotate-12 z-40" />
-      <img src={design2} alt="" aria-hidden="true" className="pointer-events-none select-none absolute -bottom-20 -left-20 w-96 h-96 opacity-[0.12] mix-blend-screen -rotate-12 z-40" />
-      <img src={design3} alt="" aria-hidden="true" className="pointer-events-none select-none absolute -bottom-10 -right-10 w-72 h-72 opacity-[0.08] mix-blend-screen rotate-6 z-40" />
-      <img src={design4} alt="" aria-hidden="true" className="pointer-events-none select-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] opacity-[0.05] mix-blend-screen z-40" />
+      <img src={design1} alt="" aria-hidden="true" className={`${APP_BG_DECORATION_CLASS} -top-16 -right-16 w-80 h-80 opacity-[0.12] rotate-12`} />
+      <img src={design2} alt="" aria-hidden="true" className={`${APP_BG_DECORATION_CLASS} -bottom-20 -left-20 w-96 h-96 opacity-[0.12] -rotate-12`} />
+      <img src={design3} alt="" aria-hidden="true" className={`${APP_BG_DECORATION_CLASS} -bottom-10 -right-10 w-72 h-72 opacity-[0.08] rotate-6`} />
+      <img src={design4} alt="" aria-hidden="true" className={`${APP_BG_DECORATION_CLASS} top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] opacity-[0.05]`} />
 
       <div className="relative z-10 flex flex-col flex-1 overflow-hidden">
         <TitleBar
@@ -422,7 +434,7 @@ function App() {
               <button
                 onClick={handleSaveRequest}
                 disabled={!activeTab.url.trim()}
-                className="flex items-center gap-1 px-2 py-0.5 text-xs text-ctp-subtext0 hover:text-ctp-text hover:bg-ctp-surface0 rounded disabled:opacity-50 disabled:pointer-events-none"
+                className={TOOLBAR_BUTTON_CLASS}
                 title="Save to Collection (Ctrl+S)"
               >
                 <Icons.Save size={10} />

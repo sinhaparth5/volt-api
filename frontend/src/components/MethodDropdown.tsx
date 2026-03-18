@@ -2,6 +2,11 @@ import { useRef, useEffect } from "react";
 import { Icons } from "./Icons";
 import { METHODS, getMethodColor, getMethodBg } from "../utils/helpers";
 
+const getMethodButtonClass = (currentMethod: string, option: string) =>
+  currentMethod === option
+    ? `${getMethodBg(option)} ${getMethodColor(option)}`
+    : "text-ctp-subtext1 hover:bg-ctp-surface1";
+
 interface MethodDropdownProps {
   method: string;
   isOpen: boolean;
@@ -44,11 +49,7 @@ export function MethodDropdown({ method, isOpen, onToggle, onSelect }: MethodDro
               key={m}
               type="button"
               onClick={() => onSelect(m)}
-              className={`w-full px-3 py-2 text-left text-xs flex items-center gap-2 ${
-                method === m
-                  ? `${getMethodBg(m)} ${getMethodColor(m)}`
-                  : `text-ctp-subtext1 hover:bg-ctp-surface1`
-              }`}
+              className={`w-full px-3 py-2 text-left text-xs flex items-center gap-2 ${getMethodButtonClass(method, m)}`}
             >
               <span className={`w-1.5 h-1.5 rounded-full ${method === m ? "bg-current" : "bg-transparent"}`} />
               <span className="font-semibold">{m}</span>

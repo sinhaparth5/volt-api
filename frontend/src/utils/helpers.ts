@@ -4,7 +4,7 @@ import {
   wasmBuildUrlWithParamsSync,
   wasmEncodeFormDataSync,
   wasmBuildBasicAuthSync,
-} from './wasm';
+} from "./wasm";
 
 export const METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH"] as const;
 
@@ -234,26 +234,23 @@ export const findVariables = (text: string): string[] => {
   if (!text) return [];
 
   const matches: string[] = [];
-  let match;
+  let match: RegExpExecArray | null;
   while ((match = VARIABLE_PATTERN.exec(text)) !== null) {
     const varName = match[1].trim();
     if (!matches.includes(varName)) {
       matches.push(varName);
     }
   }
-  // Reset regex state
   VARIABLE_PATTERN.lastIndex = 0;
   return matches;
 };
 
-// Check if a string contains any variables
 export const hasVariables = (text: string): boolean => {
   if (!text) return false;
   VARIABLE_PATTERN.lastIndex = 0;
   return VARIABLE_PATTERN.test(text);
 };
 
-// Preview substitution result - returns original with substitutions highlighted
 export const previewSubstitution = (
   text: string,
   variables: Record<string, string>

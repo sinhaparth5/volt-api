@@ -12,10 +12,16 @@ interface State {
   errorInfo: ErrorInfo | null;
 }
 
+const INITIAL_STATE: State = {
+  hasError: false,
+  error: null,
+  errorInfo: null,
+};
+
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false, error: null, errorInfo: null };
+    this.state = INITIAL_STATE;
   }
 
   static getDerivedStateFromError(error: Error): Partial<State> {
@@ -28,7 +34,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   handleReset = () => {
-    this.setState({ hasError: false, error: null, errorInfo: null });
+    this.setState(INITIAL_STATE);
   };
 
   render() {
@@ -83,7 +89,6 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 }
 
-// Smaller inline error boundary for sections
 export function SectionErrorFallback({ onReset }: { onReset?: () => void }) {
   return (
     <div className="flex-1 flex items-center justify-center p-4">
