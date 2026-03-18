@@ -2,6 +2,13 @@ import { useRef, useEffect } from "react";
 import { Icons } from "./Icons";
 import { KeyValuePair, generateId } from "../utils/helpers";
 
+const createEmptyPair = (): KeyValuePair => ({
+  id: generateId(),
+  key: "",
+  value: "",
+  enabled: true,
+});
+
 interface KeyValueEditorProps {
   pairs: KeyValuePair[];
   onChange: (pairs: KeyValuePair[]) => void;
@@ -41,8 +48,7 @@ export function KeyValueEditor({
 
   const removePair = (id: string) => {
     if (pairs.length === 1) {
-      // Keep one empty row
-      onChange([{ id: generateId(), key: "", value: "", enabled: true }]);
+      onChange([createEmptyPair()]);
     } else {
       onChange(pairs.filter((p) => p.id !== id));
     }
@@ -50,7 +56,7 @@ export function KeyValueEditor({
 
   const addPair = () => {
     shouldFocusLast.current = true;
-    onChange([...pairs, { id: generateId(), key: "", value: "", enabled: true }]);
+    onChange([...pairs, createEmptyPair()]);
   };
 
   const handleKeyDown = (
@@ -60,13 +66,11 @@ export function KeyValueEditor({
   ) => {
     const pair = pairs[index];
 
-    // Enter on last row adds new row
     if (e.key === "Enter" && index === pairs.length - 1) {
       e.preventDefault();
       addPair();
     }
 
-    // Backspace on empty key field removes row
     if (
       e.key === "Backspace" &&
       field === "key" &&
@@ -79,12 +83,10 @@ export function KeyValueEditor({
     }
   };
 
-  // Ensure there's always at least one row
-  const displayPairs = pairs.length > 0 ? pairs : [{ id: generateId(), key: "", value: "", enabled: true }];
+  const displayPairs = pairs.length > 0 ? pairs : [createEmptyPair()];
 
   return (
     <div className="space-y-1">
-      {/* Header - aligned with grid below */}
       <div className="grid grid-cols-[20px_1fr_1fr_28px] gap-2 text-xs text-ctp-text pb-1">
         <div></div>
         <div className="px-1">{keyPlaceholder}</div>
@@ -92,13 +94,11 @@ export function KeyValueEditor({
         <div></div>
       </div>
 
-      {/* Rows */}
       {displayPairs.map((pair, index) => (
         <div
           key={pair.id}
           className="grid grid-cols-[20px_1fr_1fr_28px] gap-2 items-center group"
         >
-          {/* Checkbox */}
           <button
             onClick={() => togglePair(pair.id)}
             className={`w-4 h-4 rounded border flex items-center justify-center ${
@@ -110,7 +110,6 @@ export function KeyValueEditor({
             {pair.enabled && <Icons.Check size={10} />}
           </button>
 
-          {/* Key input */}
           <input
             ref={index === displayPairs.length - 1 ? lastInputRef : null}
             type="text"
@@ -123,7 +122,6 @@ export function KeyValueEditor({
             }`}
           />
 
-          {/* Value input */}
           <input
             type="text"
             value={pair.value}
@@ -135,7 +133,6 @@ export function KeyValueEditor({
             }`}
           />
 
-          {/* Remove button */}
           <button
             onClick={() => removePair(pair.id)}
             className="w-7 h-7 flex items-center justify-center text-ctp-overlay0 hover:text-ctp-red hover:bg-ctp-red/10 rounded-md opacity-0 group-hover:opacity-100"
@@ -145,7 +142,6 @@ export function KeyValueEditor({
         </div>
       ))}
 
-      {/* Add button */}
       <button
         onClick={addPair}
         className="flex items-center gap-1.5 text-xs text-ctp-text hover:text-ctp-mauve px-1 py-1.5 mt-1 rounded-md hover:bg-ctp-surface0/50"

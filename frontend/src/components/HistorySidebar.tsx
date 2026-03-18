@@ -2,8 +2,11 @@ import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { GetHistory, DeleteHistoryItem, ClearHistory } from "../../wailsjs/go/app/App";
 import { app } from "../../wailsjs/go/models";
 import { Icons } from "./Icons";
+import { getMethodColor, getStatusColor } from "../utils/helpers";
 
 type HistoryItem = app.HistoryItem;
+const HISTORY_LIMIT = 100;
+const SEARCH_DEBOUNCE_MS = 300;
 
 interface Props {
   onSelectItem: (item: HistoryItem) => void;
@@ -22,7 +25,7 @@ export const HistorySidebar = forwardRef<HistorySidebarRef, Props>(
     const loadHistory = async () => {
       setIsLoading(true);
       try {
-        const items = await GetHistory(100, search);
+        const items = await GetHistory(HISTORY_LIMIT, search);
         setHistory(items || []);
       } catch (err) {
         console.error("Failed to load history:", err);
@@ -31,20 +34,17 @@ export const HistorySidebar = forwardRef<HistorySidebarRef, Props>(
       setIsLoading(false);
     };
 
-    // Expose refresh method to parent
     useImperativeHandle(ref, () => ({
       refresh: loadHistory,
     }));
 
-    // Load history on mount and when search changes
     useEffect(() => {
       const timer = setTimeout(() => {
         loadHistory();
-      }, 300); // Debounce search
+      }, SEARCH_DEBOUNCE_MS);
       return () => clearTimeout(timer);
     }, [search]);
 
-    // Initial load
     useEffect(() => {
       loadHistory();
     }, []);
@@ -82,24 +82,6 @@ export const HistorySidebar = forwardRef<HistorySidebarRef, Props>(
       return date.toLocaleDateString();
     };
 
-    const getMethodColor = (method: string): string => {
-      switch (method.toUpperCase()) {
-        case "GET": return "text-ctp-green";
-        case "POST": return "text-ctp-blue";
-        case "PUT": return "text-ctp-peach";
-        case "DELETE": return "text-ctp-red";
-        case "PATCH": return "text-ctp-mauve";
-        default: return "text-ctp-text";
-      }
-    };
-
-    const getStatusColor = (code: number): string => {
-      if (code >= 200 && code < 300) return "text-ctp-green";
-      if (code >= 300 && code < 400) return "text-ctp-yellow";
-      if (code >= 400 && code < 500) return "text-ctp-peach";
-      return "text-ctp-red";
-    };
-
     const getUrlDisplay = (url: string): string => {
       try {
         const parsed = new URL(url);
@@ -112,7 +94,6 @@ export const HistorySidebar = forwardRef<HistorySidebarRef, Props>(
 
     return (
       <div className="flex flex-col h-full">
-        {/* Search */}
         <div className="p-2 border-b border-ctp-surface0">
           <div className="relative">
             <Icons.Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-ctp-overlay0" />
@@ -126,7 +107,6 @@ export const HistorySidebar = forwardRef<HistorySidebarRef, Props>(
           </div>
         </div>
 
-        {/* History List */}
         <div className="flex-1 overflow-y-auto">
           {isLoading && history.length === 0 && (
             <div className="p-6 text-center text-ctp-text text-xs flex flex-col items-center gap-2">
@@ -176,7 +156,6 @@ export const HistorySidebar = forwardRef<HistorySidebarRef, Props>(
           ))}
         </div>
 
-        {/* Footer */}
         <div className="px-3 py-2 border-t border-ctp-surface0 flex justify-between items-center">
           <span className="text-xs text-ctp-text">
             {history.length} {history.length === 1 ? "item" : "items"}

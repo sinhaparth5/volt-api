@@ -1,6 +1,5 @@
 import { generateId } from "./helpers";
 
-// Assertion types
 export type AssertionType =
   | "status"
   | "responseTime"
@@ -23,7 +22,7 @@ export type AssertionOperator =
 export interface Assertion {
   id: string;
   type: AssertionType;
-  property: string;  // For JSON path or header name
+  property: string;
   operator: AssertionOperator;
   expected: string;
   enabled: boolean;
@@ -44,7 +43,6 @@ export interface ResponseData {
   timingMs: number;
 }
 
-// Create a new empty assertion
 export const createEmptyAssertion = (): Assertion => ({
   id: generateId(),
   type: "status",
@@ -54,7 +52,6 @@ export const createEmptyAssertion = (): Assertion => ({
   enabled: true,
 });
 
-// Get display name for assertion type
 export const getAssertionTypeName = (type: AssertionType): string => {
   switch (type) {
     case "status": return "Status Code";
@@ -67,7 +64,6 @@ export const getAssertionTypeName = (type: AssertionType): string => {
   }
 };
 
-// Get available operators for assertion type
 export const getOperatorsForType = (type: AssertionType): AssertionOperator[] => {
   switch (type) {
     case "status":
@@ -87,7 +83,6 @@ export const getOperatorsForType = (type: AssertionType): AssertionOperator[] =>
   }
 };
 
-// Get display name for operator
 export const getOperatorName = (operator: AssertionOperator): string => {
   switch (operator) {
     case "equals": return "equals";
@@ -103,7 +98,6 @@ export const getOperatorName = (operator: AssertionOperator): string => {
   }
 };
 
-// Get JSON value by path (simple dot notation)
 const getJsonValue = (obj: unknown, path: string): unknown => {
   if (!path) return obj;
 
@@ -113,7 +107,6 @@ const getJsonValue = (obj: unknown, path: string): unknown => {
   for (const part of parts) {
     if (current === null || current === undefined) return undefined;
 
-    // Handle array index
     const arrayMatch = part.match(/^(.+)\[(\d+)\]$/);
     if (arrayMatch) {
       const [, key, index] = arrayMatch;
@@ -131,7 +124,6 @@ const getJsonValue = (obj: unknown, path: string): unknown => {
   return current;
 };
 
-// Run a single assertion against response data
 export const runAssertion = (assertion: Assertion, response: ResponseData): AssertionResult => {
   const result: AssertionResult = {
     assertionId: assertion.id,

@@ -17,10 +17,8 @@ import (
 var assets embed.FS
 
 func main() {
-	// Create an instance of the app structure
 	application := app.New()
 
-	// Create application with options
 	err := wails.Run(&options.App{
 		Title:     "Volt API",
 		Width:     1024,
@@ -50,10 +48,10 @@ func main() {
 			},
 		},
 		EnableDefaultContextMenu: !productionMode,
-		BackgroundColour: &options.RGBA{R: 30, G: 30, B: 46, A: 1}, // ctp-base
-		Frameless:        runtime.GOOS == "windows",                // Frameless on Windows for custom title bar
-		OnStartup:        application.Startup,
-		OnShutdown:       application.Shutdown,
+		BackgroundColour:         &options.RGBA{R: 30, G: 30, B: 46, A: 1},
+		Frameless:                runtime.GOOS == "windows",
+		OnStartup:                application.Startup,
+		OnShutdown:               application.Shutdown,
 		Bind: []interface{}{
 			application,
 		},

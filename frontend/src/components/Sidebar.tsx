@@ -8,6 +8,10 @@ import { app } from "../../wailsjs/go/models";
 type HistoryItem = app.HistoryItem;
 type SavedRequest = app.SavedRequest;
 type SidebarTab = "history" | "collections";
+const SIDEBAR_TABS: Array<{ id: SidebarTab; label: string; icon: typeof Icons.History }> = [
+  { id: "history", label: "History", icon: Icons.History },
+  { id: "collections", label: "Collections", icon: Icons.Folder },
+];
 
 export interface SidebarRef {
   refreshHistory: () => void;
@@ -33,7 +37,6 @@ export const Sidebar = forwardRef<SidebarRef, SidebarProps>(
 
     return (
       <aside className="w-full h-full bg-ctp-mantle flex flex-col">
-        {/* Logo - consistent height */}
         <div className="h-12 px-4 border-b border-ctp-surface0 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Icons.Bolt size={16} className="text-ctp-mauve" />
@@ -43,33 +46,23 @@ export const Sidebar = forwardRef<SidebarRef, SidebarProps>(
           <ThemeToggle />
         </div>
 
-        {/* Tabs - consistent with main content tabs */}
         <div className="flex border-b border-ctp-surface0">
-          <button
-            onClick={() => onTabChange("history")}
-            className={`flex-1 h-10 text-xs uppercase tracking-wider flex items-center justify-center gap-2 border-b-2 -mb-px ${
-              activeTab === "history"
-                ? "text-ctp-text bg-ctp-base border-ctp-mauve"
-                : "text-ctp-subtext0 hover:text-ctp-text border-transparent"
-            }`}
-          >
-            <Icons.History size={12} />
-            History
-          </button>
-          <button
-            onClick={() => onTabChange("collections")}
-            className={`flex-1 h-10 text-xs uppercase tracking-wider flex items-center justify-center gap-2 border-b-2 -mb-px ${
-              activeTab === "collections"
-                ? "text-ctp-text bg-ctp-base border-ctp-mauve"
-                : "text-ctp-subtext0 hover:text-ctp-text border-transparent"
-            }`}
-          >
-            <Icons.Folder size={12} />
-            Collections
-          </button>
+          {SIDEBAR_TABS.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => onTabChange(id)}
+              className={`flex-1 h-10 text-xs uppercase tracking-wider flex items-center justify-center gap-2 border-b-2 -mb-px ${
+                activeTab === id
+                  ? "text-ctp-text bg-ctp-base border-ctp-mauve"
+                  : "text-ctp-subtext0 hover:text-ctp-text border-transparent"
+              }`}
+            >
+              <Icon size={12} />
+              {label}
+            </button>
+          ))}
         </div>
 
-        {/* Tab Content */}
         <div className="flex-1 overflow-hidden bg-ctp-base">
           {activeTab === "history" ? (
             <HistorySidebar

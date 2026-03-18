@@ -7,6 +7,9 @@ import {
   generateChainId,
 } from "../utils/chainVariables";
 
+const EXTRACTION_TYPES: ExtractionType[] = ["json", "header", "regex", "status", "body"];
+const VARIABLE_TEMPLATE = "{{variableName}}";
+
 interface ChainVariableExtractorProps {
   response: {
     statusCode: number;
@@ -29,6 +32,17 @@ export function ChainVariableExtractor({
   const [variableName, setVariableName] = useState("");
   const [previewValue, setPreviewValue] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const resetFeedback = () => {
+    setPreviewValue(null);
+    setError(null);
+  };
+
+  const resetForm = () => {
+    setPath("");
+    setVariableName("");
+    resetFeedback();
+  };
 
   const handlePreview = () => {
     if (!path.trim()) {
@@ -77,11 +91,7 @@ export function ChainVariableExtractor({
       createdAt: Date.now(),
     });
 
-    // Reset form
-    setPath("");
-    setVariableName("");
-    setPreviewValue(null);
-    setError(null);
+    resetForm();
   };
 
   const getSourceDescription = (): string => {
@@ -121,7 +131,6 @@ export function ChainVariableExtractor({
 
   return (
     <div className="space-y-4">
-      {/* Saved Chain Variables */}
       {chainVariables.length > 0 && (
         <div className="space-y-2">
           <div className="text-xs text-ctp-text flex items-center gap-2">
@@ -158,21 +167,18 @@ export function ChainVariableExtractor({
         </div>
       )}
 
-      {/* Extract New Variable */}
       <div className="space-y-3">
         <div className="text-xs text-ctp-text">Extract Value to Variable</div>
 
-        {/* Extraction Type */}
         <div className="flex gap-1 bg-ctp-surface0 rounded-md p-0.5">
-          {(["json", "header", "regex", "status", "body"] as ExtractionType[]).map(
+          {EXTRACTION_TYPES.map(
             (type) => (
               <button
                 key={type}
                 onClick={() => {
                   setExtractionType(type);
                   setPath("");
-                  setPreviewValue(null);
-                  setError(null);
+                  resetFeedback();
                 }}
                 className={`flex-1 px-2 py-1 text-xs rounded capitalize ${
                   extractionType === type
@@ -186,22 +192,19 @@ export function ChainVariableExtractor({
           )}
         </div>
 
-        {/* Path Input */}
         {needsPath && (
           <input
             type="text"
             value={path}
             onChange={(e) => {
               setPath(e.target.value);
-              setPreviewValue(null);
-              setError(null);
+              resetFeedback();
             }}
             placeholder={getPlaceholder()}
             className="w-full bg-ctp-surface0 border border-ctp-surface1 px-3 py-2 rounded-md text-xs outline-none focus:border-ctp-lavender text-ctp-text placeholder:text-ctp-overlay0"
           />
         )}
 
-        {/* Preview Button & Result */}
         <div className="flex items-center gap-2">
           <button
             onClick={handlePreview}
@@ -226,7 +229,6 @@ export function ChainVariableExtractor({
           )}
         </div>
 
-        {/* Variable Name & Save */}
         <div className="flex gap-2">
           <div className="flex-1 relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ctp-overlay0 text-xs">
@@ -253,11 +255,10 @@ export function ChainVariableExtractor({
           </button>
         </div>
 
-        {/* Usage Hint */}
         <div className="text-xs text-ctp-overlay0">
           Chain variables can be used like environment variables:{" "}
           <code className="bg-ctp-surface0 px-1 py-0.5 rounded text-ctp-yellow">
-            {"{{variableName}}"}
+            {VARIABLE_TEMPLATE}
           </code>
         </div>
       </div>

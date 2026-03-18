@@ -1,4 +1,4 @@
-import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import { useState, useEffect, forwardRef, useImperativeHandle, type Dispatch, type SetStateAction, type DragEvent, type MouseEvent } from "react";
 import {
   GetCollections,
   GetCollectionRequests,
@@ -33,9 +33,23 @@ interface CollectionWithRequests extends Collection {
 
 interface DragState {
   requestId: string;
-  requestName: string;
   sourceCollectionId: string;
 }
+
+const createCollectionState = (collection: Collection): CollectionWithRequests => ({
+  ...collection,
+  requests: [],
+  isExpanded: false,
+  isLoading: false,
+});
+
+const resetEditState = (
+  setEditingId: Dispatch<SetStateAction<string | null>>,
+  setEditingName: Dispatch<SetStateAction<string>>
+) => {
+  setEditingId(null);
+  setEditingName("");
+};
 
 export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsSidebarProps>(
   ({ onSelectRequest }, ref) => {
@@ -62,7 +76,6 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
       loadCollections();
     }, []);
 
-    // Close context menu on click outside
     useEffect(() => {
       const handleClick = () => setContextMenu(null);
       if (contextMenu) {
@@ -74,14 +87,7 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
     const loadCollections = async () => {
       try {
         const items = await GetCollections();
-        setCollections(
-          items.map((c) => ({
-            ...c,
-            requests: [],
-            isExpanded: false,
-            isLoading: false,
-          }))
-        );
+        setCollections(items.map(createCollectionState));
       } catch (err) {
         console.error("Failed to load collections:", err);
       }
@@ -92,7 +98,6 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
         prev.map((c) => {
           if (c.id !== id) return c;
           if (!c.isExpanded && c.requests.length === 0) {
-            // Load requests when expanding for the first time
             loadCollectionRequests(id);
             return { ...c, isExpanded: true, isLoading: true };
           }
@@ -135,8 +140,7 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
       if (!editingName.trim()) return;
       try {
         await RenameCollection(id, editingName.trim());
-        setEditingId(null);
-        setEditingName("");
+        resetEditState(setEditingId, setEditingName);
         loadCollections();
       } catch (err) {
         console.error("Failed to rename collection:", err);
@@ -188,7 +192,7 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
     };
 
     const handleContextMenu = (
-      e: React.MouseEvent,
+      e: MouseEvent,
       type: "collection" | "request",
       id: string,
       collectionId?: string
@@ -200,22 +204,19 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
     const handleMoveRequest = async (requestId: string, newCollectionId: string) => {
       try {
         await MoveSavedRequest(requestId, newCollectionId);
-        // Refresh all collections to update counts
         loadCollections();
       } catch (err) {
         console.error("Failed to move request:", err);
       }
     };
 
-    // Drag and drop handlers
     const handleDragStart = (
-      e: React.DragEvent,
+      e: DragEvent,
       request: SavedRequest,
       collectionId: string
     ) => {
       setDragState({
         requestId: request.id,
-        requestName: request.name,
         sourceCollectionId: collectionId,
       });
       e.dataTransfer.effectAllowed = "move";
@@ -227,7 +228,7 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
       setDropTargetId(null);
     };
 
-    const handleDragOver = (e: React.DragEvent, collectionId: string) => {
+    const handleDragOver = (e: DragEvent, collectionId: string) => {
       e.preventDefault();
       if (dragState && dragState.sourceCollectionId !== collectionId) {
         e.dataTransfer.dropEffect = "move";
@@ -239,7 +240,7 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
       setDropTargetId(null);
     };
 
-    const handleDrop = async (e: React.DragEvent, targetCollectionId: string) => {
+    const handleDrop = async (e: DragEvent, targetCollectionId: string) => {
       e.preventDefault();
       setDropTargetId(null);
 
@@ -251,7 +252,6 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
 
     return (
       <div className="h-full flex flex-col">
-        {/* Header with actions */}
         <div className="p-2 border-b border-ctp-surface0 flex items-center gap-1">
           <button
             onClick={() => setIsCreating(true)}
@@ -270,7 +270,6 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
           </button>
         </div>
 
-        {/* New collection input */}
         {isCreating && (
           <div className="p-2 border-b border-ctp-surface0">
             <input
@@ -308,7 +307,6 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
           </div>
         )}
 
-        {/* Collections list */}
         <div className="flex-1 overflow-auto">
           {collections.length === 0 && !isCreating ? (
             <div className="p-4 text-xs text-ctp-text font-medium text-center">
@@ -317,7 +315,6 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
           ) : (
             collections.map((collection) => (
               <div key={collection.id} className="border-b border-ctp-surface0/50">
-                {/* Collection header */}
                 <div
                   className={`flex items-center gap-1 px-2 py-2 hover:bg-ctp-surface0/50 cursor-pointer group transition-colors ${
                     dropTargetId === collection.id
@@ -346,8 +343,7 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
                       onKeyDown={(e) => {
                         if (e.key === "Enter") handleRename(collection.id);
                         if (e.key === "Escape") {
-                          setEditingId(null);
-                          setEditingName("");
+                          resetEditState(setEditingId, setEditingName);
                         }
                       }}
                       onClick={(e) => e.stopPropagation()}
@@ -369,7 +365,6 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
                   )}
                 </div>
 
-                {/* Requests in collection */}
                 {collection.isExpanded && (
                   <div className="bg-ctp-base/50">
                     {collection.isLoading ? (
@@ -424,7 +419,6 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
           )}
         </div>
 
-        {/* Context Menu */}
         {contextMenu && (
           <div
             className="fixed bg-ctp-mantle border border-ctp-surface1 rounded-lg shadow-lg shadow-ctp-crust/50 py-1 z-50 min-w-36"
@@ -470,7 +464,6 @@ export const CollectionsSidebar = forwardRef<CollectionsSidebarRef, CollectionsS
               </>
             ) : (
               <>
-                {/* Move to submenu */}
                 <div className="relative group/move">
                   <button className="w-full px-3 py-1.5 text-xs font-medium text-left text-ctp-text hover:bg-ctp-surface0 flex items-center gap-2 justify-between">
                     <span className="flex items-center gap-2">

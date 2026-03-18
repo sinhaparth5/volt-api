@@ -15,6 +15,7 @@ import { app } from "../../wailsjs/go/models";
 
 type Environment = app.Environment;
 type EnvironmentVariable = app.EnvironmentVariable;
+const VARIABLE_USAGE = "{{variableName}}";
 
 interface EnvironmentManagerProps {
   isOpen: boolean;
@@ -35,6 +36,16 @@ export function EnvironmentManager({
   const [editingEnvName, setEditingEnvName] = useState("");
   const [newVarKey, setNewVarKey] = useState("");
   const [newVarValue, setNewVarValue] = useState("");
+
+  const resetEditingEnvironment = () => {
+    setEditingEnvId(null);
+    setEditingEnvName("");
+  };
+
+  const resetNewVariable = () => {
+    setNewVarKey("");
+    setNewVarValue("");
+  };
 
   const loadEnvironments = async () => {
     try {
@@ -86,12 +97,12 @@ export function EnvironmentManager({
 
   const handleRenameEnvironment = async (id: string) => {
     if (!editingEnvName.trim()) {
-      setEditingEnvId(null);
+      resetEditingEnvironment();
       return;
     }
     try {
       await RenameEnvironment(id, editingEnvName.trim());
-      setEditingEnvId(null);
+      resetEditingEnvironment();
       await loadEnvironments();
       if (selectedEnv?.id === id) {
         setSelectedEnv({ ...selectedEnv, name: editingEnvName.trim() });
@@ -119,8 +130,7 @@ export function EnvironmentManager({
     if (!selectedEnv || !newVarKey.trim()) return;
     try {
       await SetEnvironmentVariable(selectedEnv.id, newVarKey.trim(), newVarValue, true);
-      setNewVarKey("");
-      setNewVarValue("");
+      resetNewVariable();
       await loadVariables(selectedEnv.id);
       onEnvironmentChange?.();
     } catch (err) {
@@ -181,15 +191,12 @@ export function EnvironmentManager({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-ctp-crust/80 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      {/* Modal */}
       <div className="relative bg-ctp-base border border-ctp-surface0 rounded-lg shadow-xl w-[700px] max-h-[80vh] flex flex-col">
-        {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-ctp-surface0">
           <h2 className="text-sm text-ctp-text">Manage Environments</h2>
           <button
@@ -200,11 +207,8 @@ export function EnvironmentManager({
           </button>
         </div>
 
-        {/* Content */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Environment List */}
           <div className="w-48 border-r border-ctp-surface0 flex flex-col min-w-0">
-            {/* Create new */}
             <div className="p-2 border-b border-ctp-surface0">
               <div className="flex gap-1">
                 <input
@@ -225,7 +229,6 @@ export function EnvironmentManager({
               </div>
             </div>
 
-            {/* List */}
             <div className="flex-1 overflow-y-auto">
               {environments.length === 0 && (
                 <div className="p-4 text-center text-ctp-text text-xs">
@@ -250,7 +253,7 @@ export function EnvironmentManager({
                       onBlur={() => handleRenameEnvironment(env.id)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") handleRenameEnvironment(env.id);
-                        if (e.key === "Escape") setEditingEnvId(null);
+                        if (e.key === "Escape") resetEditingEnvironment();
                       }}
                       className="flex-1 min-w-0 bg-ctp-surface0 border border-ctp-lavender px-2 py-1 rounded-md text-xs outline-none text-ctp-text"
                       autoFocus
@@ -288,7 +291,6 @@ export function EnvironmentManager({
               ))}
             </div>
 
-            {/* Import */}
             <div className="p-2 border-t border-ctp-surface0">
               <label className="flex items-center justify-center gap-1.5 px-2 py-1.5 text-xs text-ctp-subtext0 hover:text-ctp-text hover:bg-ctp-surface0 rounded-md cursor-pointer">
                 <Icons.ArrowUp size={12} />
@@ -303,11 +305,9 @@ export function EnvironmentManager({
             </div>
           </div>
 
-          {/* Variables */}
           <div className="flex-1 flex flex-col">
             {selectedEnv ? (
               <>
-                {/* Variables header */}
                 <div className="px-4 py-2 border-b border-ctp-surface0 flex items-center justify-between">
                   <span className="text-xs text-ctp-text">
                     Variables in <span className="text-ctp-mauve">{selectedEnv.name}</span>
@@ -321,9 +321,7 @@ export function EnvironmentManager({
                   </button>
                 </div>
 
-                {/* Variables list */}
                 <div className="flex-1 overflow-y-auto p-4">
-                  {/* Header */}
                   <div className="grid grid-cols-[20px_1fr_1fr_28px] gap-2 text-xs text-ctp-text pb-2">
                     <div></div>
                     <div>Variable</div>
@@ -331,7 +329,6 @@ export function EnvironmentManager({
                     <div></div>
                   </div>
 
-                  {/* Variables */}
                   {variables.map((v) => (
                     <div key={v.id} className="grid grid-cols-[20px_1fr_1fr_28px] gap-2 items-center mb-1 group">
                       <button
@@ -365,7 +362,6 @@ export function EnvironmentManager({
                     </div>
                   ))}
 
-                  {/* Add new variable */}
                   <div className="grid grid-cols-[20px_1fr_1fr_28px] gap-2 items-center mt-2 pt-2 border-t border-ctp-surface0">
                     <div></div>
                     <input
@@ -394,9 +390,8 @@ export function EnvironmentManager({
                   </div>
                 </div>
 
-                {/* Usage hint */}
                 <div className="px-4 py-2 border-t border-ctp-surface0 text-xs text-ctp-text">
-                  Use <code className="bg-ctp-surface0 px-1 py-0.5 rounded text-ctp-mauve">{"{{variableName}}"}</code> in URLs, headers, or body
+                  Use <code className="bg-ctp-surface0 px-1 py-0.5 rounded text-ctp-mauve">{VARIABLE_USAGE}</code> in URLs, headers, or body
                 </div>
               </>
             ) : (

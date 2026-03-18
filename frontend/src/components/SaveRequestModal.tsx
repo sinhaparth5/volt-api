@@ -4,6 +4,17 @@ import { app } from "../../wailsjs/go/models";
 import { Icons } from "./Icons";
 
 type Collection = app.Collection;
+const getDefaultRequestName = (method: string, url: string) => {
+  try {
+    const urlObj = new URL(url);
+    const pathParts = urlObj.pathname.split("/").filter(Boolean);
+    return pathParts.length > 0
+      ? `${method} ${pathParts[pathParts.length - 1]}`
+      : `${method} ${urlObj.hostname}`;
+  } catch {
+    return `${method} Request`;
+  }
+};
 
 interface SaveRequestModalProps {
   isOpen: boolean;
@@ -31,20 +42,16 @@ export function SaveRequestModal({
   const [newCollectionName, setNewCollectionName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
+  const resetNewCollectionState = () => {
+    setIsCreatingCollection(false);
+    setNewCollectionName("");
+  };
+
   useEffect(() => {
     if (isOpen) {
       loadCollections();
-      // Generate default name from URL
-      try {
-        const urlObj = new URL(url);
-        const pathParts = urlObj.pathname.split("/").filter(Boolean);
-        const defaultName = pathParts.length > 0
-          ? `${method} ${pathParts[pathParts.length - 1]}`
-          : `${method} ${urlObj.hostname}`;
-        setRequestName(defaultName);
-      } catch {
-        setRequestName(`${method} Request`);
-      }
+      setRequestName(getDefaultRequestName(method, url));
+      resetNewCollectionState();
     }
   }, [isOpen, url, method]);
 
@@ -66,8 +73,7 @@ export function SaveRequestModal({
       const newCollection = await CreateCollection(newCollectionName.trim());
       if (newCollection) {
         setSelectedCollectionId(newCollection.id);
-        setNewCollectionName("");
-        setIsCreatingCollection(false);
+        resetNewCollectionState();
         loadCollections();
       }
     } catch (err) {
@@ -101,7 +107,6 @@ export function SaveRequestModal({
   return (
     <div className="fixed inset-0 bg-ctp-crust/80 flex items-center justify-center z-50 modal-backdrop">
       <div className="bg-ctp-mantle border border-ctp-surface0 rounded-lg w-96 shadow-xl">
-        {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-ctp-surface0">
           <h2 className="text-sm font-bold text-ctp-text flex items-center gap-2">
             <Icons.Save size={16} className="text-ctp-mauve" />
@@ -115,9 +120,7 @@ export function SaveRequestModal({
           </button>
         </div>
 
-        {/* Content */}
         <div className="p-4 space-y-4">
-          {/* Request Name */}
           <div>
             <label className="text-xs text-ctp-text font-semibold block mb-1.5">
               Request Name
@@ -131,7 +134,6 @@ export function SaveRequestModal({
             />
           </div>
 
-          {/* Collection Selector */}
           <div>
             <label className="text-xs text-ctp-text font-semibold block mb-1.5">
               Collection
@@ -155,8 +157,7 @@ export function SaveRequestModal({
                   onKeyDown={(e) => {
                     if (e.key === "Enter") handleCreateCollection();
                     if (e.key === "Escape") {
-                      setIsCreatingCollection(false);
-                      setNewCollectionName("");
+                      resetNewCollectionState();
                     }
                   }}
                   placeholder="Collection name..."
@@ -172,8 +173,7 @@ export function SaveRequestModal({
                   </button>
                   <button
                     onClick={() => {
-                      setIsCreatingCollection(false);
-                      setNewCollectionName("");
+                      resetNewCollectionState();
                     }}
                     className="px-3 py-1.5 text-xs font-medium text-ctp-text hover:text-ctp-mauve"
                   >
@@ -205,7 +205,6 @@ export function SaveRequestModal({
             )}
           </div>
 
-          {/* Preview */}
           <div className="p-3 bg-ctp-base rounded border border-ctp-surface0 text-xs">
             <div className="flex items-center gap-2">
               <span className="font-bold text-ctp-green">{method}</span>
@@ -214,7 +213,6 @@ export function SaveRequestModal({
           </div>
         </div>
 
-        {/* Footer */}
         <div className="flex justify-end gap-2 px-4 py-3 border-t border-ctp-surface0">
           <button
             onClick={onClose}

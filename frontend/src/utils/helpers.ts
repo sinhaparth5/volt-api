@@ -10,7 +10,6 @@ export const METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH"] as const;
 
 export type HTTPMethod = (typeof METHODS)[number];
 
-// Key-value pair for headers and query params
 export interface KeyValuePair {
   id: string;
   key: string;
@@ -18,10 +17,8 @@ export interface KeyValuePair {
   enabled: boolean;
 }
 
-// Authentication types
 export type AuthType = "none" | "basic" | "bearer" | "apikey";
 
-// Body types
 export type BodyType = "json" | "form-data" | "raw" | "none";
 
 export interface AuthSettings {
@@ -34,12 +31,10 @@ export interface AuthSettings {
   apiKeyLocation?: "header" | "query";
 }
 
-// Generate unique ID for key-value pairs
 export const generateId = (): string => {
   return Math.random().toString(36).substring(2, 11);
 };
 
-// Create empty key-value pair
 export const createEmptyPair = (): KeyValuePair => ({
   id: generateId(),
   key: "",
@@ -47,7 +42,6 @@ export const createEmptyPair = (): KeyValuePair => ({
   enabled: true,
 });
 
-// Parse query params from URL
 export const parseQueryParams = (url: string): KeyValuePair[] => {
   if (isWasmLoaded()) {
     const pairs = wasmParseQueryParamsSync(url).map((p) => ({
@@ -70,19 +64,16 @@ export const parseQueryParams = (url: string): KeyValuePair[] => {
   }
 };
 
-// Get base URL without query params
 export const getBaseUrl = (url: string): string => {
   try {
     const urlObj = new URL(url);
     return `${urlObj.origin}${urlObj.pathname}`;
   } catch {
-    // If URL is invalid, try to strip query string manually
     const queryIndex = url.indexOf("?");
     return queryIndex > -1 ? url.substring(0, queryIndex) : url;
   }
 };
 
-// Build URL with query params
 export const buildUrlWithParams = (baseUrl: string, params: KeyValuePair[]): string => {
   if (isWasmLoaded()) {
     return wasmBuildUrlWithParamsSync(baseUrl, params);
@@ -102,7 +93,6 @@ export const buildUrlWithParams = (baseUrl: string, params: KeyValuePair[]): str
   }
 };
 
-// Convert auth settings to headers
 export const authToHeaders = (auth: AuthSettings): Record<string, string> => {
   switch (auth.type) {
     case "basic":
@@ -124,7 +114,6 @@ export const authToHeaders = (auth: AuthSettings): Record<string, string> => {
   return {};
 };
 
-// Convert key-value pairs to headers object
 export const keyValuePairsToHeaders = (pairs: KeyValuePair[]): Record<string, string> => {
   const headers: Record<string, string> = {};
   pairs
@@ -135,7 +124,6 @@ export const keyValuePairsToHeaders = (pairs: KeyValuePair[]): Record<string, st
   return headers;
 };
 
-// Convert headers object to key-value pairs
 export const headersToKeyValuePairs = (headers: Record<string, string>): KeyValuePair[] => {
   const pairs = Object.entries(headers).map(([key, value]) => ({
     id: generateId(),
@@ -146,7 +134,6 @@ export const headersToKeyValuePairs = (headers: Record<string, string>): KeyValu
   return pairs.length > 0 ? pairs : [createEmptyPair()];
 };
 
-// Default auth settings
 export const defaultAuthSettings = (): AuthSettings => ({
   type: "none",
   apiKeyLocation: "header",
@@ -189,7 +176,6 @@ export const getMethodBg = (method: string): string => {
   }
 };
 
-// Convert form data key-value pairs to URL encoded string
 export const formDataToUrlEncoded = (pairs: KeyValuePair[]): string => {
   if (isWasmLoaded()) {
     return wasmEncodeFormDataSync(pairs);
@@ -200,7 +186,6 @@ export const formDataToUrlEncoded = (pairs: KeyValuePair[]): string => {
     .join("&");
 };
 
-// Get content type header based on body type
 export const getContentTypeHeader = (bodyType: BodyType): Record<string, string> => {
   switch (bodyType) {
     case "json":
@@ -214,14 +199,8 @@ export const getContentTypeHeader = (bodyType: BodyType): Record<string, string>
   }
 };
 
-// ============================================================================
-// Variable Substitution
-// ============================================================================
-
-// Regex to match {{variableName}} patterns
 const VARIABLE_PATTERN = /\{\{([^}]+)\}\}/g;
 
-// Substitute variables in a string using the provided variables map
 export const substituteVariables = (
   text: string,
   variables: Record<string, string>
@@ -236,7 +215,6 @@ export const substituteVariables = (
   });
 };
 
-// Substitute variables in headers
 export const substituteHeaderVariables = (
   headers: Record<string, string>,
   variables: Record<string, string>
@@ -252,7 +230,6 @@ export const substituteHeaderVariables = (
   return result;
 };
 
-// Find all variables used in a string
 export const findVariables = (text: string): string[] => {
   if (!text) return [];
 

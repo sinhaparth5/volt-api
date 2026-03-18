@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Icons } from "./Icons";
 
-// Popular User-Agent strings
 export const USER_AGENTS = {
   "Default (Volt-API)": "",
   "Chrome (Windows)": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -23,6 +22,13 @@ export const USER_AGENTS = {
 } as const;
 
 export type UserAgentKey = keyof typeof USER_AGENTS;
+type ClientInfo = {
+  platform: string;
+  language: string;
+  screenSize: string;
+};
+
+const DEFAULT_USER_AGENT_KEY: UserAgentKey = "Default (Volt-API)";
 
 export interface ProxySettings {
   enabled: boolean;
@@ -65,24 +71,18 @@ export function ClientSettings({
   onSSLChange,
   onRedirectsChange,
 }: ClientSettingsProps) {
-  const [selectedKey, setSelectedKey] = useState<UserAgentKey>("Default (Volt-API)");
+  const [selectedKey, setSelectedKey] = useState<UserAgentKey>(DEFAULT_USER_AGENT_KEY);
   const [customAgent, setCustomAgent] = useState("");
   const [isCustom, setIsCustom] = useState(false);
-  const [clientInfo, setClientInfo] = useState<{
-    platform: string;
-    language: string;
-    screenSize: string;
-  } | null>(null);
+  const [clientInfo, setClientInfo] = useState<ClientInfo | null>(null);
 
-  // Detect current selection from userAgent value
   useEffect(() => {
     if (!userAgent) {
-      setSelectedKey("Default (Volt-API)");
+      setSelectedKey(DEFAULT_USER_AGENT_KEY);
       setIsCustom(false);
       return;
     }
 
-    // Check if it matches a preset
     const matchingKey = Object.entries(USER_AGENTS).find(
       ([, value]) => value === userAgent
     )?.[0] as UserAgentKey | undefined;
@@ -96,7 +96,6 @@ export function ClientSettings({
     }
   }, [userAgent]);
 
-  // Get client info on mount
   useEffect(() => {
     setClientInfo({
       platform: navigator.platform || "Unknown",
@@ -119,20 +118,18 @@ export function ClientSettings({
 
   const getCurrentUserAgent = (): string => {
     if (isCustom) return customAgent;
-    if (selectedKey === "Default (Volt-API)") return "Volt-API/dev";
+    if (selectedKey === DEFAULT_USER_AGENT_KEY) return "Volt-API/dev";
     return USER_AGENTS[selectedKey];
   };
 
   return (
     <div className="space-y-6">
-      {/* User-Agent Selection */}
       <div className="space-y-3">
         <div className="flex items-center gap-2 text-xs text-ctp-text">
           <Icons.Globe size={12} />
           <span>User-Agent</span>
         </div>
 
-        {/* Preset Selector */}
         <select
           value={isCustom ? "" : selectedKey}
           onChange={(e) => handleSelectChange(e.target.value as UserAgentKey)}
@@ -146,7 +143,6 @@ export function ClientSettings({
           {isCustom && <option value="">Custom</option>}
         </select>
 
-        {/* Custom Input */}
         <div className="space-y-1">
           <label className="text-xs text-ctp-text">Custom User-Agent:</label>
           <input
@@ -158,14 +154,12 @@ export function ClientSettings({
           />
         </div>
 
-        {/* Current Value Preview */}
         <div className="p-3 bg-ctp-surface0/50 rounded-md border border-ctp-surface0">
           <div className="text-xs text-ctp-text mb-1">Will be sent as:</div>
           <code className="text-xs text-ctp-green break-all">{getCurrentUserAgent()}</code>
         </div>
       </div>
 
-      {/* Timeout */}
       <div className="space-y-3">
         <div className="flex items-center gap-2 text-xs text-ctp-text">
           <Icons.History size={12} />
@@ -204,7 +198,6 @@ export function ClientSettings({
         </div>
       </div>
 
-      {/* Client Info */}
       <div className="space-y-3">
         <div className="flex items-center gap-2 text-xs text-ctp-text">
           <Icons.Settings size={12} />
@@ -231,7 +224,6 @@ export function ClientSettings({
         </div>
       </div>
 
-      {/* Proxy Settings */}
       <div className="space-y-3">
         <div className="flex items-center gap-2 text-xs text-ctp-text">
           <Icons.Globe size={12} />
@@ -259,7 +251,6 @@ export function ClientSettings({
         )}
       </div>
 
-      {/* SSL Settings */}
       <div className="space-y-3">
         <div className="flex items-center gap-2 text-xs text-ctp-text">
           <Icons.Lock size={12} />
@@ -306,7 +297,6 @@ export function ClientSettings({
         </div>
       </div>
 
-      {/* Redirect Settings */}
       <div className="space-y-3">
         <div className="flex items-center gap-2 text-xs text-ctp-text">
           <Icons.ArrowRight size={12} />
@@ -343,7 +333,6 @@ export function ClientSettings({
         )}
       </div>
 
-      {/* Quick Tips */}
       <div className="p-3 bg-ctp-blue/10 border border-ctp-blue/20 rounded-md">
         <div className="flex items-start gap-2">
           <Icons.Bolt size={12} className="text-ctp-blue mt-0.5" />

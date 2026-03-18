@@ -9,6 +9,22 @@ import {
   getOperatorName,
 } from "../utils/assertions";
 
+const ASSERTION_TYPES: AssertionType[] = [
+  "status",
+  "responseTime",
+  "bodyContains",
+  "bodyJson",
+  "headerExists",
+  "headerEquals",
+];
+
+const createPresetAssertion = (
+  assertion: Omit<Assertion, "id">
+): Assertion => ({
+  ...assertion,
+  id: crypto.randomUUID?.() || Math.random().toString(36).slice(2),
+});
+
 interface AssertionsEditorProps {
   assertions: Assertion[];
   onChange: (assertions: Assertion[]) => void;
@@ -28,13 +44,11 @@ export function AssertionsEditor({ assertions, onChange }: AssertionsEditorProps
       assertions.map((a) => {
         if (a.id !== id) return a;
         const updated = { ...a, ...updates };
-        // Reset operator if type changes and current operator is invalid
         if (updates.type) {
           const validOperators = getOperatorsForType(updates.type);
           if (!validOperators.includes(updated.operator)) {
             updated.operator = validOperators[0];
           }
-          // Reset expected value for certain type changes
           if (updates.type === "status") {
             updated.expected = "200";
             updated.property = "";
@@ -51,15 +65,6 @@ export function AssertionsEditor({ assertions, onChange }: AssertionsEditorProps
       })
     );
   };
-
-  const assertionTypes: AssertionType[] = [
-    "status",
-    "responseTime",
-    "bodyContains",
-    "bodyJson",
-    "headerExists",
-    "headerEquals",
-  ];
 
   const needsProperty = (type: AssertionType) =>
     ["bodyJson", "headerExists", "headerEquals"].includes(type);
@@ -89,7 +94,6 @@ export function AssertionsEditor({ assertions, onChange }: AssertionsEditorProps
 
   return (
     <div className="p-4 space-y-3">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="text-xs text-ctp-text">
           {assertions.length === 0
@@ -105,7 +109,6 @@ export function AssertionsEditor({ assertions, onChange }: AssertionsEditorProps
         </button>
       </div>
 
-      {/* Assertions List */}
       {assertions.length === 0 ? (
         <div className="text-center py-8 text-ctp-text text-xs">
           <p>Add assertions to test your API responses</p>
@@ -130,7 +133,6 @@ export function AssertionsEditor({ assertions, onChange }: AssertionsEditorProps
                 }`}
               >
                 <div className="flex items-start gap-2">
-                  {/* Enable/Disable Toggle */}
                   <button
                     onClick={() =>
                       handleUpdateAssertion(assertion.id, { enabled: !assertion.enabled })
@@ -144,9 +146,7 @@ export function AssertionsEditor({ assertions, onChange }: AssertionsEditorProps
                     {assertion.enabled && <Icons.Check size={10} />}
                   </button>
 
-                  {/* Assertion Fields */}
                   <div className="flex-1 space-y-2">
-                    {/* Row 1: Type and Operator */}
                     <div className="flex gap-2">
                       <select
                         value={assertion.type}
@@ -157,7 +157,7 @@ export function AssertionsEditor({ assertions, onChange }: AssertionsEditorProps
                         }
                         className="flex-1 bg-ctp-surface0 border border-ctp-surface1 px-2 py-1.5 rounded-md text-xs outline-none focus:border-ctp-lavender text-ctp-text"
                       >
-                        {assertionTypes.map((type) => (
+                        {ASSERTION_TYPES.map((type) => (
                           <option key={type} value={type}>
                             {getAssertionTypeName(type)}
                           </option>
@@ -181,7 +181,6 @@ export function AssertionsEditor({ assertions, onChange }: AssertionsEditorProps
                       </select>
                     </div>
 
-                    {/* Row 2: Property (if needed) */}
                     {showProperty && (
                       <input
                         type="text"
@@ -194,7 +193,6 @@ export function AssertionsEditor({ assertions, onChange }: AssertionsEditorProps
                       />
                     )}
 
-                    {/* Row 3: Expected Value (if needed) */}
                     {showExpected && (
                       <input
                         type="text"
@@ -208,7 +206,6 @@ export function AssertionsEditor({ assertions, onChange }: AssertionsEditorProps
                     )}
                   </div>
 
-                  {/* Delete Button */}
                   <button
                     onClick={() => handleRemoveAssertion(assertion.id)}
                     className="mt-1 p-1 text-ctp-overlay0 hover:text-ctp-red hover:bg-ctp-red/10 rounded-md flex-shrink-0"
@@ -222,7 +219,6 @@ export function AssertionsEditor({ assertions, onChange }: AssertionsEditorProps
         </div>
       )}
 
-      {/* Quick Add Presets */}
       {assertions.length === 0 && (
         <div className="pt-4 border-t border-ctp-surface0">
           <div className="text-xs text-ctp-subtext0 mb-2">Quick Add:</div>
@@ -230,14 +226,13 @@ export function AssertionsEditor({ assertions, onChange }: AssertionsEditorProps
             <button
               onClick={() => {
                 onChange([
-                  {
-                    id: crypto.randomUUID?.() || Math.random().toString(36).slice(2),
+                  createPresetAssertion({
                     type: "status",
                     property: "",
                     operator: "equals",
                     expected: "200",
                     enabled: true,
-                  },
+                  }),
                 ]);
               }}
               className="px-2 py-1 text-xs bg-ctp-green/10 text-ctp-green border border-ctp-green/30 rounded-md hover:bg-ctp-green/20"
@@ -247,14 +242,13 @@ export function AssertionsEditor({ assertions, onChange }: AssertionsEditorProps
             <button
               onClick={() => {
                 onChange([
-                  {
-                    id: crypto.randomUUID?.() || Math.random().toString(36).slice(2),
+                  createPresetAssertion({
                     type: "status",
                     property: "",
                     operator: "lessThan",
                     expected: "400",
                     enabled: true,
-                  },
+                  }),
                 ]);
               }}
               className="px-2 py-1 text-xs bg-ctp-blue/10 text-ctp-blue border border-ctp-blue/30 rounded-md hover:bg-ctp-blue/20"
@@ -264,14 +258,13 @@ export function AssertionsEditor({ assertions, onChange }: AssertionsEditorProps
             <button
               onClick={() => {
                 onChange([
-                  {
-                    id: crypto.randomUUID?.() || Math.random().toString(36).slice(2),
+                  createPresetAssertion({
                     type: "responseTime",
                     property: "",
                     operator: "lessThan",
                     expected: "1000",
                     enabled: true,
-                  },
+                  }),
                 ]);
               }}
               className="px-2 py-1 text-xs bg-ctp-peach/10 text-ctp-peach border border-ctp-peach/30 rounded-md hover:bg-ctp-peach/20"
@@ -281,14 +274,13 @@ export function AssertionsEditor({ assertions, onChange }: AssertionsEditorProps
             <button
               onClick={() => {
                 onChange([
-                  {
-                    id: crypto.randomUUID?.() || Math.random().toString(36).slice(2),
+                  createPresetAssertion({
                     type: "headerExists",
                     property: "Content-Type",
                     operator: "exists",
                     expected: "",
                     enabled: true,
-                  },
+                  }),
                 ]);
               }}
               className="px-2 py-1 text-xs bg-ctp-mauve/10 text-ctp-mauve border border-ctp-mauve/30 rounded-md hover:bg-ctp-mauve/20"

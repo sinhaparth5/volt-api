@@ -13,25 +13,19 @@ export function AppLogo({ size = 32, className = "" }: AppLogoProps) {
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      {/* Background circle */}
       <circle cx="32" cy="32" r="30" className="fill-ctp-mauve" />
-
-      {/* Lightning bolt (Volt) */}
       <path
         d="M36 12L20 36H30L28 52L44 28H34L36 12Z"
         className="fill-ctp-base"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-
-      {/* API dots */}
       <circle cx="16" cy="32" r="3" className="fill-ctp-base opacity-60" />
       <circle cx="48" cy="32" r="3" className="fill-ctp-base opacity-60" />
     </svg>
   );
 }
 
-// Smaller icon variant for tabs/headers
 export function AppIcon({ size = 16, className = "" }: AppLogoProps) {
   return (
     <svg

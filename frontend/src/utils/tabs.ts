@@ -8,7 +8,6 @@ import { app } from "../../wailsjs/go/models";
 type HTTPResponse = app.HTTPResponse;
 export type RequestState = "idle" | "loading" | "success" | "error";
 
-// Single request tab state
 export interface RequestTab {
   id: string;
   name: string;
@@ -33,12 +32,10 @@ export interface RequestTab {
   sentRequest: SentRequestInfo | null;
 }
 
-// Generate unique tab ID
 export const generateTabId = (): string => {
   return `tab-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 };
 
-// Create default tab
 export const createDefaultTab = (): RequestTab => ({
   id: generateTabId(),
   name: "New Request",
@@ -63,7 +60,6 @@ export const createDefaultTab = (): RequestTab => ({
   sentRequest: null,
 });
 
-// Get tab display name from URL or default
 export const getTabDisplayName = (tab: RequestTab): string => {
   if (tab.url) {
     try {
@@ -71,7 +67,6 @@ export const getTabDisplayName = (tab: RequestTab): string => {
       const path = urlObj.pathname;
       return path === "/" ? urlObj.hostname : path.split("/").pop() || urlObj.hostname;
     } catch {
-      // If URL is incomplete, show first part
       const cleaned = tab.url.replace(/^https?:\/\//, "");
       return cleaned.slice(0, 20) || "New Request";
     }

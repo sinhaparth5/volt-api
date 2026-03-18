@@ -20,6 +20,7 @@ import { wasmJsonFormat } from "../utils/wasm";
 type RequestState = "idle" | "loading" | "success" | "error";
 type RequestTab = "params" | "headers" | "auth" | "body" | "tests" | "client";
 type BodyType = "json" | "form-data" | "raw" | "none";
+const BODY_METHODS = new Set(["POST", "PUT", "PATCH"]);
 
 interface RequestSectionProps {
   method: string;
@@ -106,7 +107,6 @@ export function RequestSection({
     }
   };
 
-  // Sync URL -> params when URL changes
   const handleUrlChange = (newUrl: string) => {
     onUrlChange(newUrl);
 
@@ -120,7 +120,6 @@ export function RequestSection({
     onQueryParamsChange(newParams);
   };
 
-  // Sync params -> URL when params change
   const handleParamsChange = (newParams: KeyValuePair[]) => {
     onQueryParamsChange(newParams);
 
@@ -135,20 +134,16 @@ export function RequestSection({
     onUrlChange(newUrl);
   };
 
-  // Reset flags on external changes
   useEffect(() => {
     isUpdatingFromUrl.current = false;
     isUpdatingFromParams.current = false;
   }, []);
 
-  const showBody = ["POST", "PUT", "PATCH"].includes(method);
-
-  // Check for variables in URL and get preview
+  const showBody = BODY_METHODS.has(method);
   const urlHasVars = hasVariables(url);
   const resolvedUrl = urlHasVars ? substituteVariables(url, activeVariables) : url;
   const hasUnresolvedVars = urlHasVars && hasVariables(resolvedUrl);
 
-  // Count active items for badges
   const activeHeadersCount = headers.filter((h) => h.enabled && h.key.trim()).length;
   const activeParamsCount = queryParams.filter((p) => p.enabled && p.key.trim()).length;
   const activeAssertionsCount = assertions.filter((a) => a.enabled).length;
@@ -167,7 +162,6 @@ export function RequestSection({
 
   return (
     <section className="border-b border-ctp-surface0 bg-ctp-base">
-      {/* URL Bar - consistent 16px padding, 8px gap */}
       <div className="flex gap-2 items-center p-4">
         <MethodDropdown
           method={method}
@@ -207,7 +201,6 @@ export function RequestSection({
         )}
       </div>
 
-      {/* Variable Substitution Preview */}
       {urlHasVars && (
         <div className="px-4 pb-2 -mt-2">
           <div className={`flex items-start gap-2 px-3 py-2 rounded-md text-xs ${
@@ -228,7 +221,6 @@ export function RequestSection({
         </div>
       )}
 
-      {/* Tabs - consistent spacing */}
       <div className="flex border-b border-ctp-surface0 px-4 gap-1">
         {tabs.map((tab) => (
           <button
@@ -253,7 +245,6 @@ export function RequestSection({
         ))}
       </div>
 
-      {/* Tab Content - consistent padding, better max height */}
       <div className="p-4 max-h-56 overflow-y-auto">
         {activeTab === "params" && (
           <KeyValueEditor
@@ -279,7 +270,6 @@ export function RequestSection({
 
         {activeTab === "body" && showBody && (
           <div className="space-y-3">
-            {/* Body Type Selector */}
             <div className="flex items-center justify-between">
               <div className="flex bg-ctp-surface0 rounded-md p-0.5">
                 {(["none", "json", "form-data", "raw"] as BodyType[]).map((type) => (
@@ -305,9 +295,7 @@ export function RequestSection({
                       if (formatted !== requestBody) {
                         onBodyChange(formatted);
                       }
-                    } catch {
-                      // Invalid JSON, do nothing
-                    }
+                    } catch {}
                   }}
                   className="flex items-center gap-1.5 px-2 py-1 text-xs text-ctp-subtext0 hover:text-ctp-text hover:bg-ctp-surface0 rounded-md"
                   title="Format JSON"
@@ -318,7 +306,6 @@ export function RequestSection({
               )}
             </div>
 
-            {/* Body Content */}
             {bodyType === "none" && (
               <div className="text-ctp-text text-center text-sm py-8 bg-ctp-surface0/30 rounded-md border border-ctp-surface0 border-dashed">
                 No body content for this request

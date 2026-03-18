@@ -11,8 +11,80 @@ import { wasmJsonFormat, wasmParseCookiesSync, isWasmLoaded } from "../utils/was
 type HTTPResponse = app.HTTPResponse;
 type RequestState = "idle" | "loading" | "success" | "error";
 type ResponseTab = "body" | "headers" | "cookies" | "tests" | "chain" | "request";
+type ParsedCookie = { name: string; value: string; attributes: string };
 
-// Sent request info to display in Request tab
+const getContentType = (headers: Record<string, string>): string => {
+  for (const [key, value] of Object.entries(headers)) {
+    if (key.toLowerCase() === "content-type") {
+      return value.toLowerCase();
+    }
+  }
+  return "";
+};
+
+const isImageResponse = (headers: Record<string, string>): boolean => {
+  return getContentType(headers).startsWith("image/");
+};
+
+const isHtmlResponse = (headers: Record<string, string>): boolean => {
+  return getContentType(headers).includes("text/html");
+};
+
+const isBinaryResponse = (headers: Record<string, string>): boolean => {
+  const contentType = getContentType(headers);
+  const textTypes = ["text/", "application/json", "application/xml", "application/javascript"];
+  return Boolean(contentType) && !textTypes.some((type) => contentType.includes(type));
+};
+
+const getImageDataUrl = (body: string, headers: Record<string, string>): string | null => {
+  const contentType = getContentType(headers);
+  if (!contentType.startsWith("image/")) return null;
+
+  try {
+    const isPrintable = /^[\x20-\x7E\s]+$/.test(body.slice(0, 100));
+    if (isPrintable && body.length > 0) {
+      return `data:${contentType};base64,${body}`;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+};
+
+const parseCookies = (headers: Record<string, string>): ParsedCookie[] => {
+  if (isWasmLoaded()) {
+    return wasmParseCookiesSync(headers).map((cookie) => ({
+      name: cookie.name,
+      value: cookie.value,
+      attributes: [
+        cookie.path ? `Path=${cookie.path}` : null,
+        cookie.domain ? `Domain=${cookie.domain}` : null,
+        cookie.expires ? `Expires=${cookie.expires}` : null,
+        cookie.maxAge ? `Max-Age=${cookie.maxAge}` : null,
+        cookie.sameSite ? `SameSite=${cookie.sameSite}` : null,
+        cookie.secure ? "Secure" : null,
+        cookie.httpOnly ? "HttpOnly" : null,
+      ].filter(Boolean).join("; "),
+    }));
+  }
+
+  const cookies: ParsedCookie[] = [];
+  for (const [key, value] of Object.entries(headers)) {
+    if (key.toLowerCase() === "set-cookie") {
+      const parts = value.split(";");
+      const [nameValue, ...attributes] = parts;
+      const [name, ...cookieValueParts] = nameValue.split("=");
+      cookies.push({
+        name: name.trim(),
+        value: cookieValueParts.join("=").trim(),
+        attributes: attributes.join(";").trim(),
+      });
+    }
+  }
+  return cookies;
+};
+
 export interface SentRequestInfo {
   method: string;
   url: string;
@@ -47,7 +119,6 @@ export function ResponseSection({
   const [formattedBody, setFormattedBody] = useState<string>("");
   const [formattedSentBody, setFormattedSentBody] = useState<string>("");
 
-  // Pre-format JSON bodies using WASM (faster for large responses)
   useEffect(() => {
     if (response?.body) {
       wasmJsonFormat(response.body).then(setFormattedBody).catch(() => setFormattedBody(response.body));
@@ -64,54 +135,6 @@ export function ResponseSection({
     }
   }, [sentRequest?.body]);
 
-  // Detect content type from headers
-  const getContentType = (headers: Record<string, string>): string => {
-    for (const [key, value] of Object.entries(headers)) {
-      if (key.toLowerCase() === "content-type") {
-        return value.toLowerCase();
-      }
-    }
-    return "";
-  };
-
-  // Check if response is an image
-  const isImageResponse = (headers: Record<string, string>): boolean => {
-    const contentType = getContentType(headers);
-    return contentType.startsWith("image/");
-  };
-
-  // Check if response is HTML
-  const isHtmlResponse = (headers: Record<string, string>): boolean => {
-    const contentType = getContentType(headers);
-    return contentType.includes("text/html");
-  };
-
-  // Check if response is binary (non-text)
-  const isBinaryResponse = (headers: Record<string, string>): boolean => {
-    const contentType = getContentType(headers);
-    const textTypes = ["text/", "application/json", "application/xml", "application/javascript"];
-    return !textTypes.some((t) => contentType.includes(t)) && contentType !== "";
-  };
-
-  // Create data URL for image display
-  const getImageDataUrl = (body: string, headers: Record<string, string>): string | null => {
-    const contentType = getContentType(headers);
-    if (!contentType.startsWith("image/")) return null;
-
-    // Check if body looks like base64 (from Go backend)
-    // The body might be raw binary or base64 encoded
-    try {
-      // If the body contains mostly printable characters, it might be base64
-      const isPrintable = /^[\x20-\x7E\s]+$/.test(body.slice(0, 100));
-      if (isPrintable && body.length > 0) {
-        return `data:${contentType};base64,${body}`;
-      }
-    } catch {
-      // Fall through
-    }
-    return null;
-  };
-
   const handleCopy = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -122,36 +145,6 @@ export function ResponseSection({
     }
   };
 
-  // Parse cookies from Set-Cookie headers
-  const parseCookies = (headers: Record<string, string>): { name: string; value: string; attributes: string }[] => {
-    if (isWasmLoaded()) {
-      return wasmParseCookiesSync(headers).map((c) => ({
-        name: c.name,
-        value: c.value,
-        attributes: [
-          c.path     ? `Path=${c.path}`         : null,
-          c.domain   ? `Domain=${c.domain}`     : null,
-          c.expires  ? `Expires=${c.expires}`   : null,
-          c.maxAge   ? `Max-Age=${c.maxAge}`     : null,
-          c.sameSite ? `SameSite=${c.sameSite}` : null,
-          c.secure   ? "Secure"                 : null,
-          c.httpOnly ? "HttpOnly"               : null,
-        ].filter(Boolean).join("; "),
-      }));
-    }
-    const cookies: { name: string; value: string; attributes: string }[] = [];
-    for (const [key, value] of Object.entries(headers)) {
-      if (key.toLowerCase() === "set-cookie") {
-        const parts = value.split(";");
-        const [nameValue, ...attrs] = parts;
-        const [name, ...valueParts] = nameValue.split("=");
-        cookies.push({ name: name.trim(), value: valueParts.join("=").trim(), attributes: attrs.join(";").trim() });
-      }
-    }
-    return cookies;
-  };
-
-  // Loading state
   if (requestState === "loading") {
     const hasProgress = downloadProgress && downloadProgress.bytesRead > 0;
     const progressPercent =
@@ -191,7 +184,6 @@ export function ResponseSection({
     );
   }
 
-  // Response received
   if (response) {
     const cookies = parseCookies(response.headers || {});
     const headersCount = Object.keys(response.headers || {}).length;
@@ -217,7 +209,6 @@ export function ResponseSection({
 
     return (
       <section className="flex-1 flex flex-col overflow-hidden bg-ctp-base">
-        {/* Status Bar - separated visually from tabs */}
         <div className="px-4 py-3 border-b border-ctp-surface0 flex items-center justify-between bg-ctp-base">
           <div className="flex items-center gap-3">
             {response.error ? (
@@ -244,7 +235,6 @@ export function ResponseSection({
           </div>
         </div>
 
-        {/* Tabs - consistent with request section */}
         <div className="flex items-center justify-between border-b border-ctp-surface0 px-4 bg-ctp-base">
           <div className="flex gap-1">
             {tabs.map((tab) => (
@@ -274,7 +264,6 @@ export function ResponseSection({
             ))}
           </div>
 
-          {/* Actions - only show for body tab */}
           {activeTab === "body" && response.body && (
             <div className="flex items-center gap-2">
               {!isImageResponse(response.headers || {}) && !isBinaryResponse(response.headers || {}) && (
@@ -334,13 +323,11 @@ export function ResponseSection({
           )}
         </div>
 
-        {/* Tab Content */}
         <div className="flex-1 overflow-auto">
           {activeTab === "body" && (
             <div className="p-4">
               {response.body ? (
                 <>
-                  {/* Image response */}
                   {isImageResponse(response.headers || {}) && (
                     <div className="flex flex-col items-center gap-4">
                       {getImageDataUrl(response.body, response.headers || {}) ? (
@@ -360,7 +347,6 @@ export function ResponseSection({
                     </div>
                   )}
 
-                  {/* Binary response (non-image) */}
                   {isBinaryResponse(response.headers || {}) && !isImageResponse(response.headers || {}) && (
                     <div className="flex flex-col items-center gap-4 py-8">
                       <div className="w-16 h-16 rounded-xl bg-ctp-surface0 flex items-center justify-center">
@@ -382,7 +368,6 @@ export function ResponseSection({
                     </div>
                   )}
 
-                  {/* Text response */}
                   {!isImageResponse(response.headers || {}) && !isBinaryResponse(response.headers || {}) && (
                     <>
                       {bodyView === "preview" && isHtmlResponse(response.headers || {}) ? (
@@ -477,7 +462,6 @@ export function ResponseSection({
             <div className="p-4 space-y-4">
               {sentRequest ? (
                 <>
-                  {/* Method and URL */}
                   <div className="space-y-2">
                     <div className="text-xs text-ctp-text uppercase tracking-wider">Request</div>
                     <div className="p-3 bg-ctp-surface0/30 rounded-md border border-ctp-surface0">
@@ -497,7 +481,6 @@ export function ResponseSection({
                     </div>
                   </div>
 
-                  {/* Headers Sent */}
                   <div className="space-y-2">
                     <div className="text-xs text-ctp-text uppercase tracking-wider">
                       Headers Sent ({Object.keys(sentRequest.headers).length})
@@ -518,7 +501,6 @@ export function ResponseSection({
                     )}
                   </div>
 
-                  {/* Body Sent */}
                   {sentRequest.body && (
                     <div className="space-y-2">
                       <div className="text-xs text-ctp-text uppercase tracking-wider">Body Sent</div>
@@ -540,7 +522,6 @@ export function ResponseSection({
     );
   }
 
-  // Idle state - no response yet
   if (requestState === "idle") {
     return (
       <section className="flex-1 flex flex-col overflow-hidden bg-ctp-base">
